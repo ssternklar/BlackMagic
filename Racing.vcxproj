@@ -153,6 +153,7 @@
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />
     <ClInclude Include="include\DXCore.h" />
+    <ClInclude Include="include\ECS.h" />
     <ClInclude Include="include\Entity.h" />
     <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\GameObject.h" />
