@@ -1,81 +1,106 @@
 #pragma once
+#include"globals.h"
 #include<stddef.h>
-
-typedef unsigned char byte;
 
 namespace BlackMagic
 {
-	template<typename T, size_t alignment>
 	class FixedBlockAllocator
 	{
-		static const int alignSize = sizeof(T) + ((alignment - 1) - (sizeof(T) % (alignment - 1)));
-
+	private:
 		struct FixedBlockTracking
 		{
 			FixedBlockTracking* next;
-			byte padding[alignSize - sizeof(FixedBlockTracking*)];
-		};
-
-		union BlockSize_Union
-		{
-			T block;
-			FixedBlockTracking tracking;
 		};
 
 		size_t numBlocks;
-		BlockSize_Union* storage;
+		size_t blockSize;
+		FixedBlockTracking* storage;
 		FixedBlockTracking* next;
 
-	public:
-		FixedBlockAllocator(size_t size, byte* buffer = nullptr)
+		FixedBlockTracking* indexBlock(size_t index)
 		{
+			return (storage + ((index * blockSize) / sizeof(FixedBlockTracking)));
+		}
+
+	public:
+		FixedBlockAllocator(size_t size, size_t alignment, size_t blockSize, byte* buffer = nullptr)
+		{
+			size_t alignedSize = alignSize(alignment, blockSize);
 			if (buffer == nullptr)
 			{
 				byte* ptr = reinterpret_cast<byte*>(this);
-				size = size - alignSize;
-				storage = (BlockSize_Union*)(ptr + alignSize);
+				size = size - alignedSize;
+				storage = (FixedBlockTracking*)(ptr + alignedSize);
 			}
 			else
 			{
-				storage = (BlockSize_Union*)buffer;
+				storage = (FixedBlockTracking*)buffer;
 			}
 
-			numBlocks = size / sizeof(BlockSize_Union);
+			this->blockSize = alignedSize;
+			numBlocks = size / alignedSize;
 
 			for (int i = 0; i < numBlocks - 1; i++)
 			{
-				storage[i].tracking.next = &(storage[i + 1].tracking);
+				indexBlock(i)->next = indexBlock(i+1);
 			}
-			storage[numBlocks - 1].tracking.next = nullptr;
-			next = &(storage[0].tracking);
+			indexBlock(numBlocks - 1)->next = nullptr;
+			next = storage;
 		}
 
-		T* allocate()
+		void* allocate(size_t size, size_t n = 1)
 		{
-			T* ret = nullptr;
+			if (size + n > blockSize)
+			{
+				throw "Requested allocation larger than block size!";
+			}
+			void* ret = nullptr;
 			if (next)
 			{
 				FixedBlockTracking* toUse = next;
 				next = toUse->next;
-				void* ptr = static_cast<void*>(toUse);
-				ret = new (ptr) T();
+				ret = static_cast<void*>(toUse);
 			}
 			return ret;
 		}
 
-		void deallocate(T* dealloc, bool callDestructor)
+		template<typename T>
+		T* allocate(bool callConstructor = false, size_t n = 1)
 		{
-			FixedBlockTracking* ptr = (FixedBlockTracking*)dealloc;
-			int index = ptr - &(storage->tracking);
-			if (&(storage[index].tracking) == ptr)
+			void* memory = allocate(sizeof(T), n);
+			if (callConstructor)
 			{
-				if (callDestructor)
-				{
-					dealloc->~T();
-				}
-				storage[index].tracking.next = next;
-				next = &(storage[index].tracking);
+				return new (memory) T[n];
 			}
+			return (T*)memory;
+		}
+
+		void deallocate(void* dealloc, size_t size, size_t n = 1)
+		{
+			if (size + n > blockSize)
+			{
+				throw "Requested deallocation larger than block size!";
+			}
+			FixedBlockTracking* ptr = (FixedBlockTracking*)dealloc;
+			size_t index = ((ptr - storage) * sizeof(FixedBlockTracking) / blockSize);
+			if (indexBlock(index) == ptr)
+			{
+				indexBlock(index)->next = next;
+				next = indexBlock(index);
+			}
+		}
+
+		template<typename T>
+		void deallocate(T* dealloc, bool callDestructor = false, size_t n = 1)
+		{
+			if (callDestructor)
+			{
+				/*for (int i = 0; i < n; i++)
+				{
+					(dealloc[i])->~T();
+				}*/
+			}
+			deallocate((void*)dealloc, sizeof(T), n);
 		}
 	};
 }
