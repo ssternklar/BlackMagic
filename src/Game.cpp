@@ -55,29 +55,32 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	_content = std::make_unique<ContentManager>(device, context, L"./assets/");
-	_renderer = std::make_unique<Renderer>(device, context);
+	_renderer = std::make_unique<GraphicsDevice>();
+	
+	auto hr = _renderer->Init(hWnd, width, height);
+	if (hr)
+	{
+		std::cout << "[Error] Renderer init failed with code " << hr << std::endl;
+		std::exit(hr);
+	}
+	
+	_content = std::make_unique<ContentManager>(_renderer->Device(), _renderer->Context(), L"./assets/");
+
+	dxFeatureLevel = _renderer->FeatureLevel();
 
 	LoadContent();
 
 	_directionalLights.push_back({
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ 1, -1, 0 }
+		{ 1, 0, 0 }
 	});
 
 	_directionalLights.push_back({
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
-		{ 0.0f, 0.0f, 0.0f, 0.0f },
-		{ -1, -1, 0 }
+		{ 0.0f, 0.0f, 0.0f, 1.0f },
+		{ 1.0f, 1.0f, 1.0f, 1.0f },
+		{ -1, 0, 0 }
 	});
-
-	// Tell the input assembler stage of the pipeline what kind of
-	// geometric primitives (points, lines or triangles) we want to draw.  
-	// Essentially: "What kind of shape should the GPU draw with our data?"
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	
 }
 
 
@@ -85,8 +88,8 @@ void Game::LoadContent()
 {
 	auto sphere = _content->Load<Mesh>(L"/models/sphere.obj");
 
-	auto rocks = _content->Load<Texture>(L"/textures/rocks.jpg");
-	auto rocksNormals = _content->Load<Texture>(L"/textures/rocks_normal.jpg");
+	auto rocks = _content->Load<Texture>(L"/textures/rocks.png");
+	auto rocksNormals = _content->Load<Texture>(L"/textures/rocks_normal.png");
 
 	auto sand = _content->Load<Texture>(L"/textures/sand_texture.JPG");
 	auto sandNormals = _content->Load<Texture>(L"textures/sand_normal.JPG");
@@ -103,24 +106,20 @@ void Game::LoadContent()
 	samplerDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	ID3D11SamplerState* tempSampler;
-	device->CreateSamplerState(&samplerDesc, &tempSampler);
-	std::shared_ptr<ID3D11SamplerState> sampler{ tempSampler, [=](ID3D11SamplerState* sampler){
-		sampler->Release();
-	}};
+	auto sampler = _renderer->CreateSamplerState(samplerDesc);
 
 	auto gridMat = std::make_shared<Material>(
 		vertexShader, pixelShader,
-		sand, sampler,
-		sandNormals);
+		rocks, sampler,
+		rocksNormals);
 	
 	XMFLOAT4 quatIdentity;
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	for(size_t y = 0; y < 10; y++)
+	for(size_t y = 0; y < 1; y++)
 	{
-		for(size_t x = 0; x < 10; x++)
+		for(size_t x = 0; x < 1; x++)
 		{
 			_entities.emplace_back(Entity{ sphere, gridMat, XMFLOAT3{static_cast<float>(x), static_cast<float>(y), 0}, quatIdentity, defaultScale });
 		}
@@ -135,7 +134,8 @@ void Game::LoadContent()
 void Game::OnResize()
 {
 	// Handle base-level DX resize stuff
-	DXCore::OnResize();
+	if (_renderer && _renderer->Device() != nullptr)
+		_renderer->OnResize(width, height);
 
 	// Update the camera's projection matrix since the window size changed
 	_camera.UpdateProjectionMatrix(width, height);
@@ -149,15 +149,6 @@ void Game::Update(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
-
-	if (GetAsyncKeyState('E') & 0x8000)
-	{
-		_renderer->UseNormalMap = 1;
-	}
-	else
-	{
-		_renderer->UseNormalMap = 0;
-	}
 
 	_camera.Update(deltaTime);
 
@@ -174,31 +165,14 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
-
-	// Clear the render target and depth buffer (erases what's on the screen)
-	//  - Do this ONCE PER FRAME
-	//  - At the beginning of Draw (before drawing *anything*)
-	context->ClearRenderTargetView(backBufferRTV, color);
-	context->ClearDepthStencilView(
-		depthStencilView,
-		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-		1.0f,
-		0);
-
-	//If this were a more advanced engine there would be frustum culling and material sorting here
+	//Cornflower blue
+	const XMFLOAT4 color{0.4f, 0.6f, 0.75f, 0.0f};
+	_renderer->Clear(color);
 	std::vector<Renderable*> renderables;
 	renderables.reserve(100);
 	_renderer->Cull(_camera, _entities, renderables);
-
-	//Render the entities
 	_renderer->Render(_camera, renderables, _directionalLights);
-
-	// Present the back buffer to the user
-	//  - Puts the final frame we're drawing into the window so the user can see it
-	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
-	swapChain->Present(0, 0);
+	_renderer->Present(0, 0);
 }
 
 #pragma region Mouse Input

@@ -9,7 +9,7 @@
 #include "DirectionalLight.h"
 #include "DXCore.h"
 #include "Entity.h"
-#include "Renderer.h"
+#include "GraphicsDevice.h"
 
 class Game
 	: public DXCore
@@ -21,7 +21,7 @@ public:
 	// Overridden setup and game loop methods, which
 	// will be called automatically
 	void Init();
-	void OnResize();
+	void OnResize() override;
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
 
@@ -56,8 +56,7 @@ private:
 	std::vector<DirectionalLight> _directionalLights;
 	
 	std::unique_ptr<ContentManager> _content;
-
-	std::unique_ptr<Renderer> _renderer;
+	std::unique_ptr<GraphicsDevice> _renderer;
 
 	void* _transformMemory;
 };

@@ -8,7 +8,7 @@
 
 class Renderable
 {
-	friend class Renderer;
+	friend class GraphicsDevice;
 public:
 	Transform transform;
 	Renderable(const std::shared_ptr<Mesh> mesh, const std::shared_ptr<Material> mat,

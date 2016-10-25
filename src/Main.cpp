@@ -30,12 +30,6 @@ int WINAPI WinMain(
 	if (FAILED(hr))
 		return hr;
 
-	// Attempt to initialize DirectX, and exit
-	// early if something failed
-	hr = dxGame.InitDirectX();
-	if (FAILED(hr))
-		return hr;
-
 	// Begin the message and game loop, and then return
 	// whatever we get back once the game loop is over
 	return dxGame.Run();

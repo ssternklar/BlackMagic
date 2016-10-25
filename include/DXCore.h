@@ -33,10 +33,9 @@ public:
 
 	// Initialization and game-loop related methods
 	HRESULT InitWindow();
-	HRESULT InitDirectX();
 	HRESULT Run();
 	void Quit();
-	virtual void OnResize();
+	virtual void OnResize() = 0;
 
 	// Pure virtual methods for setup and game functionality
 	virtual void Init() = 0;
@@ -65,12 +64,6 @@ protected:
 
 	// DirectX related objects and variables
 	D3D_FEATURE_LEVEL dxFeatureLevel;
-	IDXGISwapChain* swapChain;
-	ID3D11Device* device;
-	ID3D11DeviceContext* context;
-
-	ID3D11RenderTargetView* backBufferRTV;
-	ID3D11DepthStencilView* depthStencilView;
 
 	// Helper function for allocating a console window
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
