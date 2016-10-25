@@ -1,7 +1,6 @@
 #pragma once
+#include"globals.h"
 #include<stddef.h>
-
-typedef unsigned char byte;
 
 namespace BlackMagic
 {
@@ -13,12 +12,6 @@ namespace BlackMagic
 		size_t alignment;
 		byte* storage;
 		byte* currentPointer;
-
-		template<typename T>
-		inline size_t alignSize(size_t minAlign)
-		{
-			return sizeof(T) + ((minAlign - 1) - (sizeof(T) % (minAlign - 1)));
-		}
 
 	public:
 		//If buffer is nullptr, assume that the buffer starts at "this"
@@ -40,31 +33,51 @@ namespace BlackMagic
 			currentPointer = storage;
 		}
 
-		template<typename T>
-		T* allocate()
+		void* allocate(size_t size, size_t n = 1)
 		{
-			T* ret = nullptr;
-			size_t offset = alignSize<T>(alignment);
+			size_t requestedSize = size * n;
+			void* ret = nullptr;
+			size_t offset = alignSize(alignment, requestedSize);
 			if (currentPointer + offset <= storage + size)
 			{
-				ret = new (currentPointer) T();
+				ret = currentPointer;
 				currentPointer += offset;
 			}
 			return ret;
 		}
-	
+
 		template<typename T>
-		void deallocate(T* dealloc, bool callDestructor)
+		T* allocate(bool callConstructor = false, size_t n = 1)
 		{
-			if ((byte*)dealloc >= storage && (byte*)dealloc < currentPointer && sizeof(T) < currentPointer - storage)
+			void* memory = allocate(sizeof(T), n);
+			if (callConstructor)
 			{
-				size_t offset = alignSize<T>(alignment);
-				if (callDestructor)
-				{
-					dealloc->~T();
-				}
+				return new (memory) T[n];
+			}
+			return (T*)memory;
+		}
+
+		void deallocate(void* dealloc, size_t size, size_t n = 1)
+		{
+			size_t requestedSize = size * n;
+			if ((byte*)dealloc >= storage && (byte*)dealloc < currentPointer && requestedSize < (size_t)(currentPointer - storage))
+			{
+				size_t offset = alignSize(alignment, requestedSize);
 				currentPointer -= offset;
 			}
+		}
+
+		template<typename T>
+		void deallocate(T* dealloc, bool callDestructor = false, size_t n = 1)
+		{
+			if (callDestructor)
+			{
+				/*for (int i = 0; i < n; i++)
+				{
+					(dealloc[i])->~T();
+				}*/
+			}
+			deallocate((void*)dealloc, sizeof(T), n);
 		}
 
 		size_t GetMaxSize()
