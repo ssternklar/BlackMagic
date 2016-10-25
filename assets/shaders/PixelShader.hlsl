@@ -17,7 +17,7 @@ struct DirectionalLight
 cbuffer externalData : register(b0)
 {
 	DirectionalLight directionalLights[NUM_LIGHTS];
-	uint UseNormalMap;
+	float3 cameraPos;
 };
 
 Texture2D mainTex : register(t0);
@@ -32,45 +32,48 @@ struct VertexToPixel
 	//  |    |                |
 	//  v    v                v
 	float4 position : SV_POSITION; // XYZW position (System Value Position)
-	float4 worldPos : POSITIONT;
+	float3 worldPos : POSITION;
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
 	float2 uv : TEXCOORD;
 };
 
+float3 colorFromDirectionalLights(VertexToPixel input, float2 uv)
+{
+	float3 ambient, diffuse, specular;
+	ambient = diffuse = specular = float3(0, 0, 0);
+
+	float3 v = normalize(cameraPos - input.worldPos);
+	for (uint i = 0; i < NUM_LIGHTS; i++)
+	{
+		float3 l = -normalize(directionalLights[i].Direction);
+		float diff = saturate(dot(input.normal, l));
+		diffuse += diff * directionalLights[i].DiffuseColor;
+
+		float3 h = normalize(l + v);
+		float spec = pow(max(dot(input.normal, h), 0), 32);
+		specular += spec * float3(1, 1, 1);
+
+		ambient += directionalLights[i].AmbientColor;
+	}
+
+	float3 texColor = mainTex.Sample(mainSampler, uv);
+	return pow((ambient + diffuse)*texColor, 1/2.2) + specular;
+
+}
+
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	float3 color = float3(0,0,0);
-	float3 ambient = float3(0,0,0);
+	float3 ambient = float3(0.1,0.1,0.1);
 	float3 specColor = float3(0, 0, 0);
-	float3 texColor = pow(mainTex.Sample(mainSampler, input.uv), 2.2);
-
+	
 	float3x3 tbn = float3x3(input.tangent, input.binormal, input.normal);
-	float3 normal = normalMap.Sample(mainSampler, input.uv);
-	normal = normal * 2 - 1;
-	normal = mul(normal, tbn);
+	input.normal = normalMap.Sample(mainSampler, input.uv) * 2 - 1;
+	input.normal = mul(input.normal, tbn);
 
-	if (UseNormalMap == 0)
-		normal = input.normal;
+	float3 finalColor = colorFromDirectionalLights(input, input.uv);
 
-	float3 v = -normalize(input.worldPos);
-	for (int i = 0; i < NUM_LIGHTS; i++)
-	{
-		float3 l = -normalize(directionalLights[i].Direction);
-		float nDotL = saturate(dot(normal, l));
-
-		float3 h = (l + v)/2;
-		float angle = max(dot(normal, h), 0.0);
-		float spec = pow(angle, 128);
-
-		color += nDotL * directionalLights[i].DiffuseColor.rgb;
-		specColor += spec * float3(1, 1, 1);
-		ambient += directionalLights[i].AmbientColor.rgb;
-	}
-
-	ambient /= NUM_LIGHTS;
-	color /= NUM_LIGHTS;
-
-	return float4(pow((ambient+color)*texColor, 1/2.2), 1.0);
+	return float4(finalColor, 1.0);
 }

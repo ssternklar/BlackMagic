@@ -44,7 +44,7 @@ struct VertexToPixel
 	//  |    |                |
 	//  v    v                v
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
-	float4 worldPos		: POSITIONT;
+	float3 worldPos		: POSITION;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
 	float3 binormal		: BINORMAL;
@@ -66,8 +66,7 @@ VertexToPixel main( VertexShaderInput input )
 	matrix worldView = mul(world, view);
 	
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
-	output.worldPos = mul(float4(input.position, 1.0f), worldView);
-	output.worldPos /= output.worldPos.w;
+	output.worldPos = mul(float4(input.position, 1.0f), world).xyz;
 
 	output.normal = mul(input.normal, (float3x3)world);
 	output.tangent = mul(input.tangent, (float3x3)world);
