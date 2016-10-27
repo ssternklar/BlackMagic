@@ -37,6 +37,10 @@ namespace BlackMagic
 				storage = (FixedBlockTracking*)buffer;
 			}
 
+			byte alignmentIssues = (reinterpret_cast<size_t>(storage) & (alignment - 1));
+			size -= alignmentIssues;
+			storage = reinterpret_cast<FixedBlockTracking*>(reinterpret_cast<byte*>(storage) + alignmentIssues);
+
 			this->blockSize = alignedSize;
 			numBlocks = size / alignedSize;
 
