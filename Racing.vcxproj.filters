@@ -60,6 +60,12 @@
     <ClCompile Include="src\TransformData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SplineControlPoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SplinePiece.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Camera.h">
@@ -115,6 +121,30 @@
     </ClInclude>
     <ClInclude Include="include\ECS.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\allocators\AllocatorSTLAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\allocators\BadBestFitAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\allocators\FixedBlockAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\allocators\globals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\allocators\StackAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Spline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SplineControlPoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SplinePiece.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

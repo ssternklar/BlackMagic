@@ -133,6 +133,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="SplineControlPoint.cpp" />
+    <ClCompile Include="SplinePiece.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
     <ClCompile Include="src\DXCore.cpp" />
@@ -149,6 +151,11 @@
     <ClCompile Include="src\TransformData.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
+    <ClInclude Include="include\allocators\BadBestFitAllocator.h" />
+    <ClInclude Include="include\allocators\FixedBlockAllocator.h" />
+    <ClInclude Include="include\allocators\globals.h" />
+    <ClInclude Include="include\allocators\StackAllocator.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />
@@ -167,6 +174,9 @@
     <ClInclude Include="include\Transform.h" />
     <ClInclude Include="include\TransformData.h" />
     <ClInclude Include="include\Vertex.h" />
+    <ClInclude Include="Spline.h" />
+    <ClInclude Include="SplineControlPoint.h" />
+    <ClInclude Include="SplinePiece.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="assets\shaders\PixelShader.hlsl">
