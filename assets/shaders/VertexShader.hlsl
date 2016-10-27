@@ -1,4 +1,4 @@
-
+#include "ShaderStructs.h"
 // Constant Buffer
 // - Allows us to define a buffer of individual variables 
 //    which will (eventually) hold data from our C++ code
@@ -17,7 +17,7 @@ cbuffer externalData : register(b0)
 // - By "match", I mean the size, order and number of members
 // - The name of the struct itself is unimportant, but should be descriptive
 // - Each variable must have a semantic, which defines its usage
-struct VertexShaderInput
+struct Vertex
 { 
 	// Data type
 	//  |
@@ -58,7 +58,7 @@ struct VertexToPixel
 // - Output is a single struct of data to pass down the pipeline
 // - Named "main" because that's the default the shader compiler looks for
 // --------------------------------------------------------
-VertexToPixel main( VertexShaderInput input )
+VertexToPixel main( Vertex input )
 {
 	VertexToPixel output;
 
