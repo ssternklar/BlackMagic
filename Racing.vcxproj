@@ -133,8 +133,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="SplineControlPoint.cpp" />
-    <ClCompile Include="SplinePiece.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
     <ClCompile Include="src\DXCore.cpp" />
@@ -146,6 +144,9 @@
     <ClCompile Include="src\Renderable.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
+    <ClCompile Include="src\Spline.cpp" />
+    <ClCompile Include="src\SplineControlPoint.cpp" />
+    <ClCompile Include="src\SplinePiece.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\TransformData.cpp" />
@@ -170,13 +171,13 @@
     <ClInclude Include="include\IResource.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\SimpleShader.h" />
+    <ClInclude Include="include\Spline.h" />
+    <ClInclude Include="include\SplineControlPoint.h" />
+    <ClInclude Include="include\SplinePiece.h" />
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\Transform.h" />
     <ClInclude Include="include\TransformData.h" />
     <ClInclude Include="include\Vertex.h" />
-    <ClInclude Include="Spline.h" />
-    <ClInclude Include="SplineControlPoint.h" />
-    <ClInclude Include="SplinePiece.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="assets\shaders\PixelShader.hlsl">

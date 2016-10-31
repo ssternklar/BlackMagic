@@ -2,8 +2,9 @@
 
 #include <DirectXMath.h>
 
-struct SplineControlPoint
+class SplineControlPoint
 {
+public:
 	DirectX::XMFLOAT4 rotation;
 	DirectX::XMFLOAT3 position;
 	DirectX::XMFLOAT3 scale;

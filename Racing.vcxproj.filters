@@ -60,10 +60,13 @@
     <ClCompile Include="src\TransformData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SplineControlPoint.cpp">
+    <ClCompile Include="src\SplineControlPoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SplinePiece.cpp">
+    <ClCompile Include="src\SplinePiece.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Spline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -137,14 +140,14 @@
     <ClInclude Include="include\allocators\StackAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Spline.h">
+    <ClInclude Include="include\Spline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SplineControlPoint.h">
+    <ClInclude Include="include\SplineControlPoint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SplinePiece.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="include\SplinePiece.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
