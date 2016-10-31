@@ -144,11 +144,19 @@
     <ClCompile Include="src\Renderable.cpp" />
     <ClCompile Include="src\GraphicsDevice.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
+    <ClCompile Include="src\Spline.cpp" />
+    <ClCompile Include="src\SplineControlPoint.cpp" />
+    <ClCompile Include="src\SplinePiece.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\TransformData.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
+    <ClInclude Include="include\allocators\BadBestFitAllocator.h" />
+    <ClInclude Include="include\allocators\FixedBlockAllocator.h" />
+    <ClInclude Include="include\allocators\globals.h" />
+    <ClInclude Include="include\allocators\StackAllocator.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />
@@ -163,6 +171,9 @@
     <ClInclude Include="include\IResource.h" />
     <ClInclude Include="include\GraphicsDevice.h" />
     <ClInclude Include="include\SimpleShader.h" />
+    <ClInclude Include="include\Spline.h" />
+    <ClInclude Include="include\SplineControlPoint.h" />
+    <ClInclude Include="include\SplinePiece.h" />
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\Transform.h" />
     <ClInclude Include="include\TransformData.h" />
