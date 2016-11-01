@@ -29,8 +29,8 @@ Game::Game(HINSTANCE hInstance)
 	_camera({0, 0, -5}, {0, 0, 1}, 2)
 {
 	_camera.UpdateProjectionMatrix(width, height);
-	_transformMemory = operator new(200 * TransformData::Size);
-	TransformData::Init(200, _transformMemory);
+	_transformMemory = operator new(300 * TransformData::Size);
+	TransformData::Init(300, _transformMemory);
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -117,9 +117,9 @@ void Game::LoadContent()
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	for(size_t y = 0; y < 1; y++)
+	for(size_t y = 0; y < 20; y++)
 	{
-		for(size_t x = 0; x < 1; x++)
+		for(size_t x = 0; x < 20; x++)
 		{
 			_entities.emplace_back(Entity{ sphere, gridMat, XMFLOAT3{static_cast<float>(x), static_cast<float>(y), 0}, quatIdentity, defaultScale });
 		}

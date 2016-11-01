@@ -6,10 +6,10 @@ using namespace DirectX;
 
 //5 pointers + an ID
 size_t TransformData::Size = sizeof(XMFLOAT4X4*) + sizeof(XMFLOAT4*) + 2*sizeof(XMFLOAT3*) + sizeof(bool*) + sizeof(TransformID);
-XMFLOAT4X4 TransformData::_matrices[100];
-XMFLOAT4 TransformData::_rotations[100];
-XMFLOAT3 TransformData::_positions[100];
-XMFLOAT3 TransformData::_scales[100];
+XMFLOAT4X4 TransformData::_matrices[400];
+XMFLOAT4 TransformData::_rotations[400];
+XMFLOAT3 TransformData::_positions[400];
+XMFLOAT3 TransformData::_scales[400];
 std::stack<TransformID> TransformData::_availableTransforms;
 TransformID TransformData::_nextAvailableTransform = 0;
 
@@ -24,6 +24,8 @@ TransformID TransformData::AllocateTransform()
 	size_t res;
 	if (_availableTransforms.empty())
 	{
+		static size_t last;
+		last = _nextAvailableTransform;
 		res = _nextAvailableTransform++;
 	}
 	else
