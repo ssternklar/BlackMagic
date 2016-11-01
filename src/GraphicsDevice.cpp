@@ -66,6 +66,9 @@ std::shared_ptr<ID3D11SamplerState> GraphicsDevice::CreateSamplerState(D3D11_SAM
 
 void GraphicsDevice::OnResize(UINT width, UINT height)
 {
+	_width = width;
+	_height = height;
+	
 	// Release existing DirectX views and buffers
 	if (_depthStencil)
 	{
@@ -74,6 +77,18 @@ void GraphicsDevice::OnResize(UINT width, UINT height)
 	if (_backBuffer)
 	{
 		_backBuffer->Release();
+	}
+	if (_diffuseMap)
+	{
+		delete _diffuseMap;
+	}
+	if (_specularMap)
+	{
+		delete _specularMap;
+	}
+	if (_normalMap)
+	{
+		delete _normalMap;
 	}
 
 	// Resize the underlying swap chain buffers
@@ -84,51 +99,7 @@ void GraphicsDevice::OnResize(UINT width, UINT height)
 		DXGI_FORMAT_R8G8B8A8_UNORM,
 		0);
 
-	// Recreate the render target view for the back buffer
-	// texture, then release our local texture reference
-	ID3D11Texture2D* backBufferTexture;
-	_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBufferTexture));
-	_device->CreateRenderTargetView(backBufferTexture, 0, &_backBuffer);
-	backBufferTexture->Release();
-
-	// Set up the description of the texture to use for the depth buffer
-	D3D11_TEXTURE2D_DESC depthStencilDesc;
-	depthStencilDesc.Width = width;
-	depthStencilDesc.Height = height;
-	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.ArraySize = 1;
-	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.CPUAccessFlags = 0;
-	depthStencilDesc.MiscFlags = 0;
-	depthStencilDesc.SampleDesc.Count = 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
-
-	// Create the depth buffer and its view, then 
-	// release our reference to the texture
-	ID3D11Texture2D* depthBufferTexture;
-	auto hr = _device->CreateTexture2D(&depthStencilDesc, 0, &depthBufferTexture);
-	_device->CreateDepthStencilView(depthBufferTexture, 0, &_depthStencil);
-	depthBufferTexture->Release();
-
-	// Bind the views to the pipeline, so rendering properly 
-	// uses their underlying textures
-	_context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
-
-	// Lastly, set up a viewport so we render into
-	// to correct portion of the window
-	D3D11_VIEWPORT viewport = {};
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.Width = static_cast<float>(width);
-	viewport.Height = static_cast<float>(height);
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	_context->RSSetViewports(1, &viewport);
-
-	_width = width;
-	_height = height;
+	InitBuffers();
 }
 
 void GraphicsDevice::Present(UINT interval, UINT flags)
@@ -140,6 +111,8 @@ void GraphicsDevice::Present(UINT interval, UINT flags)
 HRESULT GraphicsDevice::Init(HWND window, UINT width, UINT height)
 {
 	unsigned int deviceFlags = 0;
+	_width = width;
+	_height = height;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -182,62 +155,9 @@ HRESULT GraphicsDevice::Init(HWND window, UINT width, UINT height)
 	if (FAILED(hr))
 		return hr;
 
-	// The above function created the back buffer render target
-	// for us, but we need a reference to it
-	ID3D11Texture2D* backBufferTexture;
-	_swapChain->GetBuffer(
-		0,
-		__uuidof(ID3D11Texture2D),
-		(void**)&backBufferTexture);
-
-	// Now that we have the texture, create a render target view
-	// for the back buffer so we can render into it.  Then release
-	// our local reference to the texture, since we have the view.
-	_device->CreateRenderTargetView(
-		backBufferTexture,
-		0,
-		&_backBuffer);
-	backBufferTexture->Release();
-
-	// Set up the description of the texture to use for the depth buffer
-	D3D11_TEXTURE2D_DESC depthStencilDesc;
-	depthStencilDesc.Width = width;
-	depthStencilDesc.Height = height;
-	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.ArraySize = 1;
-	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.CPUAccessFlags = 0;
-	depthStencilDesc.MiscFlags = 0;
-	depthStencilDesc.SampleDesc.Count = 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
-
-	// Create the depth buffer and its view, then 
-	// release our reference to the texture
-	ID3D11Texture2D* depthBufferTexture;
-	_device->CreateTexture2D(&depthStencilDesc, 0, &depthBufferTexture);
-	_device->CreateDepthStencilView(depthBufferTexture, 0, &_depthStencil);
-	depthBufferTexture->Release();
-
-	// Bind the views to the pipeline, so rendering properly 
-	// uses their underlying textures
-	_context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
-
-	// Lastly, set up a viewport so we render into
-	// to correct portion of the window
-	D3D11_VIEWPORT viewport = {};
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.Width = static_cast<float>(width);
-	viewport.Height = static_cast<float>(height);
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	_context->RSSetViewports(1, &viewport);
+	InitBuffers();
 
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	_width = width;
-	_height = height;
 
 	return S_OK;
 }
@@ -269,4 +189,90 @@ void GraphicsDevice::Render(const Camera& cam, const std::vector<Renderable*>& o
 		_context->DrawIndexed(static_cast<UINT>(object->_mesh->IndexCount()), 0, 0);
 	}
 }
+
+void GraphicsDevice::InitBuffers()
+{
+	// The above function created the back buffer render target
+	// for us, but we need a reference to it
+	ID3D11Texture2D* backBufferTexture;
+	_swapChain->GetBuffer(
+		0,
+		__uuidof(ID3D11Texture2D),
+		(void**)&backBufferTexture);
+
+	// Now that we have the texture, create a render target view
+	// for the back buffer so we can render into it.  Then release
+	// our local reference to the texture, since we have the view.
+	_device->CreateRenderTargetView(
+		backBufferTexture,
+		0,
+		&_backBuffer);
+	backBufferTexture->Release();
+
+	D3D11_TEXTURE2D_DESC colorMapDesc;
+	colorMapDesc.ArraySize = 1;
+	colorMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	colorMapDesc.CPUAccessFlags = 0;
+	colorMapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	colorMapDesc.MipLevels = 1;
+	colorMapDesc.MiscFlags = 0;
+	colorMapDesc.SampleDesc.Count = 1;
+	colorMapDesc.SampleDesc.Quality = 0;
+	colorMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	colorMapDesc.Height = _height;
+	colorMapDesc.Width = _width;
+
+	D3D11_TEXTURE2D_DESC normalMapDesc;
+	normalMapDesc.ArraySize = 1;
+	normalMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	normalMapDesc.CPUAccessFlags = 0;
+	normalMapDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	normalMapDesc.MipLevels = 1;
+	normalMapDesc.MiscFlags = 0;
+	normalMapDesc.SampleDesc.Count = 1;
+	normalMapDesc.SampleDesc.Quality = 0;
+	normalMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	normalMapDesc.Height = _height;
+	normalMapDesc.Width = _width;
+
+	// Set up the description of the texture to use for the depth buffer
+	D3D11_TEXTURE2D_DESC depthStencilDesc;
+	depthStencilDesc.Width = _width;
+	depthStencilDesc.Height = _height;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.ArraySize = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDesc.CPUAccessFlags = 0;
+	depthStencilDesc.MiscFlags = 0;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
+
+	ID3D11Texture2D *diff, *spec, *nrm, *depth;
+	
+	_device->CreateTexture2D(&colorMapDesc, nullptr, &diff);
+	_device->CreateTexture2D(&colorMapDesc, nullptr, &spec);
+	_device->CreateTexture2D(&normalMapDesc, nullptr, &nrm);
+	_device->CreateTexture2D(&depthStencilDesc, nullptr, &depth);
+	_device->CreateDepthStencilView(depth, nullptr, &_depthStencil);
+	depth->Release();
+
+	// Bind the views to the pipeline, so rendering properly 
+	// uses their underlying textures
+	_context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
+
+	// Lastly, set up a viewport so we render into
+	// to correct portion of the window
+	D3D11_VIEWPORT viewport = {};
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = static_cast<float>(_width);
+	viewport.Height = static_cast<float>(_height);
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	_context->RSSetViewports(1, &viewport);
+
+}
+
 

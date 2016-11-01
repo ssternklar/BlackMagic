@@ -45,22 +45,22 @@ float3 colorFromDirectionalLights(VertexToPixel input, float2 uv)
 	ambient = diffuse = specular = float3(0, 0, 0);
 
 	float3 v = normalize(cameraPos - input.worldPos);
-	for (uint i = 0; i < NUM_LIGHTS; i++)
+	for (uint i = 0; i < 1; i++)
 	{
 		float3 l = -normalize(directionalLights[i].Direction);
 		float diff = saturate(dot(input.normal, l));
-		diffuse += diff * directionalLights[i].DiffuseColor;
+		diffuse += diff * directionalLights[i].DiffuseColor.xyz;
 
 		float3 h = normalize(l + v);
 		float spec = pow(max(dot(input.normal, h), 0), 32);
 		specular += spec * float3(1, 1, 1);
 
-		ambient += directionalLights[i].AmbientColor;
+		ambient += directionalLights[i].AmbientColor.xyz;
 	}
 
-	float3 texColor = mainTex.Sample(mainSampler, uv);
-	return pow((ambient + diffuse)*texColor, 1/2.2) + specular;
-
+	float3 texColor = pow(mainTex.Sample(mainSampler, uv), 2.2);
+	return pow((ambient + diffuse) * texColor, 1 / 2.2);//+specular;
+	
 }
 
 float4 main(VertexToPixel input) : SV_TARGET

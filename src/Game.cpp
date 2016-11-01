@@ -88,8 +88,8 @@ void Game::LoadContent()
 {
 	auto sphere = _content->Load<Mesh>(L"/models/sphere.obj");
 
-	auto rocks = _content->Load<Texture>(L"/textures/rocks.png");
-	auto rocksNormals = _content->Load<Texture>(L"/textures/rocks_normal.png");
+	auto rocks = _content->Load<Texture>(L"/textures/rock.jpg");
+	auto rocksNormals = _content->Load<Texture>(L"/textures/rockNormals.jpg");
 
 	auto sand = _content->Load<Texture>(L"/textures/sand_texture.JPG");
 	auto sandNormals = _content->Load<Texture>(L"textures/sand_normal.JPG");

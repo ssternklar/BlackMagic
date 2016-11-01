@@ -92,9 +92,6 @@
     <ClInclude Include="include\ContentManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\IResource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -119,6 +116,9 @@
     <ClInclude Include="include\ShaderStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="assets\shaders\VertexShader.hlsl">
@@ -127,5 +127,7 @@
     <FxCompile Include="assets\shaders\PixelShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="assets\shaders\GBufferPS.hlsl" />
+    <FxCompile Include="assets\shaders\GBufferVS.hlsl" />
   </ItemGroup>
 </Project>
