@@ -9,7 +9,6 @@
 class GraphicsDevice
 {
 public:
-	unsigned int UseNormalMap = 0;
 	GraphicsDevice();
 	~GraphicsDevice();
 

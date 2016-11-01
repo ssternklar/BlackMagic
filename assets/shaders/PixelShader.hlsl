@@ -18,7 +18,6 @@ cbuffer externalData : register(b0)
 {
 	DirectionalLight directionalLights[NUM_LIGHTS];
 	float3 cameraPos;
-	uint useNormalMap;
 };
 
 Texture2D mainTex : register(t0);
@@ -66,12 +65,14 @@ float3 colorFromDirectionalLights(VertexToPixel input, float2 uv)
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	float3x3 tbn = float3x3(input.tangent, input.binormal, input.normal);
-	if (useNormalMap)
-	{
-		input.normal = (normalMap.Sample(mainSampler, input.uv).rgb * 2 - 1);
-		input.normal = normalize(mul(input.normal, tbn));
-	}
+	float3x3 tbn = float3x3(
+		normalize(input.tangent), 
+		normalize(input.binormal),
+		normalize(input.normal)
+	);
+
+	input.normal = (normalMap.Sample(mainSampler, input.uv).rgb * 2 - 1);
+	input.normal = normalize(mul(input.normal, tbn));
 
 	float3 finalColor = colorFromDirectionalLights(input, input.uv);
 

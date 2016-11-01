@@ -117,9 +117,9 @@ void Game::LoadContent()
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	for(size_t y = 0; y < 1; y++)
+	for(size_t y = 0; y < 20; y++)
 	{
-		for(size_t x = 0; x < 1; x++)
+		for(size_t x = 0; x < 20; x++)
 		{
 			_entities.emplace_back(Entity{ sphere, gridMat, XMFLOAT3{static_cast<float>(x), static_cast<float>(y), 0}, quatIdentity, defaultScale });
 		}
@@ -134,7 +134,7 @@ void Game::LoadContent()
 void Game::OnResize()
 {
 	// Handle base-level DX resize stuff
-	if (_renderer && _renderer->Device() != nullptr)
+	if (_renderer && _renderer->Device())
 		_renderer->OnResize(width, height);
 
 	// Update the camera's projection matrix since the window size changed
@@ -149,11 +149,6 @@ void Game::Update(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
-
-	if (GetAsyncKeyState('E') & 0x8000)
-		_renderer->UseNormalMap = true;
-	else
-		_renderer->UseNormalMap = false;
 
 	_camera.Update(deltaTime);
 
