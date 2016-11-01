@@ -32,6 +32,9 @@ Game::Game(HINSTANCE hInstance)
 	_transformMemory = operator new(200 * TransformData::Size);
 	TransformData::Init(200, _transformMemory);
 
+	// TODO: Pass our custom allocator here. Also see ECS.h line 2.
+	gameWorld = ECS::World::createWorld();
+
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
 	CreateConsoleWindow(500, 120, 32, 120);
@@ -46,6 +49,8 @@ Game::Game(HINSTANCE hInstance)
 // --------------------------------------------------------
 Game::~Game()
 {
+	gameWorld->destroyWorld(); // no need to delete the world, this cleans up everything.
+
 	delete _transformMemory;
 }
 
@@ -156,6 +161,9 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		e.Update();
 	}
+
+	// World update
+	gameWorld->tick(deltaTime);
 	
 	TransformData::UpdateTransforms();
 }
@@ -239,4 +247,10 @@ void Game::OnMouseWheel(float wheelDelta, int x, int y)
 {
 	// Add any custom code here...
 }
+
+ECS::World* Game::getGameWorld() const
+{
+	return gameWorld;
+}
+
 #pragma endregion
