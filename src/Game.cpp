@@ -29,8 +29,8 @@ Game::Game(HINSTANCE hInstance)
 	_camera({0, 0, -5}, {0, 0, 1}, 2)
 {
 	_camera.UpdateProjectionMatrix(width, height);
-	_transformMemory = operator new(200 * TransformData::Size);
-	TransformData::Init(200, _transformMemory);
+	_transformMemory = operator new(300 * TransformData::Size);
+	TransformData::Init(300, _transformMemory);
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -88,8 +88,8 @@ void Game::LoadContent()
 {
 	auto sphere = _content->Load<Mesh>(L"/models/sphere.obj");
 
-	auto rocks = _content->Load<Texture>(L"/textures/rocks.png");
-	auto rocksNormals = _content->Load<Texture>(L"/textures/rocks_normal.png");
+	auto rocks = _content->Load<Texture>(L"/textures/rock.jpg");
+	auto rocksNormals = _content->Load<Texture>(L"/textures/rockNormals.jpg");
 
 	auto sand = _content->Load<Texture>(L"/textures/sand_texture.JPG");
 	auto sandNormals = _content->Load<Texture>(L"textures/sand_normal.JPG");
@@ -150,10 +150,16 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
+	if (GetAsyncKeyState('E') & 0x8000)
+		_renderer->UseNormalMap = true;
+	else
+		_renderer->UseNormalMap = false;
+
 	_camera.Update(deltaTime);
 
 	for(auto& e : _entities)
 	{
+		e.transform.Rotate({ 0, 1, 0 }, 3.14 / 20 * deltaTime);
 		e.Update();
 	}
 	

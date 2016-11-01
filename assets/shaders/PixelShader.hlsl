@@ -18,6 +18,7 @@ cbuffer externalData : register(b0)
 {
 	DirectionalLight directionalLights[NUM_LIGHTS];
 	float3 cameraPos;
+	uint useNormalMap;
 };
 
 Texture2D mainTex : register(t0);
@@ -45,33 +46,32 @@ float3 colorFromDirectionalLights(VertexToPixel input, float2 uv)
 	ambient = diffuse = specular = float3(0, 0, 0);
 
 	float3 v = normalize(cameraPos - input.worldPos);
-	for (uint i = 0; i < NUM_LIGHTS; i++)
+	for (uint i = 0; i < 1; i++)
 	{
 		float3 l = -normalize(directionalLights[i].Direction);
 		float diff = saturate(dot(input.normal, l));
-		diffuse += diff * directionalLights[i].DiffuseColor;
+		diffuse += diff * directionalLights[i].DiffuseColor.xyz;
 
 		float3 h = normalize(l + v);
-		float spec = pow(max(dot(input.normal, h), 0), 32);
+		float spec = pow(max(dot(input.normal, h), 0), 64);
 		specular += spec * float3(1, 1, 1);
 
-		ambient += directionalLights[i].AmbientColor;
+		ambient += directionalLights[i].AmbientColor.xyz;
 	}
 
-	float3 texColor = mainTex.Sample(mainSampler, uv);
-	return pow((ambient + diffuse)*texColor, 1/2.2) + specular;
-
+	float3 texColor = pow(mainTex.Sample(mainSampler, uv), 2.2);
+	return pow((ambient + diffuse) * texColor + specular, 1 / 2.2);
+	
 }
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	float3 color = float3(0,0,0);
-	float3 ambient = float3(0.1,0.1,0.1);
-	float3 specColor = float3(0, 0, 0);
-	
 	float3x3 tbn = float3x3(input.tangent, input.binormal, input.normal);
-	input.normal = normalMap.Sample(mainSampler, input.uv) * 2 - 1;
-	input.normal = mul(input.normal, tbn);
+	if (useNormalMap)
+	{
+		input.normal = (normalMap.Sample(mainSampler, input.uv).rgb * 2 - 1);
+		input.normal = normalize(mul(input.normal, tbn));
+	}
 
 	float3 finalColor = colorFromDirectionalLights(input, input.uv);
 
