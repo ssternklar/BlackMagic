@@ -117,9 +117,9 @@ void Game::LoadContent()
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	for(size_t y = 0; y < 20; y++)
+	for(size_t y = 0; y < 1; y++)
 	{
-		for(size_t x = 0; x < 20; x++)
+		for(size_t x = 0; x < 1; x++)
 		{
 			_entities.emplace_back(Entity{ sphere, gridMat, XMFLOAT3{static_cast<float>(x), static_cast<float>(y), 0}, quatIdentity, defaultScale });
 		}
@@ -150,10 +150,16 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
+	if (GetAsyncKeyState('E') & 0x8000)
+		_renderer->UseNormalMap = true;
+	else
+		_renderer->UseNormalMap = false;
+
 	_camera.Update(deltaTime);
 
 	for(auto& e : _entities)
 	{
+		e.transform.Rotate({ 0, 1, 0 }, 3.14 / 20 * deltaTime);
 		e.Update();
 	}
 	

@@ -180,6 +180,7 @@ void GraphicsDevice::Render(const Camera& cam, const std::vector<Renderable*>& o
 		
 		auto cPos = cam.Position();
 		object->_material->PixelShader()->SetData("cameraPos", &cPos, sizeof(XMFLOAT3));
+		object->_material->PixelShader()->SetData("useNormalMap", &UseNormalMap, sizeof(unsigned int));
 		object->PrepareMaterial(cam.ViewMatrix(), cam.ProjectionMatrix());
 		//Upload buffers and draw
 		

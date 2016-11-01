@@ -18,14 +18,14 @@ void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 	XMVECTOR t2 = XMLoadFloat2(&v2.UV);
 	XMVECTOR t3 = XMLoadFloat2(&v3.UV);
 
-	XMVECTOR x = p3 - p1;
-	XMVECTOR y = p2 - p1;
-	XMVECTOR a = t3 - t1;
-	XMVECTOR b = t2 - t1;
+	XMVECTOR x = p2 - p1;
+	XMVECTOR y = p3 - p1;
+	XMVECTOR a = t2 - t1;
+	XMVECTOR b = t3 - t1;
 
 	float det = 1 / (a.m128_f32[0] * b.m128_f32[1] - a.m128_f32[1] * b.m128_f32[0]);
-	XMVECTOR t = a.m128_f32[1] * y - b.m128_f32[1] * x;
-	XMVECTOR u = -a.m128_f32[0] * y + b.m128_f32[0] * x;
+	XMVECTOR t = (x * b.m128_f32[1] - y*a.m128_f32[1])*det;
+	XMVECTOR u = (y*a.m128_f32[0] - x*b.m128_f32[0])*det;
 
 	t = t - XMVector3Dot(t, n)*n;
 	u = u - XMVector3Dot(u, n)*n - XMVector3Dot(u, t)*t;
