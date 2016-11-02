@@ -103,6 +103,15 @@
     <PostBuildEvent>
       <Command>xcopy /YE "$(SolutionDir)assets\*" "$(TargetDir)assets\"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\</AdditionalIncludeDirectories>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+      <ObjectFileOutput>
+      </ObjectFileOutput>
+      <PreprocessorDefinitions>SHADER</PreprocessorDefinitions>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -170,6 +179,7 @@
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\IResource.h" />
     <ClInclude Include="include\GraphicsDevice.h" />
+    <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\Spline.h" />
     <ClInclude Include="include\SplineControlPoint.h" />
@@ -180,7 +190,11 @@
     <ClInclude Include="include\Vertex.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="assets\shaders\PixelShader.hlsl">
+    <FxCompile Include="assets\shaders\GBufferPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\LightPassPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -189,8 +203,13 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)include\</AdditionalIncludeDirectories>
     </FxCompile>
-    <FxCompile Include="assets\shaders\VertexShader.hlsl">
+    <FxCompile Include="assets\shaders\GBufferVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\LightPassVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -199,6 +218,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)include\</AdditionalIncludeDirectories>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

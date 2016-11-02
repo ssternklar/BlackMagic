@@ -20,10 +20,10 @@ public:
 	static void UpdateTransforms();
 	static const DirectX::XMFLOAT4X4* GetMatrix(TransformID id);
 private:
-	static DirectX::XMFLOAT4X4 _matrices[100];
-	static DirectX::XMFLOAT4 _rotations[100];
-	static DirectX::XMFLOAT3 _positions[100];
-	static DirectX::XMFLOAT3 _scales[100];
+	static DirectX::XMFLOAT4X4 _matrices[400];
+	static DirectX::XMFLOAT4 _rotations[400];
+	static DirectX::XMFLOAT3 _positions[400];
+	static DirectX::XMFLOAT3 _scales[400];
 	static std::stack<TransformID> _availableTransforms;
 	static TransformID _nextAvailableTransform;
 };

@@ -40,14 +40,31 @@ ID3D11SamplerState* Material::MainSampler() const
 	return _mainSampler.get();
 }
 
-void Material::UpdateLights(const std::vector<DirectionalLight> lights)
+void Material::Apply(
+	DirectX::XMFLOAT4X4 view,
+	DirectX::XMFLOAT4X4 proj)
 {
 	//Find how many bytes of padding DirectX will add to the constant buffer
 	//DX will only pad in-between consecutive structs and not on the end
-	size_t padding = (16 - (sizeof(DirectionalLight) % 16))*(lights.size() - 1);
+	//size_t padding = (16 - (sizeof(DirectionalLight) % 16))*(lights.size() - 1);
 
-	//Upload light data to the pixel shader
-	_pixelShader->SetData("directionalLights", &lights[0], sizeof(DirectionalLight)*lights.size() + padding);
+	//Set per-frame material attributes
+	_vertShader->SetMatrix4x4("view", view);
+	_vertShader->SetMatrix4x4("projection", proj);
+
+	_pixelShader->SetShaderResourceView("mainTex", *_texture);
+	_pixelShader->SetSamplerState("mainSampler", _mainSampler.get());
+	_pixelShader->SetShaderResourceView("normalMap", *_normalMap);
+	//_pixelShader->SetData("directionalLights", &lights[0], sizeof(DirectionalLight)*lights.size() + padding);
+
+	_vertShader->SetShader();
+	_pixelShader->SetShader();
+}
+
+void Material::Upload()
+{
+	_vertShader->CopyAllBufferData();
+	_pixelShader->CopyAllBufferData();
 }
 
 bool Material::operator==(const Material& mat) const
