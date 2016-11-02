@@ -7,7 +7,8 @@ struct GBuffer
 {
 	float4 diffuse : SV_TARGET0;
 	float4 specular : SV_TARGET1;
-	float3 normal : SV_TARGET2;
+	float2 normal : SV_TARGET2;
+	float position : SV_TARGET3;
 };
 
 struct VertexToPixel
@@ -28,9 +29,14 @@ GBuffer main(VertexToPixel input) : SV_TARGET
 
 	output.specular = float4(1, 1, 1, 32);
 
-	float3x3 tbn = float3x3(input.tangent, input.binormal, input.normal);
+	float3x3 tbn = float3x3(
+		normalize(input.tangent), 
+		normalize(input.binormal), 
+		normalize(input.normal));
 	input.normal = normalMap.Sample(mainSampler, input.uv) * 2 - 1;
-	output.normal = mul(input.normal, tbn);
+	output.normal = normalize(mul(input.normal, tbn)).xy;
+
+	output.position = input.worldPos.z;
 
 	return output;
 }

@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Entity.h"
 #include "Renderable.h"
+#include "ContentManager.h"
 
 class GraphicsDevice
 {
@@ -17,7 +18,8 @@ public:
 	D3D_FEATURE_LEVEL FeatureLevel() const;
 
 	void Clear(XMFLOAT4 color);
-	HRESULT Init(HWND window, UINT width, UINT height);
+	HRESULT InitDx(HWND window, UINT width, UINT height);
+	void Init(ContentManager* content);
 	void OnResize(UINT width, UINT height);
 	void Present(UINT interval, UINT flags);
 
@@ -30,7 +32,7 @@ public:
 			objectsToDraw.push_back(&r);
 	}
 
-	void Render(const Camera& cam, const std::vector<Renderable*>& objects, const std::vector<DirectionalLight> lights);
+	void Render(const Camera& cam, const std::vector<Renderable*>& objects, const std::vector<DirectionalLight>& lights);
 private:
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
@@ -38,13 +40,21 @@ private:
 	ID3D11RenderTargetView* _backBuffer;
 	ID3D11DepthStencilView* _depthStencil;
 
-	//G-buffer
+	//Resources for deferred rendering	
+	ID3D11ShaderResourceView* _depthStencilTexture;
 	Texture* _diffuseMap;
 	Texture* _specularMap;
 	Texture* _normalMap; 
+	Texture* _positionMap;
+	std::shared_ptr<VertexShader> _lightPassVS;
+	std::shared_ptr<PixelShader> _lightPassPS;
+	std::shared_ptr<ID3D11SamplerState> _gBufferSampler;
+	ID3D11Buffer* _quad;
 
 	D3D_FEATURE_LEVEL _featureLevel;
 	UINT _width, _height;
 
 	void InitBuffers();
+	Texture* createEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
+
 };

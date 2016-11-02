@@ -57,7 +57,7 @@ void Game::Init()
 {
 	_renderer = std::make_unique<GraphicsDevice>();
 	
-	auto hr = _renderer->Init(hWnd, width, height);
+	auto hr = _renderer->InitDx(hWnd, width, height);
 	if (hr)
 	{
 		std::cout << "[Error] Renderer init failed with code " << hr << std::endl;
@@ -65,6 +65,7 @@ void Game::Init()
 	}
 	
 	_content = std::make_unique<ContentManager>(_renderer->Device(), _renderer->Context(), L"./assets/");
+	_renderer->Init(_content.get());
 
 	dxFeatureLevel = _renderer->FeatureLevel();
 
@@ -94,8 +95,8 @@ void Game::LoadContent()
 	auto sand = _content->Load<Texture>(L"/textures/sand_texture.JPG");
 	auto sandNormals = _content->Load<Texture>(L"textures/sand_normal.JPG");
 
-	auto vertexShader = _content->Load<VertexShader>(L"/shaders/VertexShader.cso");
-	auto pixelShader = _content->Load<PixelShader>(L"/shaders/PixelShader.cso");
+	auto gPassVS = _content->Load<VertexShader>(L"/shaders/GBufferVS.cso");
+	auto gPassPS = _content->Load<PixelShader>(L"/shaders/GBufferPS.cso");
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -109,7 +110,7 @@ void Game::LoadContent()
 	auto sampler = _renderer->CreateSamplerState(samplerDesc);
 
 	auto gridMat = std::make_shared<Material>(
-		vertexShader, pixelShader,
+		gPassVS, gPassPS,
 		rocks, sampler,
 		rocksNormals);
 	

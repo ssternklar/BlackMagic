@@ -1,6 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
+#include <DirectXMath.h>
 #include <memory>
 
 #include "DirectionalLight.h"
@@ -24,7 +25,10 @@ public:
 	Texture* NormalMap() const;
 	ID3D11SamplerState* MainSampler() const;
 
-	void UpdateLights(const std::vector<DirectionalLight> lights);
+	void Apply(
+		DirectX::XMFLOAT4X4 view,
+		DirectX::XMFLOAT4X4 proj);
+	void Upload();
 
 	bool operator ==(const Material&) const;
 private:
