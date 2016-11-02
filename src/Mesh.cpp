@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <fstream>
 #include <vector>
+#include "Vertex.h"
 
 using namespace DirectX;
 
@@ -40,6 +41,13 @@ void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 	v1.Tangent = v2.Tangent = v3.Tangent = tangent;
 	v1.Binormal = v2.Binormal = v3.Binormal = binormal;
 }
+
+Mesh::Mesh()
+	: _vBuf(nullptr),
+	_iBuf(nullptr),
+	_numIndices(0)
+{}
+
 
 Mesh::Mesh(const std::wstring& file, ID3D11Device* device)
 {
@@ -220,8 +228,11 @@ Mesh::Mesh(const std::wstring& file, ID3D11Device* device)
 
 Mesh::~Mesh()
 {
-	_vBuf->Release();
-	_iBuf->Release();
+	if (_vBuf)
+		_vBuf->Release();
+	
+	if (_iBuf)
+		_iBuf->Release();
 }
 
 ID3D11Buffer* Mesh::VertexBuffer() const
@@ -238,3 +249,17 @@ size_t Mesh::IndexCount() const
 {
 	return _numIndices;
 }
+
+void Mesh::Set(ID3D11Buffer* vertexBuffer, ID3D11Buffer* indexBuffer, size_t numIndices)
+{
+	if (_vBuf)
+		_vBuf->Release();
+
+	if (_iBuf)
+		_iBuf->Release();
+
+	_vBuf = vertexBuffer;
+	_iBuf = indexBuffer;
+	_numIndices = numIndices;
+}
+
