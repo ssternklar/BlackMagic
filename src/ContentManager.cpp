@@ -28,7 +28,7 @@ std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 	auto fullPath = _assetDirectory + L"/" + name;
 	auto result = CreateWICTextureFromFile(_device, _context, fullPath.c_str(), nullptr, &srv);
 
-	auto ptr = std::make_shared<Texture>(srv);
+	auto ptr = std::make_shared<Texture>(nullptr, srv, nullptr);
 	_resources[name] = ptr;
 	return ptr;
 }
