@@ -64,25 +64,31 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	auto alloc = _resources.get_allocator();
 	auto fullPath = _assetDirectory + L"/" + name;
 	std::ifstream in(fullPath, std::ios::binary);
-	unsigned int pieces;
-	void* memory = 0;
+	unsigned int pieces = 0;
+	size_t memorySize = 0;
+	byte* memory = 0;
 	if (in.is_open())
 	{
-		in >> pieces;
-		size_t memorySize = sizeof(unsigned int) + sizeof(SplineControlPoint) * pieces;
-		memory = _allocator->allocate(memorySize, 1);
+		in.read((char*)&pieces, 4);
+		memorySize = sizeof(unsigned int) * 3 + sizeof(SplineControlPoint) * pieces;
+		memory = (byte*)_allocator->allocate(memorySize, 1);
 		in.seekg(std::ios::beg);
 		in.read((char*)memory, memorySize);
 		in.close();
 	}
+
+	//Fix spline pointers
+	Spline* sp = reinterpret_cast<Spline*>(memory);
+	sp->segments = reinterpret_cast<SplinePiece*>(memory + 12);
+
 	std::shared_ptr<Spline> ret = //std::allocate_shared<Spline, BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>>(BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>(_allocator),
 		std::shared_ptr<Spline>((Spline*)memory,
 		[&](Spline* splineToDelete) {
 		if(splineToDelete)
 		{
-			_allocator->deallocate((void*)splineToDelete, sizeof(unsigned int) + sizeof(SplineControlPoint) * splineToDelete->segmentCount, 1);
+			_allocator->deallocate((void*)splineToDelete, sizeof(unsigned int) * 3 + sizeof(SplineControlPoint) * splineToDelete->segmentCount, 1);
 		}
-	}, BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>(_allocator));
+	}, ContentAllocatorAdapter(_allocator));
 		
 		//std::bind(&(BlackMagic::BestFitAllocator::deallocate), _allocator, sizeof(unsigned int) + sizeof(SplineControlPoint) * pieces, 1));
 	ret.reset((Spline*)memory);

@@ -75,7 +75,7 @@ void Game::Init()
 	
 	_renderer->Init(_content.get());
 	
-	auto spline = _content->Load<Spline>(L"spline.bmspline");
+	auto spline = _content->Load<Spline>(L"spline.bin");
 	spline->GenerateMesh(_renderer.get(), &splineMesh);
 
 	dxFeatureLevel = _renderer->FeatureLevel();
