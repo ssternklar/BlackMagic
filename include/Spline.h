@@ -3,9 +3,10 @@
 #include "IResource.h"
 #include "GraphicsDevice.h"
 
-class Spline : IResource
+class Spline : public IResource
 {
 public:
+	Spline() {}
 	unsigned int segmentCount;
 	SplinePiece* segments;
 	void GetPoint(float t, SplineControlPoint& outPoint);

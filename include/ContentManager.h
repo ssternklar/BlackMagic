@@ -11,7 +11,8 @@
 
 using VertexShader = SimpleVertexShader;
 using PixelShader = SimplePixelShader;
-
+using ContentAllocatorAdapter = BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::weak_ptr<IResource>>, BlackMagic::BestFitAllocator>;
+using ContentMap = std::unordered_map<std::wstring, std::weak_ptr<IResource>, std::hash<std::wstring>, std::equal_to<std::wstring>, ContentAllocatorAdapter>;
 class ContentManager
 {
 public:
@@ -30,7 +31,7 @@ private:
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
 	std::wstring _assetDirectory;
-	std::unordered_map<std::wstring, std::weak_ptr<IResource>, std::hash<std::wstring>, std::equal_to<std::wstring>, BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::weak_ptr<IResource>>, BlackMagic::BestFitAllocator>> _resources;
+	ContentMap _resources;
 	BlackMagic::BestFitAllocator* _allocator;
 	
 

@@ -167,7 +167,7 @@ namespace BlackMagic
 			}
 		}
 
-		template<typename T>
+		/*template<typename T>
 		void deallocate(T* dealloc, bool callDestructor = false, size_t n = 1)
 		{
 			if (callDestructor)
@@ -175,11 +175,11 @@ namespace BlackMagic
 				/*for (int i = 0; i < n; i++)
 				{
 					dealloc[i]->~T();
-				}*/
+				}/
 			}
 			deallocate((void*)dealloc, sizeof(T), n);
 		}
-
+		*/
 		size_t FreeListSize()
 		{
 			size_t count = 0;

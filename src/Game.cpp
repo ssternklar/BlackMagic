@@ -5,6 +5,7 @@
 #include <iostream>
 #include "Texture.h"
 #include "TransformData.h"
+#include "Spline.h"
 #include "WICTextureLoader.h"
 
 // For the DirectX Math library
@@ -68,9 +69,14 @@ void Game::Init()
 		std::cout << "[Error] Renderer init failed with code " << hr << std::endl;
 		std::exit(hr);
 	}
+	allocMem = new byte[1024 * 1024 * 1024];
+	alloc = new BlackMagic::BestFitAllocator(1024 * 1024 * 1024, 32, allocMem);
+	_content = std::make_unique<ContentManager>(_renderer->Device(), _renderer->Context(), L"./assets/", alloc);
 	
-	_content = std::make_unique<ContentManager>(_renderer->Device(), _renderer->Context(), L"./assets/");
 	_renderer->Init(_content.get());
+	
+	auto spline = _content->Load<Spline>(L"spline.bmspline");
+	spline->GenerateMesh(_renderer.get(), &splineMesh);
 
 	dxFeatureLevel = _renderer->FeatureLevel();
 
@@ -130,6 +136,8 @@ void Game::LoadContent()
 			_entities.emplace_back(Entity{ sphere, gridMat, XMFLOAT3{static_cast<float>(x), static_cast<float>(y), 0}, quatIdentity, defaultScale });
 		}
 	}
+
+	_entities.emplace_back(Entity{ std::shared_ptr<Mesh>(&splineMesh), gridMat, XMFLOAT3(0,0,0), quatIdentity, defaultScale});
 
 }
 

@@ -22,12 +22,15 @@ namespace BlackMagic
 		
 		pointer allocate(std::size_t n)
 		{
-			return static_cast<pointer>(allocator->allocate<T>(false, n));
+			if (allocator)
+				return static_cast<pointer>(allocator->allocate(sizeof(T), n));
+			return nullptr;
 		}
 
 		void deallocate(pointer p, std::size_t n)
 		{
-			allocator->deallocate<T>(p, false, n);
+			if(allocator)
+				allocator->deallocate(p, sizeof(T), n);
 		}
 		
 		template<typename U>

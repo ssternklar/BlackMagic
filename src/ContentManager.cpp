@@ -13,10 +13,8 @@
 using namespace DirectX;
 
 ContentManager::ContentManager(ID3D11Device* device, ID3D11DeviceContext* ctx, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
-	: _device(device), _context(ctx), _assetDirectory(assetDirectory), _allocator(allocator)
+	: _device(device), _context(ctx), _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator)))
 {
-	BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::weak_ptr<IResource>>, BlackMagic::BestFitAllocator> alloc(allocator);
-	_resources = std::unordered_map<std::wstring, std::weak_ptr<IResource>, std::hash<std::wstring>, std::equal_to<std::wstring>, BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::weak_ptr<IResource>>, BlackMagic::BestFitAllocator>>(alloc);
 }
 
 template<>
@@ -67,7 +65,7 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	auto fullPath = _assetDirectory + L"/" + name;
 	std::ifstream in(fullPath, std::ios::binary);
 	unsigned int pieces;
-	void* memory;
+	void* memory = 0;
 	if (in.is_open())
 	{
 		in >> pieces;
@@ -77,8 +75,17 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 		in.read((char*)memory, memorySize);
 		in.close();
 	}
-	std::shared_ptr<Spline> ret = std::allocate_shared<Spline, BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>>(BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>(_allocator), std::bind(&(BlackMagic::BestFitAllocator::deallocate), _allocator, sizeof(unsigned int) + sizeof(SplineControlPoint) * pieces));
-	ret.reset(memory);
+	std::shared_ptr<Spline> ret = //std::allocate_shared<Spline, BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>>(BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>(_allocator),
+		std::shared_ptr<Spline>((Spline*)memory,
+		[&](Spline* splineToDelete) {
+		if(splineToDelete)
+		{
+			_allocator->deallocate((void*)splineToDelete, sizeof(unsigned int) + sizeof(SplineControlPoint) * splineToDelete->segmentCount, 1);
+		}
+	}, BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>(_allocator));
+		
+		//std::bind(&(BlackMagic::BestFitAllocator::deallocate), _allocator, sizeof(unsigned int) + sizeof(SplineControlPoint) * pieces, 1));
+	ret.reset((Spline*)memory);
 	_resources[name] = ret;
 	return ret;
 }

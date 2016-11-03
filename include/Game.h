@@ -61,6 +61,11 @@ private:
 	std::unique_ptr<ContentManager> _content;
 	std::unique_ptr<GraphicsDevice> _renderer;
 
+	Mesh splineMesh;
+
+	BlackMagic::BestFitAllocator* alloc;
+	byte* allocMem;
+
 	void* _transformMemory;
 
 	// ECS Stuff
