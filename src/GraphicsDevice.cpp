@@ -1,4 +1,5 @@
 #include "GraphicsDevice.h"
+#include "Vertex.h"
 
 using DirectX::XMFLOAT2;
 
