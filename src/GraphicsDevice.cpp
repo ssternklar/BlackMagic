@@ -1,4 +1,5 @@
 #include "GraphicsDevice.h"
+#include "Vertex.h"
 
 using DirectX::XMFLOAT2;
 
@@ -79,7 +80,7 @@ void GraphicsDevice::Clear(XMFLOAT4 color)
 {
 	FLOAT black[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_context->ClearRenderTargetView(_backBuffer, reinterpret_cast<const FLOAT*>(&color));
-	_context->ClearRenderTargetView(*_diffuseMap, black);
+	_context->ClearRenderTargetView(*_diffuseMap, reinterpret_cast<const FLOAT*>(&color));
 	_context->ClearRenderTargetView(*_specularMap, black);
 	_context->ClearRenderTargetView(*_normalMap, black);
 	_context->ClearRenderTargetView(*_positionMap, black);
@@ -95,6 +96,13 @@ std::shared_ptr<ID3D11SamplerState> GraphicsDevice::CreateSamplerState(D3D11_SAM
 	} };
 
 	return sampler;
+}
+
+ID3D11Buffer* GraphicsDevice::CreateBuffer(const D3D11_BUFFER_DESC& desc, const D3D11_SUBRESOURCE_DATA& data)
+{
+	ID3D11Buffer* buf;
+	_device->CreateBuffer(&desc, &data, &buf);
+	return buf;
 }
 
 void GraphicsDevice::OnResize(UINT width, UINT height)
@@ -230,7 +238,7 @@ void GraphicsDevice::Init(ContentManager* content)
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_EQUAL;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	sampDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
