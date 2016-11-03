@@ -32,6 +32,9 @@ Game::Game(HINSTANCE hInstance)
 	_transformMemory = operator new(300 * TransformData::Size);
 	TransformData::Init(300, _transformMemory);
 
+	// TODO: Pass our custom allocator here. Also see ECS.h line 2.
+	gameWorld = ECS::World::createWorld();
+
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
 	CreateConsoleWindow(500, 120, 32, 120);
@@ -46,6 +49,8 @@ Game::Game(HINSTANCE hInstance)
 // --------------------------------------------------------
 Game::~Game()
 {
+	gameWorld->destroyWorld(); // no need to delete the world, this cleans up everything.
+
 	delete _transformMemory;
 }
 
@@ -57,7 +62,7 @@ void Game::Init()
 {
 	_renderer = std::make_unique<GraphicsDevice>();
 	
-	auto hr = _renderer->Init(hWnd, width, height);
+	auto hr = _renderer->InitDx(hWnd, width, height);
 	if (hr)
 	{
 		std::cout << "[Error] Renderer init failed with code " << hr << std::endl;
@@ -65,6 +70,7 @@ void Game::Init()
 	}
 	
 	_content = std::make_unique<ContentManager>(_renderer->Device(), _renderer->Context(), L"./assets/");
+	_renderer->Init(_content.get());
 
 	dxFeatureLevel = _renderer->FeatureLevel();
 
@@ -94,8 +100,8 @@ void Game::LoadContent()
 	auto sand = _content->Load<Texture>(L"/textures/sand_texture.JPG");
 	auto sandNormals = _content->Load<Texture>(L"textures/sand_normal.JPG");
 
-	auto vertexShader = _content->Load<VertexShader>(L"/shaders/VertexShader.cso");
-	auto pixelShader = _content->Load<PixelShader>(L"/shaders/PixelShader.cso");
+	auto gPassVS = _content->Load<VertexShader>(L"/shaders/GBufferVS.cso");
+	auto gPassPS = _content->Load<PixelShader>(L"/shaders/GBufferPS.cso");
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -109,7 +115,7 @@ void Game::LoadContent()
 	auto sampler = _renderer->CreateSamplerState(samplerDesc);
 
 	auto gridMat = std::make_shared<Material>(
-		vertexShader, pixelShader,
+		gPassVS, gPassPS,
 		rocks, sampler,
 		rocksNormals);
 	
@@ -117,9 +123,9 @@ void Game::LoadContent()
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	for(size_t y = 0; y < 1; y++)
+	for(size_t y = 0; y < 20; y++)
 	{
-		for(size_t x = 0; x < 1; x++)
+		for(size_t x = 0; x < 20; x++)
 		{
 			_entities.emplace_back(Entity{ sphere, gridMat, XMFLOAT3{static_cast<float>(x), static_cast<float>(y), 0}, quatIdentity, defaultScale });
 		}
@@ -134,7 +140,7 @@ void Game::LoadContent()
 void Game::OnResize()
 {
 	// Handle base-level DX resize stuff
-	if (_renderer && _renderer->Device() != nullptr)
+	if (_renderer && _renderer->Device())
 		_renderer->OnResize(width, height);
 
 	// Update the camera's projection matrix since the window size changed
@@ -150,11 +156,6 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	if (GetAsyncKeyState('E') & 0x8000)
-		_renderer->UseNormalMap = true;
-	else
-		_renderer->UseNormalMap = false;
-
 	_camera.Update(deltaTime);
 
 	for(auto& e : _entities)
@@ -162,6 +163,9 @@ void Game::Update(float deltaTime, float totalTime)
 		e.transform.Rotate({ 0, 1, 0 }, 3.14 / 20 * deltaTime);
 		e.Update();
 	}
+
+	// World update
+	gameWorld->tick(deltaTime);
 	
 	TransformData::UpdateTransforms();
 }
@@ -245,4 +249,10 @@ void Game::OnMouseWheel(float wheelDelta, int x, int y)
 {
 	// Add any custom code here...
 }
+
+ECS::World* Game::getGameWorld() const
+{
+	return gameWorld;
+}
+
 #pragma endregion

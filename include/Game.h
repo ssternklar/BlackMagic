@@ -10,6 +10,7 @@
 #include "DXCore.h"
 #include "Entity.h"
 #include "GraphicsDevice.h"
+#include "ECS.h"
 
 class Game
 	: public DXCore
@@ -30,6 +31,8 @@ public:
 	void OnMouseUp(WPARAM buttonState, int x, int y);
 	void OnMouseMove(WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta, int x, int y);
+
+	ECS::World* getGameWorld() const;
 private:
 
 	//Load meshes, textures, shaders, etc.
@@ -59,4 +62,7 @@ private:
 	std::unique_ptr<GraphicsDevice> _renderer;
 
 	void* _transformMemory;
+
+	// ECS Stuff
+	ECS::World* gameWorld;
 };

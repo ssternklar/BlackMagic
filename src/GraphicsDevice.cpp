@@ -1,5 +1,7 @@
 #include "GraphicsDevice.h"
 
+using DirectX::XMFLOAT2;
+
 GraphicsDevice::GraphicsDevice()
 {}
 
@@ -28,6 +30,32 @@ GraphicsDevice::~GraphicsDevice()
 	if (_depthStencil)
 	{
 		_depthStencil->Release();
+		_depthStencilTexture->Release();
+	}
+
+	if (_diffuseMap)
+	{
+		delete _diffuseMap;
+	}
+
+	if (_specularMap)
+	{
+		delete _specularMap;
+	}
+
+	if (_normalMap)
+	{
+		delete _normalMap;
+	}
+
+	if (_positionMap)
+	{
+		delete _positionMap;
+	}
+
+	if (_quad)
+	{
+		_quad->Release();
 	}
 }
 
@@ -49,7 +77,12 @@ D3D_FEATURE_LEVEL GraphicsDevice::FeatureLevel() const
 
 void GraphicsDevice::Clear(XMFLOAT4 color)
 {
+	FLOAT black[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_context->ClearRenderTargetView(_backBuffer, reinterpret_cast<const FLOAT*>(&color));
+	_context->ClearRenderTargetView(*_diffuseMap, black);
+	_context->ClearRenderTargetView(*_specularMap, black);
+	_context->ClearRenderTargetView(*_normalMap, black);
+	_context->ClearRenderTargetView(*_positionMap, black);
 	_context->ClearDepthStencilView(_depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
@@ -73,6 +106,7 @@ void GraphicsDevice::OnResize(UINT width, UINT height)
 	if (_depthStencil)
 	{
 		_depthStencil->Release();
+		_depthStencilTexture->Release();
 	}
 	if (_backBuffer)
 	{
@@ -89,6 +123,10 @@ void GraphicsDevice::OnResize(UINT width, UINT height)
 	if (_normalMap)
 	{
 		delete _normalMap;
+	}
+	if (_positionMap)
+	{
+		delete _positionMap;
 	}
 
 	// Resize the underlying swap chain buffers
@@ -107,8 +145,7 @@ void GraphicsDevice::Present(UINT interval, UINT flags)
 	_swapChain->Present(interval, flags);
 }
 
-
-HRESULT GraphicsDevice::Init(HWND window, UINT width, UINT height)
+HRESULT GraphicsDevice::InitDx(HWND window, UINT width, UINT height)
 {
 	unsigned int deviceFlags = 0;
 	_width = width;
@@ -152,43 +189,116 @@ HRESULT GraphicsDevice::Init(HWND window, UINT width, UINT height)
 		&_device, // Pointer to our Device pointer
 		&_featureLevel, // This will hold the actual feature level the app will use
 		&_context); // Pointer to our Device Context pointer
-	if (FAILED(hr))
-		return hr;
+	
+	if (!FAILED(hr))
+		_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	InitBuffers();
-
-	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	return S_OK;
+	return hr;
 }
 
-void GraphicsDevice::Render(const Camera& cam, const std::vector<Renderable*>& objects, const std::vector<DirectionalLight> lights)
+void GraphicsDevice::Init(ContentManager* content)
+{
+	//Initialize the GBuffer and depth buffer
+	InitBuffers();
+	
+	//Quad vertex buffer for the second pass
+	XMFLOAT2 quad[6] = {
+		{ -1, 1 },
+		{ 1, 1 },
+		{ 1, -1 },
+		{ -1, 1 },
+		{ 1, -1 },
+		{ -1, -1 }
+	};
+
+	D3D11_BUFFER_DESC vbDesc = { 0 };
+	vbDesc.ByteWidth = sizeof(quad);
+	vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbDesc.Usage = D3D11_USAGE_IMMUTABLE;
+
+	D3D11_SUBRESOURCE_DATA vbData = { 0 };
+	vbData.pSysMem = quad;
+
+	_device->CreateBuffer(&vbDesc, &vbData, &_quad);
+
+	//Load lightpass shaders
+	_lightPassVS = content->Load<VertexShader>(L"/shaders/LightPassVS.cso");
+	_lightPassPS = content->Load<PixelShader>(L"/shaders/LightPassPS.cso");
+
+	//Set up g-buffer sampler
+	D3D11_SAMPLER_DESC sampDesc = {};
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_EQUAL;
+	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	_gBufferSampler = CreateSamplerState(sampDesc);
+	
+}
+
+void GraphicsDevice::Render(const Camera& cam, const std::vector<Renderable*>& objects, const std::vector<DirectionalLight>& lights)
 {
 	static UINT stride = sizeof(Vertex);
+	static UINT quadStride = sizeof(XMFLOAT2);
 	static UINT offset = 0;
 
 	Material* currentMaterial = nullptr;
 
 	//TODO: Sort renderables by material and texture to minimize state switches
+	ID3D11RenderTargetView* rts[3] = { *_diffuseMap, *_specularMap, *_normalMap };
+	_context->OMSetRenderTargets(3, rts, _depthStencil);
+
+	//Load object attributes into the g-buffer (geometry pass)
 	for(auto* object : objects)
 	{
 		if (object->_material.get() != currentMaterial)
 		{
 			currentMaterial = object->_material.get();
-			object->_material->UpdateLights(lights);
+			object->_material->Apply(cam.ViewMatrix(), cam.ProjectionMatrix());
 		}
 		
-		auto cPos = cam.Position();
-		object->_material->PixelShader()->SetData("cameraPos", &cPos, sizeof(XMFLOAT3));
-		object->_material->PixelShader()->SetData("useNormalMap", &UseNormalMap, sizeof(unsigned int));
-		object->PrepareMaterial(cam.ViewMatrix(), cam.ProjectionMatrix());
-		//Upload buffers and draw
+		//Update per-object constant buffer
+		object->_material->VertexShader()->SetData("world", object->transform.Matrix(), sizeof(XMFLOAT4X4));
 		
+		//Upload buffers and draw
+		object->_material->Upload();
+
 		auto vBuf = object->_mesh->VertexBuffer();
 		_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
 		_context->IASetIndexBuffer(object->_mesh->IndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 		_context->DrawIndexed(static_cast<UINT>(object->_mesh->IndexCount()), 0, 0);
 	}
+
+
+	//Combine g-buffer and render to backbuffer
+	_context->OMSetRenderTargets(1, &_backBuffer, nullptr);
+	auto proj = cam.ProjectionMatrix();
+	XMFLOAT4 invProjection = { 1 / proj.m[1][1], 1.0f / proj.m[2][2], 1.0f / proj.m[3][4], proj.m[3][3] / proj.m[3][4] };
+
+
+	size_t padding = (16 - (sizeof(DirectionalLight) % 16))*(lights.size() - 1);
+
+	_lightPassVS->SetShader();
+	_lightPassVS->SetFloat4("inverseProjection", invProjection);
+	_lightPassPS->SetShader();
+	_lightPassPS->SetFloat4("inverseProjection", invProjection);
+	_lightPassPS->SetData("directionalLights", &lights[0], sizeof(DirectionalLight)*lights.size() + padding);
+	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.get());
+	_lightPassPS->SetShaderResourceView("diffuseMap", *_diffuseMap);
+	_lightPassPS->SetShaderResourceView("specularMap", *_specularMap);
+	_lightPassPS->SetShaderResourceView("normalMap", *_normalMap);
+	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture);
+	_lightPassPS->CopyAllBufferData();
+
+	_context->IASetVertexBuffers(0, 1, &_quad, &quadStride, &offset);
+	_context->Draw(6, 0);
+
+	//Can't have SRVs and RTVs that are pointing to the same texture bound at the same time, so unset them
+	ID3D11ShaderResourceView* srvs[4] = { 0 };
+	_context->PSSetShaderResources(0, 4, srvs);
 }
 
 void GraphicsDevice::InitBuffers()
@@ -227,7 +337,7 @@ void GraphicsDevice::InitBuffers()
 	normalMapDesc.ArraySize = 1;
 	normalMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	normalMapDesc.CPUAccessFlags = 0;
-	normalMapDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	normalMapDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
 	normalMapDesc.MipLevels = 1;
 	normalMapDesc.MiscFlags = 0;
 	normalMapDesc.SampleDesc.Count = 1;
@@ -236,27 +346,54 @@ void GraphicsDevice::InitBuffers()
 	normalMapDesc.Height = _height;
 	normalMapDesc.Width = _width;
 
-	// Set up the description of the texture to use for the depth buffer
+	D3D11_TEXTURE2D_DESC posMapDesc;
+	posMapDesc.ArraySize = 1;
+	posMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	posMapDesc.CPUAccessFlags = 0;
+	posMapDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	posMapDesc.MipLevels = 1;
+	posMapDesc.MiscFlags = 0;
+	posMapDesc.SampleDesc.Count = 1;
+	posMapDesc.SampleDesc.Quality = 0;
+	posMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	posMapDesc.Height = _height;
+	posMapDesc.Width = _width;
+
+
 	D3D11_TEXTURE2D_DESC depthStencilDesc;
 	depthStencilDesc.Width = _width;
 	depthStencilDesc.Height = _height;
 	depthStencilDesc.MipLevels = 1;
 	depthStencilDesc.ArraySize = 1;
-	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 	depthStencilDesc.CPUAccessFlags = 0;
 	depthStencilDesc.MiscFlags = 0;
 	depthStencilDesc.SampleDesc.Count = 1;
 	depthStencilDesc.SampleDesc.Quality = 0;
 
-	ID3D11Texture2D *diff, *spec, *nrm, *depth;
-	
-	_device->CreateTexture2D(&colorMapDesc, nullptr, &diff);
-	_device->CreateTexture2D(&colorMapDesc, nullptr, &spec);
-	_device->CreateTexture2D(&normalMapDesc, nullptr, &nrm);
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsDesc;
+	dsDesc.Flags = 0;
+	dsDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	dsDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsDesc.Texture2D.MipSlice = 0;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC depthSRVDesc;
+	depthSRVDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	depthSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	depthSRVDesc.Texture2D.MostDetailedMip = 0;
+	depthSRVDesc.Texture2D.MipLevels = -1;
+
+	_diffuseMap = createEmptyTexture(colorMapDesc);
+	_specularMap = createEmptyTexture(colorMapDesc);
+	_normalMap = createEmptyTexture(normalMapDesc);
+	_positionMap = createEmptyTexture(posMapDesc);
+
+	ID3D11Texture2D* depth;
 	_device->CreateTexture2D(&depthStencilDesc, nullptr, &depth);
-	_device->CreateDepthStencilView(depth, nullptr, &_depthStencil);
+	_device->CreateDepthStencilView(depth, &dsDesc, &_depthStencil);
+	_device->CreateShaderResourceView(depth, &depthSRVDesc, &_depthStencilTexture);
 	depth->Release();
 
 	// Bind the views to the pipeline, so rendering properly 
@@ -274,6 +411,19 @@ void GraphicsDevice::InitBuffers()
 	viewport.MaxDepth = 1.0f;
 	_context->RSSetViewports(1, &viewport);
 
+}
+
+Texture* GraphicsDevice::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
+{
+	ID3D11Texture2D* tex;
+	ID3D11RenderTargetView* rtv;
+	ID3D11ShaderResourceView* srv;
+
+	_device->CreateTexture2D(&desc, nullptr, &tex);
+	_device->CreateRenderTargetView(tex, nullptr, &rtv);
+	_device->CreateShaderResourceView(tex, nullptr, &srv);
+
+	return new Texture(tex, srv, rtv);
 }
 
 
