@@ -9,13 +9,12 @@ namespace BlackMagic
 	class AllocatorSTLAdapter
 	{
 	public:
-		template <typename U> friend struct ArenaAllocator;
-
 		using value_type = T;
 		using pointer = T*;
 
 		Alloc* allocator;
 
+		AllocatorSTLAdapter() : allocator(nullptr) {};
 		AllocatorSTLAdapter(Alloc* alloc) : allocator(alloc) {};
 
 		template<typename U>

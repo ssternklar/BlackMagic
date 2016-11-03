@@ -1,8 +1,9 @@
 #pragma once
 #include "SplinePiece.h"
+#include "IResource.h"
 #include "GraphicsDevice.h"
 
-class Spline
+class Spline : IResource
 {
 public:
 	unsigned int segmentCount;

@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <functional>
 
 #include "WICTextureLoader.h"
 #include "Texture.h"
@@ -11,9 +12,12 @@
 
 using namespace DirectX;
 
-ContentManager::ContentManager(ID3D11Device* device, ID3D11DeviceContext* ctx, const std::wstring& assetDirectory)
-	: _device(device), _context(ctx), _assetDirectory(assetDirectory)
-{}
+ContentManager::ContentManager(ID3D11Device* device, ID3D11DeviceContext* ctx, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
+	: _device(device), _context(ctx), _assetDirectory(assetDirectory), _allocator(allocator)
+{
+	BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::weak_ptr<IResource>>, BlackMagic::BestFitAllocator> alloc(allocator);
+	_resources = std::unordered_map<std::wstring, std::weak_ptr<IResource>, std::hash<std::wstring>, std::equal_to<std::wstring>, BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::weak_ptr<IResource>>, BlackMagic::BestFitAllocator>>(alloc);
+}
 
 template<>
 std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
@@ -62,11 +66,21 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	auto alloc = _resources.get_allocator();
 	auto fullPath = _assetDirectory + L"/" + name;
 	std::ifstream in(fullPath, std::ios::binary);
+	unsigned int pieces;
+	void* memory;
 	if (in.is_open())
 	{
-		unsigned int pieces;
 		in >> pieces;
+		size_t memorySize = sizeof(unsigned int) + sizeof(SplineControlPoint) * pieces;
+		memory = _allocator->allocate(memorySize, 1);
+		in.seekg(std::ios::beg);
+		in.read((char*)memory, memorySize);
+		in.close();
 	}
+	std::shared_ptr<Spline> ret = std::allocate_shared<Spline, BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>>(BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>(_allocator), std::bind(&(BlackMagic::BestFitAllocator::deallocate), _allocator, sizeof(unsigned int) + sizeof(SplineControlPoint) * pieces));
+	ret.reset(memory);
+	_resources[name] = ret;
+	return ret;
 }
 
 template<typename T>
