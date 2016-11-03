@@ -24,6 +24,7 @@ public:
 	void Present(UINT interval, UINT flags);
 
 	std::shared_ptr<ID3D11SamplerState> CreateSamplerState(D3D11_SAMPLER_DESC& desc);
+	ID3D11Buffer* CreateBuffer(const D3D11_BUFFER_DESC& desc, const D3D11_SUBRESOURCE_DATA& data);
 
 	void Cull(const Camera& cam, std::vector<Entity>& sceneObjects, std::vector<Renderable*>& objectsToDraw)
 	{
