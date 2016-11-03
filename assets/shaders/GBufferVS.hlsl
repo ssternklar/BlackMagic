@@ -38,7 +38,7 @@ VertexToPixel main( Vertex input )
 
 	VertexToPixel output;
 	output.position = mul(float4(input.position, 1.0), mvp);
-	output.worldPos = mul(mv, input.position);
+	output.worldPos = mul(float4(input.position, 1.0), world).xyz;
 	output.normal = mul(input.normal, rs);
 	output.tangent = mul(input.tangent, rs);
 	output.binormal = mul(input.binormal, rs);

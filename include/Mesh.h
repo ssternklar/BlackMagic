@@ -2,12 +2,12 @@
 
 #include <d3d11.h>
 #include <string>
-#include "Vertex.h"
 #include "IResource.h"
 
 class Mesh : public IResource
 {
 public:
+	Mesh();
 	Mesh(const std::wstring& file, ID3D11Device* device);
 	~Mesh();
 
@@ -15,6 +15,7 @@ public:
 	ID3D11Buffer* IndexBuffer() const;
 
 	size_t IndexCount() const;
+	void Set(ID3D11Buffer* vertexBuffer, ID3D11Buffer* indexBuffer, size_t numIndices);
 
 private:
 	ID3D11Buffer *_vBuf, *_iBuf;

@@ -248,8 +248,8 @@ void GraphicsDevice::Render(const Camera& cam, const std::vector<Renderable*>& o
 	Material* currentMaterial = nullptr;
 
 	//TODO: Sort renderables by material and texture to minimize state switches
-	ID3D11RenderTargetView* rts[3] = { *_diffuseMap, *_specularMap, *_normalMap };
-	_context->OMSetRenderTargets(3, rts, _depthStencil);
+	ID3D11RenderTargetView* rts[4] = { *_diffuseMap, *_specularMap, *_positionMap, *_normalMap };
+	_context->OMSetRenderTargets(4, rts, _depthStencil);
 
 	//Load object attributes into the g-buffer (geometry pass)
 	for(auto* object : objects)
@@ -275,22 +275,18 @@ void GraphicsDevice::Render(const Camera& cam, const std::vector<Renderable*>& o
 
 	//Combine g-buffer and render to backbuffer
 	_context->OMSetRenderTargets(1, &_backBuffer, nullptr);
-	auto proj = cam.ProjectionMatrix();
-	XMFLOAT4 invProjection = { 1 / proj.m[1][1], 1.0f / proj.m[2][2], 1.0f / proj.m[3][4], proj.m[3][3] / proj.m[3][4] };
-
-
+	auto cPos = cam.Position();
 	size_t padding = (16 - (sizeof(DirectionalLight) % 16))*(lights.size() - 1);
 
 	_lightPassVS->SetShader();
-	_lightPassVS->SetFloat4("inverseProjection", invProjection);
 	_lightPassPS->SetShader();
-	_lightPassPS->SetFloat4("inverseProjection", invProjection);
+	_lightPassPS->SetFloat3("cameraPosition", cPos);
 	_lightPassPS->SetData("directionalLights", &lights[0], sizeof(DirectionalLight)*lights.size() + padding);
 	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.get());
 	_lightPassPS->SetShaderResourceView("diffuseMap", *_diffuseMap);
 	_lightPassPS->SetShaderResourceView("specularMap", *_specularMap);
+	_lightPassPS->SetShaderResourceView("positionMap", *_positionMap);
 	_lightPassPS->SetShaderResourceView("normalMap", *_normalMap);
-	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture);
 	_lightPassPS->CopyAllBufferData();
 
 	_context->IASetVertexBuffers(0, 1, &_quad, &quadStride, &offset);
@@ -337,7 +333,7 @@ void GraphicsDevice::InitBuffers()
 	normalMapDesc.ArraySize = 1;
 	normalMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	normalMapDesc.CPUAccessFlags = 0;
-	normalMapDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	normalMapDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
 	normalMapDesc.MipLevels = 1;
 	normalMapDesc.MiscFlags = 0;
 	normalMapDesc.SampleDesc.Count = 1;
@@ -350,7 +346,7 @@ void GraphicsDevice::InitBuffers()
 	posMapDesc.ArraySize = 1;
 	posMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	posMapDesc.CPUAccessFlags = 0;
-	posMapDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	posMapDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	posMapDesc.MipLevels = 1;
 	posMapDesc.MiscFlags = 0;
 	posMapDesc.SampleDesc.Count = 1;
