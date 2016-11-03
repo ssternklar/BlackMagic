@@ -1,10 +1,13 @@
 #include "ContentManager.h"
 
 #include <stdexcept>
+#include <iostream>
+#include <fstream>
 
 #include "WICTextureLoader.h"
 #include "Texture.h"
 #include "Mesh.h"
+#include "Spline.h"
 
 using namespace DirectX;
 
@@ -53,6 +56,19 @@ std::shared_ptr<PixelShader> ContentManager::load_Internal(const std::wstring& n
 	return ptr;
 }
 
+template<>
+std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
+{
+	auto alloc = _resources.get_allocator();
+	auto fullPath = _assetDirectory + L"/" + name;
+	std::ifstream in(fullPath, std::ios::binary);
+	if (in.is_open())
+	{
+		unsigned int pieces;
+		in >> pieces;
+	}
+}
+
 template<typename T>
 std::shared_ptr<T> ContentManager::load_Internal(const std::wstring& name)
 {
@@ -62,5 +78,6 @@ std::shared_ptr<T> ContentManager::load_Internal(const std::wstring& name)
 		"Texture\n"
 		"VertexShader\n"
 		"PixelShader\n"
+		"Spline\n"
 	);
 }

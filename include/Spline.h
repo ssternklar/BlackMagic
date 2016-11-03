@@ -1,6 +1,6 @@
 #pragma once
 #include "SplinePiece.h"
-#include "Vertex.h"
+#include "GraphicsDevice.h"
 
 class Spline
 {
@@ -10,5 +10,5 @@ public:
 	void GetPoint(float t, SplineControlPoint& outPoint);
 	float GuessNearestPoint(DirectX::XMFLOAT3& point, float* outDistanceSquared = nullptr);
 	void GuessNearestPoint(DirectX::XMFLOAT3& point, SplineControlPoint& outPoint);
-	void GenerateMesh(Vertex* vertex, unsigned int numVerts);
+	void GenerateMesh(GraphicsDevice* device, Mesh* mesh);
 };

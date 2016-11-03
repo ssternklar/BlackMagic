@@ -1,4 +1,5 @@
 #include "Spline.h"
+#include "Vertex.h"
 
 void Spline::GetPoint(float t, SplineControlPoint& outPoint)
 {
@@ -37,8 +38,13 @@ void Spline::GuessNearestPoint(DirectX::XMFLOAT3& point, SplineControlPoint& out
 	return GetPoint(GuessNearestPoint(point), outPoint);
 }
 
-void Spline::GenerateMesh(Vertex* vertices, unsigned int numVerts)
+void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 {
+	const size_t numVerts = 100000;
+	const size_t numIndices = numVerts * 3;
+	Vertex vertices[numVerts];
+	unsigned int indices[numIndices];
+
 	using namespace DirectX;
 	float stepAmt = (numVerts / 2.0f) / this->segmentCount;
 	float step = 0;
@@ -57,6 +63,12 @@ void Spline::GenerateMesh(Vertex* vertices, unsigned int numVerts)
 		vertices[i].Tangent = point.tangent;
 		vertices[i].Binormal = binormal;
 		vertices[i].UV = { 0, 0 };
+		if (i >= 2)
+		{
+			indices[(i * 3)] = i - 2;
+			indices[(i * 3) + 1] = i - 1;
+			indices[(i * 3) + 2] = i;
+		}
 		
 		//right vertex
 		XMStoreFloat3(&vertices[i+1].Position, position + localScale);
@@ -64,7 +76,31 @@ void Spline::GenerateMesh(Vertex* vertices, unsigned int numVerts)
 		vertices[i+1].Tangent = point.tangent;
 		vertices[i+1].Binormal = binormal;
 		vertices[i+1].UV = { 1, 0 };
+		if (i >= 2)
+		{
+			indices[(i * 3) + 3] = i - 1;
+			indices[(i * 3) + 4] = i;
+			indices[(i * 3) + 5] = i + 1;
+		}
 
 		step += stepAmt;
 	}
+
+	D3D11_BUFFER_DESC vertDesc = {};
+	vertDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertDesc.ByteWidth = static_cast<UINT>(numVerts * sizeof(Vertex));
+	vertDesc.Usage = D3D11_USAGE_IMMUTABLE;
+
+	D3D11_SUBRESOURCE_DATA vertData = {};
+	vertData.pSysMem = &vertices[0];
+
+	D3D11_BUFFER_DESC indDesc = {};
+	indDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indDesc.ByteWidth = static_cast<UINT>(numIndices * sizeof(UINT));
+	indDesc.Usage = D3D11_USAGE_IMMUTABLE;
+
+	D3D11_SUBRESOURCE_DATA indData = {};
+	indData.pSysMem = &indices[0];
+
+	mesh->Set(device->CreateBuffer(vertDesc, vertData), device->CreateBuffer(indDesc, indData), numIndices);
 }
