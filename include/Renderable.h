@@ -10,11 +10,10 @@ class Renderable
 {
 	friend class GraphicsDevice;
 public:
-	Transform transform;
-	Renderable(const std::shared_ptr<Mesh> mesh, const std::shared_ptr<Material> mat,
-		DirectX::XMFLOAT3 pos, DirectX::XMFLOAT4 rot, DirectX::XMFLOAT3 scale);
+	Renderable();
+	Renderable(const std::shared_ptr<Mesh> mesh, const std::shared_ptr<Material> mat);
 
-	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj);
+	void PrepareMaterial(Transform& transform, DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj);
 
 protected:
 	std::shared_ptr<Mesh> _mesh;

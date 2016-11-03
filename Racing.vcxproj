@@ -145,7 +145,6 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
     <ClCompile Include="src\DXCore.cpp" />
-    <ClCompile Include="src\Entity.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Material.cpp" />
@@ -171,7 +170,6 @@
     <ClInclude Include="include\DirectionalLight.h" />
     <ClInclude Include="include\DXCore.h" />
     <ClInclude Include="include\ECS.h" />
-    <ClInclude Include="include\Entity.h" />
     <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\Renderable.h" />
