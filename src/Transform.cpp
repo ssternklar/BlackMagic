@@ -22,7 +22,7 @@ Transform::Transform(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT4 rotation, DirectX:
 
 Transform::~Transform()
 {
-	
+	TransformData::DeallocateTransform(_id);
 }
 
 

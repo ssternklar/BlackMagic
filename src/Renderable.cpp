@@ -2,16 +2,19 @@
 
 using namespace DirectX;
 
-Renderable::Renderable(const std::shared_ptr<Mesh> mesh, const std::shared_ptr<Material> mat,
-	XMFLOAT3 pos, XMFLOAT4 rot, XMFLOAT3 scale)
-	: transform(pos, rot, scale),
-	_mesh(mesh),
+Renderable::Renderable(const std::shared_ptr<Mesh> mesh, const std::shared_ptr<Material> mat)
+	: _mesh(mesh),
 	_material(mat)
 {
 	
 }
 
-void Renderable::PrepareMaterial(XMFLOAT4X4 view, XMFLOAT4X4 proj)
+Renderable::Renderable()
+{
+
+}
+
+void Renderable::PrepareMaterial(Transform& transform, XMFLOAT4X4 view, XMFLOAT4X4 proj)
 {
 	auto vs = _material->VertexShader();
 	auto ps = _material->PixelShader();

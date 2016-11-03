@@ -2,6 +2,8 @@
 #include "Vertex.h"
 
 using DirectX::XMFLOAT2;
+using DirectX::XMFLOAT4;
+using DirectX::XMFLOAT4X4;
 
 GraphicsDevice::GraphicsDevice()
 {}
@@ -247,7 +249,7 @@ void GraphicsDevice::Init(ContentManager* content)
 	
 }
 
-void GraphicsDevice::Render(const Camera& cam, const std::vector<Renderable*>& objects, const std::vector<DirectionalLight>& lights)
+void GraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights)
 {
 	static UINT stride = sizeof(Vertex);
 	static UINT quadStride = sizeof(XMFLOAT2);
@@ -262,22 +264,25 @@ void GraphicsDevice::Render(const Camera& cam, const std::vector<Renderable*>& o
 	//Load object attributes into the g-buffer (geometry pass)
 	for(auto* object : objects)
 	{
-		if (object->_material.get() != currentMaterial)
+		auto renderable = object->get<Renderable>();
+		auto transform = object->get<Transform>();
+
+		if (renderable->_material.get() != currentMaterial)
 		{
-			currentMaterial = object->_material.get();
-			object->_material->Apply(cam.ViewMatrix(), cam.ProjectionMatrix());
+			currentMaterial = renderable->_material.get();
+			renderable->_material->Apply(cam.ViewMatrix(), cam.ProjectionMatrix());
 		}
 		
 		//Update per-object constant buffer
-		object->_material->VertexShader()->SetData("world", object->transform.Matrix(), sizeof(XMFLOAT4X4));
+		renderable->_material->VertexShader()->SetData("world", transform->Matrix(), sizeof(XMFLOAT4X4));
 		
 		//Upload buffers and draw
-		object->_material->Upload();
+		renderable->_material->Upload();
 
-		auto vBuf = object->_mesh->VertexBuffer();
+		auto vBuf = renderable->_mesh->VertexBuffer();
 		_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
-		_context->IASetIndexBuffer(object->_mesh->IndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-		_context->DrawIndexed(static_cast<UINT>(object->_mesh->IndexCount()), 0, 0);
+		_context->IASetIndexBuffer(renderable->_mesh->IndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		_context->DrawIndexed(static_cast<UINT>(renderable->_mesh->IndexCount()), 0, 0);
 	}
 
 
