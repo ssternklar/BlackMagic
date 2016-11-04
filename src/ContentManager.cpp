@@ -91,7 +91,7 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	}, ContentAllocatorAdapter(_allocator));
 		
 		//std::bind(&(BlackMagic::BestFitAllocator::deallocate), _allocator, sizeof(unsigned int) + sizeof(SplineControlPoint) * pieces, 1));
-	ret.reset((Spline*)memory);
+	//ret.reset((Spline*)memory);
 	_resources[name] = ret;
 	return ret;
 }

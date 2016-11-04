@@ -3,6 +3,7 @@
 
 #include <new>
 #include <iostream>
+#include <memory>
 #include "Texture.h"
 #include "TransformData.h"
 #include "Spline.h"
@@ -74,9 +75,9 @@ void Game::Init()
 	_content = std::make_unique<ContentManager>(_renderer->Device(), _renderer->Context(), L"./assets/", alloc);
 	
 	_renderer->Init(_content.get());
-	
+	splineMesh = std::unique_ptr<Mesh>(new Mesh());
 	auto spline = _content->Load<Spline>(L"spline.bin");
-	spline->GenerateMesh(_renderer.get(), &splineMesh);
+	spline->GenerateMesh(_renderer.get(), splineMesh.get());
 
 	dxFeatureLevel = _renderer->FeatureLevel();
 
@@ -137,7 +138,7 @@ void Game::LoadContent()
 		}
 	}
 
-	_entities.emplace_back(Entity{ std::shared_ptr<Mesh>(&splineMesh), gridMat, XMFLOAT3(0,0,0), quatIdentity, defaultScale});
+	_entities.emplace_back(Entity{ splineMesh, gridMat, XMFLOAT3(0,0,0), quatIdentity, defaultScale});
 
 }
 

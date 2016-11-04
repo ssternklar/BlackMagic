@@ -42,8 +42,8 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 {
 	const size_t numVerts = 100000;
 	const size_t numIndices = numVerts * 3;
-	Vertex vertices[numVerts];
-	unsigned int indices[numIndices];
+	Vertex* vertices = new Vertex[numVerts];
+	unsigned int* indices = new unsigned int[numIndices];
 
 	using namespace DirectX;
 	float stepAmt = (numVerts / 2.0f) / this->segmentCount;
@@ -103,4 +103,6 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 	indData.pSysMem = &indices[0];
 
 	mesh->Set(device->CreateBuffer(vertDesc, vertData), device->CreateBuffer(indDesc, indData), numIndices);
+	delete[] vertices;
+	delete[] indices;
 }
