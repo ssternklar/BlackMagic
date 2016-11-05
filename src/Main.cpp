@@ -17,6 +17,8 @@ int WINAPI WinMain(
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
+	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+
 	// Create the Game object using
 	// the app handle we got from WinMain
 	Game dxGame(hInstance);

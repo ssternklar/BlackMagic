@@ -46,7 +46,7 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 	unsigned int* indices = new unsigned int[numIndices];
 
 	using namespace DirectX;
-	float stepAmt = (numVerts / 2.0f) / this->segmentCount;
+	float stepAmt = 1 / (numVerts / 2.0f);
 	float step = 0;
 	SplineControlPoint point;
 	XMFLOAT3 binormal;
@@ -63,12 +63,6 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 		vertices[i].Tangent = point.tangent;
 		vertices[i].Binormal = binormal;
 		vertices[i].UV = { 0, 0 };
-		if (i >= 2)
-		{
-			indices[(i * 3)] = i - 2;
-			indices[(i * 3) + 1] = i - 1;
-			indices[(i * 3) + 2] = i;
-		}
 		
 		//right vertex
 		XMStoreFloat3(&vertices[i+1].Position, position + localScale);
@@ -76,14 +70,20 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 		vertices[i+1].Tangent = point.tangent;
 		vertices[i+1].Binormal = binormal;
 		vertices[i+1].UV = { 1, 0 };
-		if (i >= 2)
-		{
-			indices[(i * 3) + 3] = i - 1;
-			indices[(i * 3) + 4] = i;
-			indices[(i * 3) + 5] = i + 1;
-		}
 
 		step += stepAmt;
+	}
+
+	for (int i = 0; i < numVerts; i++)
+	{
+		indices[i * 3] = i % numVerts;
+		indices[(i * 3) + 1] = (i + 1) % numVerts;
+		indices[(i * 3) + 2] = (i + 2) % numVerts;
+		if (i * 3 > numIndices - 5)
+		{
+			int c = 8;
+			c++;
+		}
 	}
 
 	D3D11_BUFFER_DESC vertDesc = {};

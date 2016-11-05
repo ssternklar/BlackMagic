@@ -138,7 +138,7 @@ void Game::LoadContent()
 		}
 	}
 
-	_entities.emplace_back(Entity{ splineMesh, gridMat, XMFLOAT3(0,0,0), quatIdentity, defaultScale});
+	_entities.emplace_back(splineMesh, gridMat, XMFLOAT3(0,0,0), quatIdentity, defaultScale);
 
 }
 
@@ -169,7 +169,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	for(auto& e : _entities)
 	{
-		e.transform.Rotate({ 0, 1, 0 }, 3.14 / 20 * deltaTime);
+		//e.transform.Rotate({ 0, 1, 0 }, 3.14 / 20 * deltaTime);
 		e.Update();
 	}
 
