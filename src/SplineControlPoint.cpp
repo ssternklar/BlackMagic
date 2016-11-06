@@ -29,6 +29,6 @@ bool SplineControlPoint::IsCloseToPlane(DirectX::XMFLOAT3& InPoint, float limit)
 void SplineControlPoint::GetControlPoint(DirectX::XMFLOAT3& OutPoint)
 {
 	using namespace DirectX;
-	auto cp = XMLoadFloat3(&position) + (XMLoadFloat3(&tangent) * XMLoadFloat3(&scale));
+	auto cp = XMLoadFloat3(&position) + (XMLoadFloat3(&tangent));
 	XMStoreFloat3(&OutPoint, cp);
 }

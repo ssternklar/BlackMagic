@@ -44,7 +44,6 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 	const size_t numIndices = numVerts * 3;
 	Vertex* vertices = new Vertex[numVerts];
 	unsigned int* indices = new unsigned int[numIndices];
-
 	using namespace DirectX;
 	float stepAmt = 1 / (numVerts / 2.0f);
 	float step = 0;
@@ -74,16 +73,15 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 		step += stepAmt;
 	}
 
-	for (int i = 0; i < numVerts; i++)
+	for (int i = 0; i < numVerts; i += 2)
 	{
 		indices[i * 3] = i % numVerts;
 		indices[(i * 3) + 1] = (i + 1) % numVerts;
 		indices[(i * 3) + 2] = (i + 2) % numVerts;
-		if (i * 3 > numIndices - 5)
-		{
-			int c = 8;
-			c++;
-		}
+		indices[(i * 3) + 3] = (i + 5) % numVerts;
+		indices[(i * 3) + 4] = (i + 4) % numVerts;
+		indices[(i * 3) + 5] = (i + 3) % numVerts;
+		
 	}
 
 	D3D11_BUFFER_DESC vertDesc = {};
