@@ -40,22 +40,23 @@ void Spline::GuessNearestPoint(DirectX::XMFLOAT3& point, SplineControlPoint& out
 
 void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 {
-	const size_t numVerts = 100000;
+	const size_t numVerts = 5000;
 	const size_t numIndices = numVerts * 3;
 	Vertex* vertices = new Vertex[numVerts];
 	unsigned int* indices = new unsigned int[numIndices];
 	using namespace DirectX;
-	float stepAmt = 1 / (numVerts / 2.0f);
+	float stepAmt = 2.0f / (numVerts);
 	float step = 0;
 	SplineControlPoint point;
 	XMFLOAT3 binormal;
 	int uvY = 0;
+	XMVECTOR lastNormal = XMVectorZero();
 	for (int i = 0; i < numVerts; i += 2)
 	{
 		GetPoint(step, point);
 		auto position = XMLoadFloat3(&point.position);
-		XMStoreFloat3(&binormal, XMVector3Cross(XMLoadFloat3(&point.normal), XMLoadFloat3(&point.tangent)));
-		auto localScale = XMVector3Rotate(XMVectorSet(point.scale.x, 0, 0, 0), XMLoadFloat4(&point.rotation));
+		XMStoreFloat3(&binormal, XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&point.normal), XMLoadFloat3(&point.tangent))));
+		auto localScale = XMVector3Rotate(XMVectorSet(point.scale.x, 0, 0, 0), XMQuaternionNormalize(XMLoadFloat4(&point.rotation)));
 		//left vertex
 		XMStoreFloat3(&vertices[i].Position, position - localScale);
 		vertices[i].Normal = point.normal;
@@ -70,18 +71,18 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 		vertices[i+1].Binormal = binormal;
 		vertices[i+1].UV = { 1, 0 };
 
+		lastNormal = XMLoadFloat3(&point.normal);
 		step += stepAmt;
 	}
 
 	for (int i = 0; i < numVerts; i += 2)
 	{
 		indices[i * 3] = i % numVerts;
-		indices[(i * 3) + 1] = (i + 1) % numVerts;
-		indices[(i * 3) + 2] = (i + 2) % numVerts;
-		indices[(i * 3) + 3] = (i + 5) % numVerts;
-		indices[(i * 3) + 4] = (i + 4) % numVerts;
+		indices[(i * 3) + 1] = (i + 2) % numVerts;
+		indices[(i * 3) + 2] = (i + 1) % numVerts;
+		indices[(i * 3) + 3] = (i + 1) % numVerts;
+		indices[(i * 3) + 4] = (i + 2) % numVerts;
 		indices[(i * 3) + 5] = (i + 3) % numVerts;
-		
 	}
 
 	D3D11_BUFFER_DESC vertDesc = {};

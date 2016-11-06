@@ -45,34 +45,31 @@ DirectX::XMFLOAT3 SplinePiece::GetSplineDerivative(float t)
 	return ret;
 }
 
-inline DirectX::XMFLOAT4 QuaternionLookAt(DirectX::XMFLOAT3& fwd, DirectX::XMFLOAT3& up)
-{
-	using namespace DirectX;
-	XMFLOAT3 right;
-	XMStoreFloat3(&right, XMVector3Cross(XMLoadFloat3(&fwd), XMLoadFloat3(&up)));
-	XMFLOAT4 ret;
-	ret.w = sqrtf(1.f + right.x + up.y + fwd.z) * .5f;
-	float w4reciprocal = 1.f / (4.f * ret.w);
-	ret.x = (up.z - fwd.y) * w4reciprocal;
-	ret.y = (fwd.x - right.z) * w4reciprocal;
-	ret.z = (right.y - up.x) * w4reciprocal;
-	return ret;
-}
-
 void SplinePiece::GetPoint(float t, SplineControlPoint& outPoint)
 {
 	using namespace DirectX;
-	outPoint.position = GetSplinePoint(t);
-	XMStoreFloat3(&(outPoint.scale), XMVectorLerp(XMLoadFloat3(&(startPoint.scale)), XMLoadFloat3(&(endPoint.scale)), t));
-	outPoint.tangent = GetSplineDerivative(t);
-	auto quat = XMQuaternionSlerp(XMLoadFloat4(&(startPoint.rotation)), XMLoadFloat4(&(endPoint.rotation)), t);
-	auto normal = XMVector3Rotate(XMVectorSet(0, 1, 0, 0), quat);
-	XMFLOAT3 normalTangent;
-	XMStoreFloat3(&normalTangent, XMVector3Normalize(XMLoadFloat3(&outPoint.tangent)));
-	//quat = XMQuaternionRotationMatrix(XMMatrixLookAtLH(XMVectorSet(0, 0, 0, 0), XMVector3Normalize(XMLoadFloat3(&outPoint.tangent)), normal));
-	XMStoreFloat3(&(outPoint.normal), normal);
-	//XMStoreFloat4(&(outPoint.rotation), quat);
-	outPoint.rotation = QuaternionLookAt(normalTangent, outPoint.normal);
+	auto pos = GetSplinePoint(t);
+	auto scale = XMVectorLerp(XMLoadFloat3(&startPoint.scale), XMLoadFloat3(&endPoint.scale), t);
+	auto tangent = GetSplineDerivative(t);
+	auto startRotQuat = XMQuaternionNormalize(XMLoadFloat4(&(startPoint.rotation)));
+	auto endRotQuat = XMQuaternionNormalize(XMLoadFloat4(&(endPoint.rotation)));
+	auto up = XMQuaternionNormalize(XMQuaternionSlerp(startRotQuat, endRotQuat, t));
+	auto normal = XMVector3Normalize(XMVector3Rotate(XMVectorSet(0, 1, 0, 0), up));
+	auto tangentV = XMVector3Normalize(XMLoadFloat3(&tangent));
+	auto binormal = XMVector3Normalize(XMVector3Cross(normal, tangentV));
+	normal = XMVector3Cross(tangentV, binormal);
+	XMMATRIX mat;
+	mat.r[0] = binormal;
+	mat.r[1] = normal;
+	mat.r[2] = tangentV;
+	auto quat = (XMQuaternionRotationMatrix(mat));
+
+	outPoint.position = pos;
+	XMStoreFloat3(&outPoint.normal, normal);
+	XMStoreFloat3(&outPoint.tangent, XMVector3Normalize(XMLoadFloat3(&tangent)));
+	XMStoreFloat3(&outPoint.scale, scale);
+	XMStoreFloat4(&outPoint.rotation, quat);
+
 }
 
 float SplinePiece::GuessNearestPoint(DirectX::XMFLOAT3& point, float& outDistanceSquared)
