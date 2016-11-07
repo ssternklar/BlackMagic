@@ -38,7 +38,6 @@ TransformID TransformData::AllocateTransform()
 
 void TransformData::DeallocateTransform(TransformID id)
 {
-	_availableTransforms.push(id);
 }
 
 void TransformData::UpdateTransforms()

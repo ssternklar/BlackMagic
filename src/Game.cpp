@@ -12,6 +12,8 @@
 // For the DirectX Math library
 using namespace DirectX;
 
+using namespace ECS;
+
 // --------------------------------------------------------
 // Constructor
 //
@@ -134,12 +136,16 @@ void Game::LoadContent()
 	{
 		for(size_t x = 0; x < 20; x++)
 		{
-			_entities.emplace_back(Entity{ sphere, gridMat, XMFLOAT3{static_cast<float>(x), static_cast<float>(y), 0}, quatIdentity, defaultScale });
+			Entity* ent = gameWorld->create();
+			ent->assign<Transform>(XMFLOAT3{ (float)x, (float)y, 0 }, quatIdentity, defaultScale);
+			ent->assign<Renderable>(sphere, gridMat);
 		}
 	}
-
-	_entities.emplace_back(splineMesh, gridMat, XMFLOAT3(0,0,0), quatIdentity, defaultScale);
-
+	Entity* ent = gameWorld->create();//.emplace_back(splineMesh, gridMat, XMFLOAT3(0,0,0), quatIdentity, defaultScale);
+	ent->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
+	ent->assign<Renderable>(splineMesh, gridMat);
+									  // Add our test system
+	gameWorld->registerSystem(new TestSystem());
 }
 
 // --------------------------------------------------------
@@ -167,13 +173,8 @@ void Game::Update(float deltaTime, float totalTime)
 
 	_camera.Update(deltaTime);
 
-	for(auto& e : _entities)
-	{
-		//e.transform.Rotate({ 0, 1, 0 }, 3.14 / 20 * deltaTime);
-		e.Update();
-	}
-
 	// World update
+	// this ticks all registered systems
 	gameWorld->tick(deltaTime);
 	
 	TransformData::UpdateTransforms();
@@ -187,9 +188,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	//Cornflower blue
 	const XMFLOAT4 color{0.4f, 0.6f, 0.75f, 0.0f};
 	_renderer->Clear(color);
-	std::vector<Renderable*> renderables;
+	std::vector<Entity*> renderables;
 	renderables.reserve(100);
-	_renderer->Cull(_camera, _entities, renderables);
+	_renderer->Cull(_camera, gameWorld, renderables);
 	_renderer->Render(_camera, renderables, _directionalLights);
 	_renderer->Present(0, 0);
 }

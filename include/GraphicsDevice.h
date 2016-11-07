@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Camera.h"
-#include "Entity.h"
+#include "ECS.h"
 #include "Renderable.h"
 #include "ContentManager.h"
 
@@ -17,7 +17,7 @@ public:
 	ID3D11DeviceContext* Context() const;
 	D3D_FEATURE_LEVEL FeatureLevel() const;
 
-	void Clear(XMFLOAT4 color);
+	void Clear(DirectX::XMFLOAT4 color);
 	HRESULT InitDx(HWND window, UINT width, UINT height);
 	void Init(ContentManager* content);
 	void OnResize(UINT width, UINT height);
@@ -26,14 +26,17 @@ public:
 	std::shared_ptr<ID3D11SamplerState> CreateSamplerState(D3D11_SAMPLER_DESC& desc);
 	ID3D11Buffer* CreateBuffer(const D3D11_BUFFER_DESC& desc, const D3D11_SUBRESOURCE_DATA& data);
 
-	void Cull(const Camera& cam, std::vector<Entity>& sceneObjects, std::vector<Renderable*>& objectsToDraw)
+	// TODO: Add correct allocator type to vectors?
+	void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw)
 	{
-		//TODO: Actually implement frustum culling
-		for (auto& r : sceneObjects)
-			objectsToDraw.push_back(&r);
+		for (auto* ent : gameWorld->each<Transform, Renderable>())
+		{
+			// TODO: Actual frustum culling
+			objectsToDraw.push_back(ent);
+		}
 	}
 
-	void Render(const Camera& cam, const std::vector<Renderable*>& objects, const std::vector<DirectionalLight>& lights);
+	void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights);
 private:
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;

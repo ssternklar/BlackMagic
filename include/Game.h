@@ -8,9 +8,18 @@
 #include "ContentManager.h"
 #include "DirectionalLight.h"
 #include "DXCore.h"
-#include "Entity.h"
 #include "GraphicsDevice.h"
 #include "ECS.h"
+
+class TestSystem : public ECS::EntitySystem
+{
+	virtual void tick(ECS::World* world, float deltaTime) override
+	{
+		world->each<Transform>([deltaTime](auto ent, auto transform) {
+			transform->Rotate({ 0, 1, 0 }, 3.14f / 20.f * deltaTime);
+		});
+	}
+};
 
 class Game
 	: public DXCore
@@ -46,9 +55,6 @@ private:
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
-
-	//Store entities using unique_ptrs so they clean themselves up when they go out of scope
-	std::vector<Entity> _entities;
 
 	//Central storage for meshes so they get cleaned up properly
 	//In a perfect world this would be the job of a resource cache class
