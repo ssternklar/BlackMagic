@@ -25,7 +25,6 @@ Transform::~Transform()
 	TransformData::DeallocateTransform(_id);
 }
 
-
 void Transform::Move(XMFLOAT3 dp)
 {
 	auto& ptr = TransformData::_positions[_id];

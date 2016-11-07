@@ -146,6 +146,7 @@
     <ClCompile Include="src\ContentManager.cpp" />
     <ClCompile Include="src\DXCore.cpp" />
     <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\Machine.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Mesh.cpp" />

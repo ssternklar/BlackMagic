@@ -77,7 +77,7 @@ void Game::Init()
 	_content = std::make_unique<ContentManager>(_renderer->Device(), _renderer->Context(), L"./assets/", alloc);
 	
 	_renderer->Init(_content.get());
-	splineMesh = std::unique_ptr<Mesh>(new Mesh());
+	splineMesh = std::make_shared<Mesh>();//std::unique_ptr<Mesh>(new Mesh());
 	auto spline = _content->Load<Spline>(L"spline.bin");
 	spline->GenerateMesh(_renderer.get(), splineMesh.get());
 
@@ -141,7 +141,7 @@ void Game::LoadContent()
 			ent->assign<Renderable>(sphere, gridMat);
 		}
 	}
-	Entity* ent = gameWorld->create();//.emplace_back(splineMesh, gridMat, XMFLOAT3(0,0,0), quatIdentity, defaultScale);
+	Entity* ent = gameWorld->create();
 	ent->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
 	ent->assign<Renderable>(splineMesh, gridMat);
 									  // Add our test system

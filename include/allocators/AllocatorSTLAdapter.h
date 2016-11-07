@@ -30,7 +30,7 @@ namespace BlackMagic
 		void deallocate(pointer p, std::size_t n)
 		{
 			if(allocator)
-				allocator->deallocate(p, sizeof(T), n);
+				allocator->deallocate((void*)p, sizeof(T), n);
 		}
 		
 		template<typename U>
