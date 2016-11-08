@@ -23,7 +23,8 @@ bool SplineControlPoint::IsCloseToPlane(DirectX::XMFLOAT3& InPoint, float limit)
 {
 	using namespace DirectX;
 	auto dot = XMVectorAbs(XMVector3Dot(XMLoadFloat3(&InPoint) - XMLoadFloat3(&position), XMLoadFloat3(&normal)));
-	return dot.m128_f32[0] < limit;
+	
+	return XMVectorGetX(dot) < limit;
 }
 
 void SplineControlPoint::GetControlPoint(DirectX::XMFLOAT3& OutPoint)

@@ -5,8 +5,6 @@
 #include <iostream>
 #include <memory>
 #include "Texture.h"
-#include "TransformData.h"
-#include "Spline.h"
 #include "WICTextureLoader.h"
 
 // For the DirectX Math library
@@ -28,13 +26,11 @@ Game::Game(HINSTANCE hInstance)
 		"DirectX Game", // Text for the window's title bar
 		1280, // Width of the window's client area
 		720, // Height of the window's client area
-		true),
+		true)
 	// Show extra stats (fps) in title bar?
-	_camera({0, 0, -5}, {0, 0, 1}, 2)
 {
-	_camera.UpdateProjectionMatrix(width, height);
-	_transformMemory = operator new(300 * TransformData::Size);
-	TransformData::Init(300, _transformMemory);
+	_transformMemory = operator new(400 * TransformData::Size);
+	TransformData::Init(400, _transformMemory);
 
 	// TODO: Pass our custom allocator here. Also see ECS.h line 2.
 	gameWorld = ECS::World::createWorld();
@@ -78,8 +74,8 @@ void Game::Init()
 	
 	_renderer->Init(_content.get());
 	splineMesh = std::make_shared<Mesh>();//std::unique_ptr<Mesh>(new Mesh());
-	auto spline = _content->Load<Spline>(L"spline.bin");
-	spline->GenerateMesh(_renderer.get(), splineMesh.get());
+	_spline = _content->Load<Spline>(L"spline.bin");
+	_spline->GenerateMesh(_renderer.get(), splineMesh.get());
 
 	dxFeatureLevel = _renderer->FeatureLevel();
 
@@ -132,20 +128,18 @@ void Game::LoadContent()
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	for(size_t y = 0; y < 20; y++)
-	{
-		for(size_t x = 0; x < 20; x++)
-		{
-			Entity* ent = gameWorld->create();
-			ent->assign<Transform>(XMFLOAT3{ (float)x, (float)y, 0 }, quatIdentity, defaultScale);
-			ent->assign<Renderable>(sphere, gridMat);
-		}
-	}
 	Entity* ent = gameWorld->create();
 	ent->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
 	ent->assign<Renderable>(splineMesh, gridMat);
+
+	Entity* machine = gameWorld->create();
+	machine->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
+	machine->assign<Renderable>(sphere, gridMat);
+	machine->assign<Machine>();
+	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -1 });
+	_camera->UpdateProjectionMatrix(width, height);
 									  // Add our test system
-	gameWorld->registerSystem(new TestSystem());
+	gameWorld->registerSystem(new MachineSystem(_spline));
 }
 
 // --------------------------------------------------------
@@ -157,9 +151,9 @@ void Game::OnResize()
 	// Handle base-level DX resize stuff
 	if (_renderer && _renderer->Device())
 		_renderer->OnResize(width, height);
-
-	// Update the camera's projection matrix since the window size changed
-	_camera.UpdateProjectionMatrix(width, height);
+	if(_camera.isValid())
+		// Update the camera's projection matrix since the window size changed
+		_camera->UpdateProjectionMatrix(width, height);
 }
 
 // --------------------------------------------------------
@@ -170,8 +164,6 @@ void Game::Update(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
-
-	_camera.Update(deltaTime);
 
 	// World update
 	// this ticks all registered systems
@@ -190,8 +182,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	_renderer->Clear(color);
 	std::vector<Entity*> renderables;
 	renderables.reserve(100);
-	_renderer->Cull(_camera, gameWorld, renderables);
-	_renderer->Render(_camera, renderables, _directionalLights);
+	_renderer->Cull(_camera.get(), gameWorld, renderables);
+	_renderer->Render(_camera.get(), renderables, _directionalLights);
 	_renderer->Present(0, 0);
 }
 
@@ -242,7 +234,6 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	{
 		float dx = static_cast<float>(x - prevMousePos.x);
 		float dy = static_cast<float>(y - prevMousePos.y);
-		_camera.Rotate(dy * 0.002f * 3.14f, dx * 0.002f * 3.14f);
 	}
 
 	// Save the previous mouse position, so we have it for the future

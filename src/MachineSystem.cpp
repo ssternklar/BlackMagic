@@ -64,7 +64,7 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 			MachineSystem::SetTransformRotation(&transform.get(), &machine->lastTrackControlPoint);
 			XMFLOAT3 planePos;
 			machine->lastTrackControlPoint.GetClosestPointOnPlane(transform->GetPosition(), &planePos);
-			XMStoreFloat3(&position, XMLoadFloat3(&position) + XMLoadFloat3(&machine->lastTrackControlPoint.normal) * .1f);
+			XMStoreFloat3(&position, XMLoadFloat3(&planePos) + XMLoadFloat3(&machine->lastTrackControlPoint.normal) * .1f);
 			transform->MoveTo(position);
 		}
 		else if (hasWalls && machine->lastPositionInTrack && heightGood)
@@ -85,7 +85,6 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 		}
 		else
 		{
-			//FALL
 			auto fwd = transform->GetForward();
 			fwd.y = 0;
 			XMFLOAT4 quat = QuatLookRotation(fwd, XMFLOAT3{ 0,1,0 });
@@ -110,6 +109,9 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 		XMStoreFloat3(&localVelocity, XMVector3Rotate(velocity, XMLoadFloat4(&transform->GetRotation())));
 		transform->Move(localVelocity);
 		machine->lastPositionInTrack = withinBounds && heightGood;
+	});
+	world->each<Transform, Machine, Camera>([](ECS::Entity* ent, ECS::ComponentHandle<Transform> transform, ECS::ComponentHandle<Machine> machine, ECS::ComponentHandle<Camera> camera) {
+		camera->Update(&transform.get());
 	});
 }
 

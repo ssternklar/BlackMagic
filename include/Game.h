@@ -9,9 +9,13 @@
 #include "DirectionalLight.h"
 #include "DXCore.h"
 #include "GraphicsDevice.h"
+#include "TransformData.h"
+#include "Spline.h"
+#include "Machine.h"
+#include "MachineSystem.h"
 #include "ECS.h"
 
-class TestSystem : public ECS::EntitySystem
+/*class TestSystem : public ECS::EntitySystem
 {
 	virtual void tick(ECS::World* world, float deltaTime) override
 	{
@@ -19,7 +23,7 @@ class TestSystem : public ECS::EntitySystem
 			transform->Rotate({ 0, 1, 0 }, 3.14f / 20.f * deltaTime);
 		});
 	}
-};
+};*/
 
 class Game
 	: public DXCore
@@ -60,7 +64,7 @@ private:
 	//In a perfect world this would be the job of a resource cache class
 	std::unordered_map<std::string, std::shared_ptr<Mesh>> _meshes;
 
-	Camera _camera;
+	ECS::ComponentHandle<Camera> _camera;
 
 	std::vector<DirectionalLight> _directionalLights;
 	
@@ -68,6 +72,7 @@ private:
 	std::unique_ptr<GraphicsDevice> _renderer;
 
 	std::shared_ptr<Mesh> splineMesh;
+	std::shared_ptr<Spline> _spline;
 
 	BlackMagic::BestFitAllocator* alloc;
 	byte* allocMem;
