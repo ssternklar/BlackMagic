@@ -25,7 +25,7 @@ GBuffer main(VertexToPixel input)
 {
 	GBuffer output;
 
-	output.diffuse = float4(mainTex.Sample(mainSampler, input.uv).rgb, 1.0);
+	output.diffuse = float4(mainTex.Sample(mainSampler, input.uv*15).rgb, 1.0);
 
 	output.specular = float4(1, 1, 1, 32);
 

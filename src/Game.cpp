@@ -95,6 +95,7 @@ void Game::Init()
 void Game::LoadContent()
 {
 	auto sphere = _content->Load<Mesh>(L"/models/sphere.obj");
+	auto plane = _content->Load<Mesh>(L"/models/plane.obj");
 
 	auto rocks = _content->Load<Texture>(L"/textures/rock.jpg");
 	auto rocksNormals = _content->Load<Texture>(L"/textures/rockNormals.jpg");
@@ -120,6 +121,11 @@ void Game::LoadContent()
 		gPassVS, gPassPS,
 		rocks, sampler,
 		rocksNormals);
+
+	auto testMat = std::make_shared<Material>(
+		gPassVS, gPassPS,
+		sand, sampler,
+		sandNormals);
 	
 	XMFLOAT4 quatIdentity;
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
@@ -130,10 +136,14 @@ void Game::LoadContent()
 		for(size_t x = 0; x < 20; x++)
 		{
 			Entity* ent = gameWorld->create();
-			ent->assign<Transform>(XMFLOAT3{ (float)x, (float)y, 0 }, quatIdentity, defaultScale);
+			ent->assign<Transform>(XMFLOAT3{ (float)x*1.5f, 0, (float)y*1.5f }, quatIdentity, defaultScale);
 			ent->assign<Renderable>(sphere, gridMat);
 		}
 	}
+
+	Entity* planeEntity = gameWorld->create();
+	planeEntity->assign<Transform>(XMFLOAT3{ 15, -1.1f, 15 }, quatIdentity, XMFLOAT3{ 15, 1, 15 });
+	planeEntity->assign<Renderable>(plane, testMat);
 
 	// Add our test system
 	gameWorld->registerSystem(new TestSystem());
@@ -161,6 +171,9 @@ void Game::Update(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
+
+	_directionalLights[0].Direction.x = cos(totalTime*0.3f);
+	_directionalLights[0].Direction.y = sin(totalTime*0.3f);
 
 	_camera.Update(deltaTime);
 

@@ -16,7 +16,7 @@ class TestSystem : public ECS::EntitySystem
 	virtual void tick(ECS::World* world, float deltaTime) override
 	{
 		world->each<Transform>([deltaTime](auto ent, auto transform) {
-			transform->Rotate({ 0, 1, 0 }, 3.14f / 20.f * deltaTime);
+			//transform->Rotate({ 0, 1, 0 }, 3.14f / 20.f * deltaTime);
 		});
 	}
 };
