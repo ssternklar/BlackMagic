@@ -13,6 +13,7 @@ public:
 	float maxVelocity = 1.f;
 	float boostVelocity = 1.2f;
 	float internalMaxVelocity;
+	float health = 100;
 	bool lastPositionInTrack = true;
 	bool isBoosting = false;
 	Machine();

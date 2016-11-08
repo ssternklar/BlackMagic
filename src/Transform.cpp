@@ -85,3 +85,10 @@ XMFLOAT4 Transform::GetRotation()
 {
 	return TransformData::_rotations[_id];
 }
+
+XMFLOAT3 Transform::GetForward()
+{
+	XMFLOAT3 ret;
+	XMStoreFloat3(&ret, XMVector3Rotate(XMLoadFloat3(&TransformData::_positions[_id]), XMLoadFloat4(&TransformData::_rotations[_id])));
+	return ret;
+}
