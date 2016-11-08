@@ -2,7 +2,7 @@
 #include<memory>
 #include "ECS.h"
 #include "Machine.h"
-class MachineSystem : public ECS::EntitySystem
+class MachineSystem : public ECS::EntitySystem, public ECS::EventSubscriber<ECS::Events::OnComponentAssigned<Machine>>
 {
 	std::shared_ptr<Spline> track;
 	MachineSystem(std::shared_ptr<Spline> track);

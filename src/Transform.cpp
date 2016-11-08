@@ -70,3 +70,18 @@ const DirectX::XMFLOAT4X4* Transform::Matrix()
 {
 	return TransformData::GetMatrix(_id);
 }
+
+XMFLOAT3 Transform::GetPosition()
+{
+	return TransformData::_positions[_id];
+}
+
+XMFLOAT3 Transform::GetScale()
+{
+	return TransformData::_scales[_id];
+}
+
+XMFLOAT4 Transform::GetRotation()
+{
+	return TransformData::_rotations[_id];
+}
