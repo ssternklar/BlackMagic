@@ -6,7 +6,7 @@ void SplineControlPoint::GetClosestPointOnPlane(DirectX::XMFLOAT3& InPoint, Dire
 	auto iop = XMLoadFloat3(&InPoint);
 	auto tp = XMLoadFloat3(&position);
 	auto n = XMLoadFloat3(&normal);
-	XMStoreFloat3(OutPoint, tp - (XMVector3Dot(iop - tp, n) * n));
+	XMStoreFloat3(OutPoint, iop - (XMVector3Dot(iop - tp, n) * n));
 }
 
 bool SplineControlPoint::IsInPlaneBounds(DirectX::XMFLOAT3& InPoint)

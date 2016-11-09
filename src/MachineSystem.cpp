@@ -65,7 +65,6 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 			XMFLOAT3 planePos;
 			machine->lastTrackControlPoint.GetClosestPointOnPlane(transform->GetPosition(), &planePos);
 			XMStoreFloat3(&position, XMLoadFloat3(&planePos) + XMLoadFloat3(&machine->lastTrackControlPoint.normal) * .1f);
-			transform->MoveTo(position);
 		}
 		else if (hasWalls && machine->lastPositionInTrack && heightGood)
 		{
@@ -74,7 +73,6 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 			machine->lastTrackControlPoint.GetClosestPointOnPlane(position, &closestPointOnPlane);
 			auto pointPosV = XMLoadFloat3(&machine->lastTrackControlPoint.position);
 			auto closestPointV = XMLoadFloat3(&closestPointOnPlane);
-			XMFLOAT3 pos;
 			XMStoreFloat3(&position, pointPosV + XMVector3ClampLength(closestPointV - pointPosV, 0, (machine->lastTrackControlPoint.scale.x / 2) * .98f) + (XMLoadFloat3(&machine->lastTrackControlPoint.normal) * .1f));
 			auto slowAmt = XMVector3Dot(XMLoadFloat3(&machine->lastTrackControlPoint.tangent), XMLoadFloat3(&transform->GetForward()));
 			float healthDecreaseAmt;
@@ -90,10 +88,9 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 			XMFLOAT4 quat = QuatLookRotation(fwd, XMFLOAT3{ 0,1,0 });
 			XMStoreFloat4(&quat, XMQuaternionSlerp(XMLoadFloat4(&quat), XMLoadFloat4(&transform->GetRotation()), .1f));
 			transform->SetRotation(quat);
-			XMFLOAT3 pos;
-			XMStoreFloat3(&pos, XMVectorSet(0, -1, 0, 0) * 2.5f * deltaTime);
-			transform->MoveTo(pos);
+			XMStoreFloat3(&position, XMVectorSet(0, -1, 0, 0) * 2.5f * deltaTime);
 		}
+		transform->MoveTo(position);
 		XMFLOAT4 rot;
 		XMStoreFloat4(&rot, XMQuaternionRotationRollPitchYaw(0, (XM_PI / 180) * (KEYPRESSED('A') ? -1 : 0) + (KEYPRESSED('D') ? 1 : 0) * .1f * deltaTime, 0));
 		transform->Rotate(rot);
@@ -121,6 +118,7 @@ void MachineSystem::SetTransformRotation(Transform* transform, SplineControlPoin
 	auto transformFwdV = XMLoadFloat3(&transform->GetForward());
 	auto normalV = XMLoadFloat3(&point->normal);
 	XMFLOAT3 fwd;
-	XMStoreFloat3(&fwd, transformFwdV - (XMVector3Dot(transformFwdV, normalV) * normalV));
+	auto diff = (XMVector3Dot(transformFwdV, normalV) * normalV);
+	XMStoreFloat3(&fwd, transformFwdV);
 	transform->SetRotation(QuatLookRotation(fwd, point->normal));
 }
