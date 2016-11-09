@@ -24,25 +24,25 @@ void MachineSystem::receive(ECS::World* world, const ECS::Events::OnComponentAss
 	auto transform = event.entity->get<Transform>();
 	auto machine = event.component;
 	track->GuessNearestPoint(transform->GetPosition(), machine->lastTrackControlPoint);
-	SetTransformRotation(&(transform.get()), &(machine->lastTrackControlPoint));
 	XMFLOAT3 planePos;
 	XMFLOAT3 finalPos;
 	machine->lastTrackControlPoint.GetClosestPointOnPlane(transform->GetPosition(), &planePos);
 	XMStoreFloat3(&finalPos, XMLoadFloat3(&transform->GetPosition()) + XMLoadFloat3(&machine->lastTrackControlPoint.normal) * .1f);
 	transform->MoveTo(finalPos);
+	SetTransformRotation(&(transform.get()), &(machine->lastTrackControlPoint));
 }
 
 inline DirectX::XMFLOAT4 QuatLookRotation(DirectX::XMFLOAT3& lookAt, DirectX::XMFLOAT3& up)
 {
 	using namespace DirectX;
-	auto tangent = XMLoadFloat3(&lookAt);
-	auto normal = XMLoadFloat3(&up);
-	auto binormal = XMVector3Cross(tangent, normal);
-	normal = XMVector3Cross(tangent, binormal);
+	auto forwardV = XMVector3Normalize(XMLoadFloat3(&lookAt));
+	auto upV = XMVector3Normalize(XMLoadFloat3(&up));
+	auto rightV = XMVector3Normalize(XMVector3Cross(upV, forwardV));
+	upV = XMVector3Normalize(XMVector3Cross(forwardV, rightV));
 	XMMATRIX mat;
-	mat.r[0] = binormal;
-	mat.r[1] = normal;
-	mat.r[2] = tangent;
+	mat.r[0] = rightV;
+	mat.r[1] = upV;
+	mat.r[2] = forwardV;
 	XMFLOAT4 quat;
 	XMStoreFloat4(&quat, XMQuaternionRotationMatrix(mat));
 	return quat;
@@ -78,7 +78,7 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 			float healthDecreaseAmt;
 			XMStoreFloat(&healthDecreaseAmt, XMVector3Length(velocity * slowAmt * 10));
 			velocity = velocity * slowAmt;
-			machine->health - healthDecreaseAmt;
+			machine->health -= healthDecreaseAmt;
 			withinBounds = true;
 		}
 		else
@@ -92,8 +92,8 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 		}
 		transform->MoveTo(position);
 		XMFLOAT4 rot;
-		XMStoreFloat4(&rot, XMQuaternionRotationRollPitchYaw(0, (XM_PI / 180) * (KEYPRESSED('A') ? -1 : 0) + (KEYPRESSED('D') ? 1 : 0) * .1f * deltaTime, 0));
-		transform->Rotate(rot);
+		//XMStoreFloat4(&rot, XMQuaternionRotationRollPitchYaw(0, (XM_PI / 180) * (KEYPRESSED('A') ? -1 : 0) + (KEYPRESSED('D') ? 1 : 0) * .1f * deltaTime, 0));
+		//transform->Rotate(rot);
 		XMFLOAT3 tempVelocity = {0, (KEYPRESSED('S') ? -.5f : 0) + (KEYPRESSED('W') ? 1 : 0), 0};
 		if (machine->isBoosting)
 		{
@@ -118,7 +118,12 @@ void MachineSystem::SetTransformRotation(Transform* transform, SplineControlPoin
 	auto transformFwdV = XMLoadFloat3(&transform->GetForward());
 	auto normalV = XMLoadFloat3(&point->normal);
 	XMFLOAT3 fwd;
-	auto diff = (XMVector3Dot(transformFwdV, normalV) * normalV);
+	auto right = XMVector3Normalize(XMVector3Cross(normalV, transformFwdV));
+	transformFwdV = XMVector3Normalize(XMVector3Cross(normalV, right));
 	XMStoreFloat3(&fwd, transformFwdV);
 	transform->SetRotation(QuatLookRotation(fwd, point->normal));
+	
+	//printf("Diff: %f %f %f, Magnitude: %f\n", XMVectorGetX(diff), XMVectorGetY(diff), XMVectorGetZ(diff), XMVectorGetX(XMVector3Length(diff)));
+	//XMStoreFloat3(&fwd, XMVector3Normalize(transformFwdV - diff));
+	//transform->SetRotation(QuatLookRotation(fwd, point->normal));
 }

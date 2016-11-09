@@ -128,6 +128,9 @@ void Game::LoadContent()
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
+	// Add our test system
+	gameWorld->registerSystem(new MachineSystem(_spline));
+
 	Entity* ent = gameWorld->create();
 	ent->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
 	ent->assign<Renderable>(splineMesh, gridMat);
@@ -138,8 +141,6 @@ void Game::LoadContent()
 	machine->assign<Machine>();
 	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -1 });
 	_camera->UpdateProjectionMatrix(width, height);
-									  // Add our test system
-	gameWorld->registerSystem(new MachineSystem(_spline));
 }
 
 // --------------------------------------------------------
