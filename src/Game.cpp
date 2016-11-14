@@ -1,7 +1,7 @@
 #include "Game.h"
 #include "Vertex.h"
 
-#include <new>
+#include <DirectXCollision.h>
 #include <iostream>
 #include "Texture.h"
 #include "TransformData.h"
@@ -135,15 +135,20 @@ void Game::LoadContent()
 	{
 		for(size_t x = 0; x < 20; x++)
 		{
+			auto pos = XMFLOAT3{ static_cast<float>(x)*1.5f, 0, static_cast<float>(y)*1.5f };
 			Entity* ent = gameWorld->create();
-			ent->assign<Transform>(XMFLOAT3{ (float)x*1.5f, 0, (float)y*1.5f }, quatIdentity, defaultScale);
+			ent->assign<Transform>(pos, quatIdentity, defaultScale);
 			ent->assign<Renderable>(sphere, gridMat);
+			ent->assign<BoundingSphere>(pos, 10.0f);
 		}
 	}
 
 	Entity* planeEntity = gameWorld->create();
-	planeEntity->assign<Transform>(XMFLOAT3{ 15, -1.1f, 15 }, quatIdentity, XMFLOAT3{ 15, 1, 15 });
+	auto planePos = XMFLOAT3{ 15, -1.1f, 15 };
+	auto planeScale = XMFLOAT3{ 15, 1, 15 };
+	planeEntity->assign<Transform>(planePos, quatIdentity, planeScale);
 	planeEntity->assign<Renderable>(plane, testMat);
+	planeEntity->assign<BoundingBox>(planePos, planeScale);
 
 	// Add our test system
 	gameWorld->registerSystem(new TestSystem());

@@ -246,6 +246,27 @@ void GraphicsDevice::Init(ContentManager* content)
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	_gBufferSampler = CreateSamplerState(sampDesc);
+//TODO: Fix BoundingFrustum generation issues (near&far planes are too close)
+void GraphicsDevice::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw)
+{
+	//Collect objects with sphere colliders
+	for (auto* ent : gameWorld->each<Transform, Renderable, DirectX::BoundingSphere>())
+	{
+		if (cam.Frustum().Contains(ent->get<DirectX::BoundingSphere>().get()) != DirectX::ContainmentType::DISJOINT)
+		{
+			objectsToDraw.push_back(ent);
+		}
+	}
+
+	//Collect objects with box colliders
+	for(auto* ent : gameWorld->each<Transform, Renderable, DirectX::BoundingBox>())
+	{
+		if (true)//cam.Frustum().Intersects(ent->get<DirectX::BoundingBox>().get()))
+		{
+			objectsToDraw.push_back(ent);
+		}
+	}
+}
 	
 }
 

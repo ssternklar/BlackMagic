@@ -33,6 +33,11 @@ XMFLOAT4X4 Camera::ProjectionMatrix() const
 	return _projMat;
 }
 
+const DirectX::BoundingFrustum& Camera::Frustum() const
+{
+	return _frustum;
+}
+
 
 void Camera::Update(float dt)
 {
@@ -102,7 +107,15 @@ void Camera::Update(float dt)
 	XMStoreFloat3(&_dir, rotatedFwd);
 
 	side = XMVector3Cross(defaultUp, rotatedFwd);
-	XMStoreFloat4x4(&_viewMat, XMMatrixTranspose(XMMatrixLookToLH(pos, rotatedFwd, trueUp)));
+	auto view = XMMatrixTranspose(XMMatrixLookToLH(pos, rotatedFwd, trueUp));
+	XMStoreFloat4x4(&_viewMat, view);
+
+	
+	//Construct new viewing frustum for culling
+	auto proj = XMLoadFloat4x4(&_projMat);
+	BoundingFrustum newFrustum{ XMMatrixTranspose(proj) };
+	newFrustum.Transform(_frustum, XMMatrixTranspose(XMMatrixInverse(nullptr, view)));
+	
 }
 
 void Camera::Rotate(float x, float y)
@@ -120,6 +133,6 @@ void Camera::UpdateProjectionMatrix(int width, int height)
 	float aspect = static_cast<float>(width) / height;
 
 	//using 2pi/5 instead of pi/4 for fov
-	XMStoreFloat4x4(&_projMat,
-	                XMMatrixTranspose(XMMatrixPerspectiveFovLH(0.4f * 3.14f, aspect, 0.1f, 100)));
+	auto newMat = XMMatrixTranspose(XMMatrixPerspectiveFovLH(0.4f * 3.14f, aspect, 0.1f, 100));
+	XMStoreFloat4x4(&_projMat, newMat);
 }

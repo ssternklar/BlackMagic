@@ -27,15 +27,7 @@ public:
 	ID3D11Buffer* CreateBuffer(const D3D11_BUFFER_DESC& desc, const D3D11_SUBRESOURCE_DATA& data);
 
 	// TODO: Add correct allocator type to vectors?
-	void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw)
-	{
-		for (auto* ent : gameWorld->each<Transform, Renderable>())
-		{
-			// TODO: Actual frustum culling
-			objectsToDraw.push_back(ent);
-		}
-	}
-
+	void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw);
 	void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights);
 private:
 	ID3D11Device* _device;
