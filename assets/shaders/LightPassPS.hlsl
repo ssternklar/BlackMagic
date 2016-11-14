@@ -1,4 +1,4 @@
-#define NUM_LIGHTS 2
+#define NUM_LIGHTS 1
 
 struct DirectionalLight
 {
@@ -32,6 +32,7 @@ Texture2D diffuseMap : register(t0);
 Texture2D specularMap : register(t1);
 Texture2D positionMap : register(t2);
 Texture2D normalMap : register(t3);
+Texture2D shadowMap : register(t4);
 SamplerState mainSampler : register(s0);
 
 float3 colorFromDirectionalLights(GBuffer input)
@@ -54,7 +55,7 @@ float3 colorFromDirectionalLights(GBuffer input)
 	}
 
 	float3 texColor = input.diffuse;
-	return pow((ambient + diffuse) * texColor + specular, 1 / 2.2);
+	return pow((ambient + diffuse + specular) * texColor, 1 / 2.2);
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
@@ -75,5 +76,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 	buffer.normal = decompressNormal(normalMap.Sample(mainSampler, input.uv));
 	buffer.position = positionMap.Sample(mainSampler, input.uv);
 
-	return float4(colorFromDirectionalLights(buffer), 1.0);
+	return float4(shadowMap.Sample(mainSampler, input.uv)*float3(1,1,1), 1.0); //float4(colorFromDirectionalLights(buffer), 1.0);
 }

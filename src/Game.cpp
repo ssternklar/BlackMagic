@@ -81,13 +81,7 @@ void Game::Init()
 	_directionalLights.push_back({
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ 1, 0, 0 }
-	});
-
-	_directionalLights.push_back({
-		{ 0.0f, 0.0f, 0.0f, 1.0f },
-		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ -1, 0, 0 }
+		{ -1, -1, 0 }
 	});
 }
 
@@ -177,8 +171,8 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	_directionalLights[0].Direction.x = cos(totalTime*0.3f);
-	_directionalLights[0].Direction.y = sin(totalTime*0.3f);
+	//_directionalLights[0].Direction.x = cos(totalTime*0.3f);
+	//_directionalLights[0].Direction.y = sin(totalTime*0.3f);
 
 	_camera.Update(deltaTime);
 

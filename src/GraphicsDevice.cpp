@@ -56,9 +56,24 @@ GraphicsDevice::~GraphicsDevice()
 		delete _positionMap;
 	}
 
+	if (_shadowMapDS)
+	{
+		_shadowMapDS->Release();
+	}
+
+	if (_shadowMapTex)
+	{
+		_shadowMapTex->Release();
+	}
+
 	if (_quad)
 	{
 		_quad->Release();
+	}
+
+	if (_shadowRS)
+	{
+		_shadowRS->Release();
 	}
 }
 
@@ -87,6 +102,7 @@ void GraphicsDevice::Clear(XMFLOAT4 color)
 	_context->ClearRenderTargetView(*_normalMap, black);
 	_context->ClearRenderTargetView(*_positionMap, black);
 	_context->ClearDepthStencilView(_depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	_context->ClearDepthStencilView(_shadowMapDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 std::shared_ptr<ID3D11SamplerState> GraphicsDevice::CreateSamplerState(D3D11_SAMPLER_DESC& desc)
@@ -231,9 +247,10 @@ void GraphicsDevice::Init(ContentManager* content)
 
 	_device->CreateBuffer(&vbDesc, &vbData, &_quad);
 
-	//Load lightpass shaders
+	//Load device-specific shaders
 	_lightPassVS = content->Load<VertexShader>(L"/shaders/LightPassVS.cso");
 	_lightPassPS = content->Load<PixelShader>(L"/shaders/LightPassPS.cso");
+	_shadowMapVS = content->Load<VertexShader>(L"/shaders/ShadowMapVS.cso");
 
 	//Set up g-buffer sampler
 	D3D11_SAMPLER_DESC sampDesc = {};
@@ -246,6 +263,17 @@ void GraphicsDevice::Init(ContentManager* content)
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	_gBufferSampler = CreateSamplerState(sampDesc);
+
+	D3D11_RASTERIZER_DESC shadowRSDesc = {};
+	shadowRSDesc.CullMode = D3D11_CULL_FRONT;
+	shadowRSDesc.FillMode = D3D11_FILL_SOLID;
+	shadowRSDesc.DepthClipEnable = true;
+	shadowRSDesc.DepthBias = 1000;
+	shadowRSDesc.DepthBiasClamp = 0.0f;
+	shadowRSDesc.SlopeScaledDepthBias = 1.0f;
+	_device->CreateRasterizerState(&shadowRSDesc, &_shadowRS);
+}
+
 //TODO: Fix BoundingFrustum generation issues (near&far planes are too close)
 void GraphicsDevice::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw)
 {
@@ -267,8 +295,79 @@ void GraphicsDevice::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<
 		}
 	}
 }
+
+void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights)
+{
+	DirectX::XMFLOAT3 frustumCorners[8];
+	cam.Frustum().GetCorners(frustumCorners);
 	
+	//Create a bounding box containing the camera's frustum
+	DirectX::BoundingBox box;
+	DirectX::BoundingBox::CreateFromPoints(box, 8, frustumCorners, sizeof(DirectX::XMFLOAT3));
+	XMStoreFloat4x4(&_shadowProjection, DirectX::XMMatrixTranspose(DirectX::XMMatrixOrthographicLH(20, 20, 0.1, 100)));
+
+	//Save old viewport for reapplying later
+	D3D11_VIEWPORT old;
+	UINT numViewports = 1;
+	_context->RSGetViewports(&numViewports, &old);
+
+	D3D11_VIEWPORT shadowViewport;
+	shadowViewport.Width = 1024;
+	shadowViewport.Height = 1024;
+	shadowViewport.MinDepth = 0.0f;
+	shadowViewport.MaxDepth = 1.0f;
+	shadowViewport.TopLeftX = 0;
+	shadowViewport.TopLeftY = 0;
+	_context->RSSetViewports(1, &shadowViewport);
+	_context->RSSetState(_shadowRS);
+	_context->OMSetRenderTargets(0, nullptr, _shadowMapDS);
+
+	//Don't need a pixel shader since we just want the depth information
+	_shadowMapVS->SetShader();
+	_context->PSSetShader(nullptr, nullptr, 0);
+
+
+	const UINT stride = sizeof(Vertex);
+	const UINT offset = 0;
+	for(const auto& l : lights)
+	{
+		using DirectX::operator+;
+		using DirectX::operator-;
+		using DirectX::operator*;
+
+		auto cPos = cam.Position();
+		auto center = DirectX::XMLoadFloat3(&cPos);
+		auto dir = DirectX::XMLoadFloat3(&l.Direction);
+		auto defaultUp = DirectX::XMVectorSet(0, 1, 0, 0);
+		auto side = DirectX::XMVector3Cross(dir, defaultUp);
+		auto trueUp = DirectX::XMVector3Cross(side, dir);
+
+		XMStoreFloat4x4(&_shadowView,
+			DirectX::XMMatrixTranspose(DirectX::XMMatrixLookAtLH(center-2*dir, center, trueUp)));
+
+		_shadowMapVS->SetMatrix4x4("view", _shadowView);
+		_shadowMapVS->SetMatrix4x4("projection", _shadowProjection);
+		_shadowMapVS->CopyBufferData("PerFrame");
+		for(auto* o : objects)
+		{
+			auto& mesh = o->get<Renderable>()->_mesh;
+			auto vBuf = mesh->VertexBuffer();
+			_shadowMapVS->SetMatrix4x4("model", *o->get<Transform>()->Matrix());
+			_shadowMapVS->CopyBufferData("PerInstance");
+			_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
+			_context->IASetIndexBuffer(mesh->IndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+			_context->DrawIndexed(mesh->IndexCount(), 0, 0);
+		}
+	}
+	
+	//Reset to old viewport and default rasterizer state
+	_context->RSSetViewports(1, &old);
+	_context->RSSetState(nullptr);
+
+	//Unbind the depth texture
+	_context->OMSetRenderTargets(0, nullptr, nullptr);
 }
+
 
 void GraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights)
 {
@@ -276,13 +375,14 @@ void GraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Entity*>& 
 	static UINT quadStride = sizeof(XMFLOAT2);
 	static UINT offset = 0;
 
-	Material* currentMaterial = nullptr;
+	RenderShadowMaps(cam, objects, lights);
 
 	//TODO: Sort renderables by material and texture to minimize state switches
 	ID3D11RenderTargetView* rts[4] = { *_diffuseMap, *_specularMap, *_positionMap, *_normalMap };
 	_context->OMSetRenderTargets(4, rts, _depthStencil);
 
 	//Load object attributes into the g-buffer (geometry pass)
+	Material* currentMaterial = nullptr;
 	for(auto* object : objects)
 	{
 		auto renderable = object->get<Renderable>();
@@ -321,14 +421,15 @@ void GraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Entity*>& 
 	_lightPassPS->SetShaderResourceView("specularMap", *_specularMap);
 	_lightPassPS->SetShaderResourceView("positionMap", *_positionMap);
 	_lightPassPS->SetShaderResourceView("normalMap", *_normalMap);
+	_lightPassPS->SetShaderResourceView("shadowMap", _shadowMapTex);
 	_lightPassPS->CopyAllBufferData();
 
 	_context->IASetVertexBuffers(0, 1, &_quad, &quadStride, &offset);
 	_context->Draw(6, 0);
 
 	//Can't have SRVs and RTVs that are pointing to the same texture bound at the same time, so unset them
-	ID3D11ShaderResourceView* srvs[4] = { 0 };
-	_context->PSSetShaderResources(0, 4, srvs);
+	ID3D11ShaderResourceView* srvs[5] = { 0 };
+	_context->PSSetShaderResources(0, 5, srvs);
 }
 
 void GraphicsDevice::InitBuffers()
@@ -389,7 +490,6 @@ void GraphicsDevice::InitBuffers()
 	posMapDesc.Height = _height;
 	posMapDesc.Width = _width;
 
-
 	D3D11_TEXTURE2D_DESC depthStencilDesc;
 	depthStencilDesc.Width = _width;
 	depthStencilDesc.Height = _height;
@@ -403,6 +503,19 @@ void GraphicsDevice::InitBuffers()
 	depthStencilDesc.SampleDesc.Count = 1;
 	depthStencilDesc.SampleDesc.Quality = 0;
 
+	D3D11_TEXTURE2D_DESC shadowMapDesc;
+	shadowMapDesc.Width = 1024;
+	shadowMapDesc.Height = 1024;
+	shadowMapDesc.MipLevels = 1;
+	shadowMapDesc.ArraySize = 1;
+	shadowMapDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	shadowMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	shadowMapDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	shadowMapDesc.CPUAccessFlags = 0;
+	shadowMapDesc.MiscFlags = 0;
+	shadowMapDesc.SampleDesc.Count = 1;
+	shadowMapDesc.SampleDesc.Quality = 0;
+
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsDesc;
 	dsDesc.Flags = 0;
 	dsDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -415,16 +528,34 @@ void GraphicsDevice::InitBuffers()
 	depthSRVDesc.Texture2D.MostDetailedMip = 0;
 	depthSRVDesc.Texture2D.MipLevels = -1;
 
-	_diffuseMap = createEmptyTexture(colorMapDesc);
-	_specularMap = createEmptyTexture(colorMapDesc);
-	_normalMap = createEmptyTexture(normalMapDesc);
-	_positionMap = createEmptyTexture(posMapDesc);
+	D3D11_DEPTH_STENCIL_VIEW_DESC shadowDS;
+	shadowDS.Flags = 0;
+	shadowDS.Format = DXGI_FORMAT_D32_FLOAT;
+	shadowDS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	shadowDS.Texture2D.MipSlice = 0;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC shadowSRV;
+	shadowSRV.Format = DXGI_FORMAT_R32_FLOAT;
+	shadowSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	shadowSRV.Texture2D.MostDetailedMip = 0;
+	shadowSRV.Texture2D.MipLevels = -1;
+
+	_diffuseMap = CreateEmptyTexture(colorMapDesc);
+	_specularMap = CreateEmptyTexture(colorMapDesc);
+	_normalMap = CreateEmptyTexture(normalMapDesc);
+	_positionMap = CreateEmptyTexture(posMapDesc);
 
 	ID3D11Texture2D* depth;
 	_device->CreateTexture2D(&depthStencilDesc, nullptr, &depth);
 	_device->CreateDepthStencilView(depth, &dsDesc, &_depthStencil);
 	_device->CreateShaderResourceView(depth, &depthSRVDesc, &_depthStencilTexture);
 	depth->Release();
+
+	ID3D11Texture2D* smDepth;
+	_device->CreateTexture2D(&shadowMapDesc, nullptr, &smDepth);
+	_device->CreateDepthStencilView(smDepth, &shadowDS, &_shadowMapDS);
+	_device->CreateShaderResourceView(smDepth, &shadowSRV, &_shadowMapTex);
+	smDepth->Release();
 
 	// Bind the views to the pipeline, so rendering properly 
 	// uses their underlying textures
@@ -443,7 +574,7 @@ void GraphicsDevice::InitBuffers()
 
 }
 
-Texture* GraphicsDevice::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
+Texture* GraphicsDevice::CreateEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
 {
 	ID3D11Texture2D* tex;
 	ID3D11RenderTargetView* rtv;

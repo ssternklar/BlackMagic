@@ -35,6 +35,7 @@ private:
 	IDXGISwapChain* _swapChain;
 	ID3D11RenderTargetView* _backBuffer;
 	ID3D11DepthStencilView* _depthStencil;
+	ID3D11BlendState* _blendState;
 
 	//Resources for deferred rendering	
 	ID3D11ShaderResourceView* _depthStencilTexture;
@@ -47,10 +48,19 @@ private:
 	std::shared_ptr<ID3D11SamplerState> _gBufferSampler;
 	ID3D11Buffer* _quad;
 
+	//Shadow mapping
+	ID3D11ShaderResourceView* _shadowMapTex;
+	ID3D11DepthStencilView* _shadowMapDS;
+	std::shared_ptr<VertexShader> _shadowMapVS;
+	ID3D11RasterizerState* _shadowRS;
+	DirectX::XMFLOAT4X4 _shadowView;
+	DirectX::XMFLOAT4X4 _shadowProjection;
+
 	D3D_FEATURE_LEVEL _featureLevel;
 	UINT _width, _height;
 
 	void InitBuffers();
-	Texture* createEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
+	Texture* CreateEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
+	void RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights);
 
 };
