@@ -28,7 +28,7 @@ public:
 
 	// TODO: Add correct allocator type to vectors?
 	void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw);
-	void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights);
+	void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight);
 private:
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
@@ -53,14 +53,16 @@ private:
 	ID3D11DepthStencilView* _shadowMapDS;
 	std::shared_ptr<VertexShader> _shadowMapVS;
 	ID3D11RasterizerState* _shadowRS;
+	std::shared_ptr<ID3D11SamplerState> _shadowSampler;
 	DirectX::XMFLOAT4X4 _shadowView;
 	DirectX::XMFLOAT4X4 _shadowProjection;
+
 
 	D3D_FEATURE_LEVEL _featureLevel;
 	UINT _width, _height;
 
 	void InitBuffers();
 	Texture* CreateEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
-	void RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights);
+	void RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight);
 
 };

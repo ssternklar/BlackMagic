@@ -78,11 +78,11 @@ void Game::Init()
 
 	LoadContent();
 
-	_directionalLights.push_back({
+	_globalLight = DirectionalLight{
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
 		{ -1, -1, 0 }
-	});
+	};
 }
 
 
@@ -194,7 +194,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	std::vector<Entity*> renderables;
 	renderables.reserve(100);
 	_renderer->Cull(_camera, gameWorld, renderables);
-	_renderer->Render(_camera, renderables, _directionalLights);
+	_renderer->Render(_camera, renderables, _globalLight);
 	_renderer->Present(0, 0);
 }
 

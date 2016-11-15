@@ -56,11 +56,6 @@ GraphicsDevice::~GraphicsDevice()
 		delete _positionMap;
 	}
 
-	if (_shadowMapDS)
-	{
-		_shadowMapDS->Release();
-	}
-
 	if (_shadowMapTex)
 	{
 		_shadowMapTex->Release();
@@ -71,6 +66,11 @@ GraphicsDevice::~GraphicsDevice()
 		_quad->Release();
 	}
 
+	if (_shadowMapDS)
+	{
+		_shadowMapDS->Release();
+	}
+	
 	if (_shadowRS)
 	{
 		_shadowRS->Release();
@@ -261,8 +261,18 @@ void GraphicsDevice::Init(ContentManager* content)
 	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	sampDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
 	_gBufferSampler = CreateSamplerState(sampDesc);
+
+	D3D11_SAMPLER_DESC shadowSampDesc = {};
+	shadowSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.BorderColor[3] = 0.0f;
+	shadowSampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	shadowSampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	shadowSampDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
+	shadowSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	_shadowSampler = CreateSamplerState(shadowSampDesc);
 
 	D3D11_RASTERIZER_DESC shadowRSDesc = {};
 	shadowRSDesc.CullMode = D3D11_CULL_FRONT;
@@ -277,6 +287,8 @@ void GraphicsDevice::Init(ContentManager* content)
 //TODO: Fix BoundingFrustum generation issues (near&far planes are too close)
 void GraphicsDevice::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw)
 {
+	DirectX::BoundingBox sceneBox;
+
 	//Collect objects with sphere colliders
 	for (auto* ent : gameWorld->each<Transform, Renderable, DirectX::BoundingSphere>())
 	{
@@ -296,15 +308,19 @@ void GraphicsDevice::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<
 	}
 }
 
-void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights)
+void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight)
 {
+	using DirectX::operator+;
+	using DirectX::operator-;
+	using DirectX::operator*;
+
 	DirectX::XMFLOAT3 frustumCorners[8];
 	cam.Frustum().GetCorners(frustumCorners);
 	
 	//Create a bounding box containing the camera's frustum
 	DirectX::BoundingBox box;
 	DirectX::BoundingBox::CreateFromPoints(box, 8, frustumCorners, sizeof(DirectX::XMFLOAT3));
-	XMStoreFloat4x4(&_shadowProjection, DirectX::XMMatrixTranspose(DirectX::XMMatrixOrthographicLH(20, 20, 0.1, 100)));
+	XMStoreFloat4x4(&_shadowProjection, DirectX::XMMatrixTranspose(DirectX::XMMatrixOrthographicLH(100, 100, 0.1, 100)));
 
 	//Save old viewport for reapplying later
 	D3D11_VIEWPORT old;
@@ -329,36 +345,32 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 
 	const UINT stride = sizeof(Vertex);
 	const UINT offset = 0;
-	for(const auto& l : lights)
+	
+	auto cPos = cam.Position();
+	auto center = DirectX::XMVectorSet(15, -1.1, 15, 1);
+	auto dir = DirectX::XMLoadFloat3(&sceneLight.Direction);
+	auto defaultUp = DirectX::XMVectorSet(0, 1, 0, 0);
+	auto side = DirectX::XMVector3Cross(dir, defaultUp);
+	auto trueUp = DirectX::XMVector3Cross(side, dir);
+
+	//TODO: Implement cascades so the postion doesn't need to be hardcoded
+	XMStoreFloat4x4(&_shadowView,
+		DirectX::XMMatrixTranspose(DirectX::XMMatrixLookAtLH(center-dir, center, trueUp)));
+	 
+	_shadowMapVS->SetMatrix4x4("view", _shadowView);
+	_shadowMapVS->SetMatrix4x4("projection", _shadowProjection);
+	_shadowMapVS->CopyBufferData("PerFrame");
+	for(auto* o : objects)
 	{
-		using DirectX::operator+;
-		using DirectX::operator-;
-		using DirectX::operator*;
-
-		auto cPos = cam.Position();
-		auto center = DirectX::XMLoadFloat3(&cPos);
-		auto dir = DirectX::XMLoadFloat3(&l.Direction);
-		auto defaultUp = DirectX::XMVectorSet(0, 1, 0, 0);
-		auto side = DirectX::XMVector3Cross(dir, defaultUp);
-		auto trueUp = DirectX::XMVector3Cross(side, dir);
-
-		XMStoreFloat4x4(&_shadowView,
-			DirectX::XMMatrixTranspose(DirectX::XMMatrixLookAtLH(center-2*dir, center, trueUp)));
-
-		_shadowMapVS->SetMatrix4x4("view", _shadowView);
-		_shadowMapVS->SetMatrix4x4("projection", _shadowProjection);
-		_shadowMapVS->CopyBufferData("PerFrame");
-		for(auto* o : objects)
-		{
-			auto& mesh = o->get<Renderable>()->_mesh;
-			auto vBuf = mesh->VertexBuffer();
-			_shadowMapVS->SetMatrix4x4("model", *o->get<Transform>()->Matrix());
-			_shadowMapVS->CopyBufferData("PerInstance");
-			_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
-			_context->IASetIndexBuffer(mesh->IndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-			_context->DrawIndexed(mesh->IndexCount(), 0, 0);
-		}
+		auto& mesh = o->get<Renderable>()->_mesh;
+		auto vBuf = mesh->VertexBuffer();
+		_shadowMapVS->SetMatrix4x4("model", *o->get<Transform>()->Matrix());
+		_shadowMapVS->CopyBufferData("PerInstance");
+		_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
+		_context->IASetIndexBuffer(mesh->IndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		_context->DrawIndexed(mesh->IndexCount(), 0, 0);
 	}
+	
 	
 	//Reset to old viewport and default rasterizer state
 	_context->RSSetViewports(1, &old);
@@ -369,13 +381,13 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 }
 
 
-void GraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights)
+void GraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight)
 {
 	static UINT stride = sizeof(Vertex);
 	static UINT quadStride = sizeof(XMFLOAT2);
 	static UINT offset = 0;
 
-	RenderShadowMaps(cam, objects, lights);
+	RenderShadowMaps(cam, objects, sceneLight);
 
 	//TODO: Sort renderables by material and texture to minimize state switches
 	ID3D11RenderTargetView* rts[4] = { *_diffuseMap, *_specularMap, *_positionMap, *_normalMap };
@@ -410,26 +422,32 @@ void GraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Entity*>& 
 	//Combine g-buffer and render to backbuffer
 	_context->OMSetRenderTargets(1, &_backBuffer, nullptr);
 	auto cPos = cam.Position();
-	size_t padding = (16 - (sizeof(DirectionalLight) % 16))*(lights.size() - 1);
+
+	//Will need this if we shadowmap multiple lights later
+	//size_t padding = (16 - (sizeof(DirectionalLight) % 16))*(lights.size() - 1);
 
 	_lightPassVS->SetShader();
 	_lightPassPS->SetShader();
 	_lightPassPS->SetFloat3("cameraPosition", cPos);
-	_lightPassPS->SetData("directionalLights", &lights[0], sizeof(DirectionalLight)*lights.size() + padding);
+	_lightPassPS->SetData("sceneLight", &sceneLight, sizeof(DirectionalLight));
+	_lightPassPS->SetMatrix4x4("lightProjection", _shadowProjection);
+	_lightPassPS->SetMatrix4x4("lightView", _shadowView);
 	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.get());
+	_lightPassPS->SetSamplerState("shadowSampler", _shadowSampler.get());
 	_lightPassPS->SetShaderResourceView("diffuseMap", *_diffuseMap);
 	_lightPassPS->SetShaderResourceView("specularMap", *_specularMap);
 	_lightPassPS->SetShaderResourceView("positionMap", *_positionMap);
 	_lightPassPS->SetShaderResourceView("normalMap", *_normalMap);
 	_lightPassPS->SetShaderResourceView("shadowMap", _shadowMapTex);
+	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture);
 	_lightPassPS->CopyAllBufferData();
 
 	_context->IASetVertexBuffers(0, 1, &_quad, &quadStride, &offset);
 	_context->Draw(6, 0);
 
 	//Can't have SRVs and RTVs that are pointing to the same texture bound at the same time, so unset them
-	ID3D11ShaderResourceView* srvs[5] = { 0 };
-	_context->PSSetShaderResources(0, 5, srvs);
+	ID3D11ShaderResourceView* srvs[6] = { 0 };
+	_context->PSSetShaderResources(0, 6, srvs);
 }
 
 void GraphicsDevice::InitBuffers()

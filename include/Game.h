@@ -62,7 +62,7 @@ private:
 
 	Camera _camera;
 
-	std::vector<DirectionalLight> _directionalLights;
+	DirectionalLight _globalLight;
 	
 	std::unique_ptr<ContentManager> _content;
 	std::unique_ptr<GraphicsDevice> _renderer;
