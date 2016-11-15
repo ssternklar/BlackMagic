@@ -3,7 +3,10 @@
 DirectX::XMFLOAT3 SplinePiece::GetSplinePoint(float t)
 {
 	using namespace DirectX;
-	//asdf
+	if (t > 1)
+		t = 1;
+	if (t < 0)
+		t = 0;
 	float oneMinusT = 1 - t;
 	auto p0 = XMLoadFloat3(&(startPoint.position));
 	XMFLOAT3 scp;
@@ -15,10 +18,10 @@ DirectX::XMFLOAT3 SplinePiece::GetSplinePoint(float t)
 	auto p3 = XMLoadFloat3(&(endPoint.position));
 	XMFLOAT3 ret;
 	auto pv =
-		oneMinusT * oneMinusT * oneMinusT * p0 +
-		3 * oneMinusT * oneMinusT * t * p1 +
-		3 * oneMinusT * t * t * p2 +
-		t * t * t * p3;
+		(oneMinusT * oneMinusT * oneMinusT * p0) +
+		(3 * oneMinusT * oneMinusT * t * p1) +
+		(3 * oneMinusT * t * t * p2) +
+		(t * t * t * p3);
 	XMStoreFloat3(&ret, pv);
 	return ret;
 }
@@ -27,6 +30,10 @@ DirectX::XMFLOAT3 SplinePiece::GetSplinePoint(float t)
 DirectX::XMFLOAT3 SplinePiece::GetSplineDerivative(float t)
 {
 	using namespace DirectX;
+	if (t > 1)
+		t = 1;
+	if (t < 0)
+		t = 0;
 	float oneMinusT = 1 - t;
 	auto p0 = XMLoadFloat3(&(startPoint.position));
 	XMFLOAT3 scp;

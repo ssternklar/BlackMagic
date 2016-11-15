@@ -10,8 +10,8 @@ class Machine
 public:
 	DirectX::XMFLOAT3 velocity = {0,0,0};
 	SplineControlPoint lastTrackControlPoint;
-	float maxVelocity = 1.f;
-	float boostVelocity = 1.2f;
+	float maxVelocity = 60;
+	float boostVelocity = 72;
 	float internalMaxVelocity;
 	float health = 100;
 	bool lastPositionInTrack = true;

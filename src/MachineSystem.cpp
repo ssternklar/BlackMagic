@@ -30,6 +30,9 @@ void MachineSystem::receive(ECS::World* world, const ECS::Events::OnComponentAss
 	transform->MoveTo(finalPos);
 	SetTransformRotation(&(transform.get()), &(machine->lastTrackControlPoint));
 
+	machine->maxVelocity = 3;
+	machine->internalMaxVelocity = 3.6f;
+
 	auto camera = event.entity->get<Camera>();
 	if (camera.isValid())
 	{
@@ -48,6 +51,7 @@ inline DirectX::XMFLOAT4 QuatLookRotation(DirectX::XMFLOAT3& lookAt, DirectX::XM
 	mat.r[0] = rightV;
 	mat.r[1] = upV;
 	mat.r[2] = forwardV;
+	mat.r[3] = XMVectorSet(0, 0, 0, 1);
 	XMFLOAT4 quat;
 	XMStoreFloat4(&quat, XMQuaternionRotationMatrix(mat));
 	return quat;
@@ -62,13 +66,13 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 		auto velocity = XMLoadFloat3(&machine->velocity);
 		s->GuessNearestPoint(position, machine->lastTrackControlPoint);
 		bool withinBounds = machine->lastTrackControlPoint.IsInPlaneBounds(position);
-		bool heightGood = machine->lastTrackControlPoint.IsCloseToPlane(position, .2f);
+		bool heightGood = machine->lastTrackControlPoint.IsCloseToPlane(position, .15f);
 		bool hasWalls = true;
 		if (withinBounds && heightGood)
 		{
 			MachineSystem::SetTransformRotation(&transform.get(), &machine->lastTrackControlPoint);
 			XMFLOAT3 planePos;
-			machine->lastTrackControlPoint.GetClosestPointOnPlane(transform->GetPosition(), &planePos);
+			machine->lastTrackControlPoint.GetClosestPointOnPlane(position, &planePos);
 			XMStoreFloat3(&position, XMLoadFloat3(&planePos) + XMLoadFloat3(&machine->lastTrackControlPoint.normal) * .1f);
 		}
 		else if (hasWalls && machine->lastPositionInTrack && heightGood)
@@ -78,7 +82,7 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 			machine->lastTrackControlPoint.GetClosestPointOnPlane(position, &closestPointOnPlane);
 			auto pointPosV = XMLoadFloat3(&machine->lastTrackControlPoint.position);
 			auto closestPointV = XMLoadFloat3(&closestPointOnPlane);
-			XMStoreFloat3(&position, pointPosV + XMVector3ClampLength(closestPointV - pointPosV, 0, (machine->lastTrackControlPoint.scale.x / 2) * .98f) + (XMLoadFloat3(&machine->lastTrackControlPoint.normal) * .1f));
+			XMStoreFloat3(&position, pointPosV + XMVector3ClampLength(closestPointV - pointPosV, 0, (machine->lastTrackControlPoint.scale.x) * .98f) + (XMLoadFloat3(&machine->lastTrackControlPoint.normal) * .1f));
 			auto slowAmt = XMVectorAbs(XMVector3Dot(XMLoadFloat3(&machine->lastTrackControlPoint.tangent), XMLoadFloat3(&transform->GetForward())));
 			float healthDecreaseAmt;
 			XMStoreFloat(&healthDecreaseAmt, XMVector3Length(velocity * slowAmt * 10));
@@ -91,22 +95,22 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 			auto fwd = transform->GetForward();
 			fwd.y = 0;
 			XMFLOAT4 quat = QuatLookRotation(fwd, XMFLOAT3{ 0,1,0 });
-			XMStoreFloat4(&quat, XMQuaternionSlerp(XMLoadFloat4(&quat), XMLoadFloat4(&transform->GetRotation()), 6.f * deltaTime));
+			XMStoreFloat4(&quat, XMQuaternionSlerp(XMLoadFloat4(&quat), XMLoadFloat4(&transform->GetRotation()), .1f * deltaTime));
 			transform->SetRotation(quat);
-			XMStoreFloat3(&position, XMLoadFloat3(&transform->GetPosition()) + XMVectorSet(0, -1, 0, 0) * 2.5f * deltaTime);
+			XMStoreFloat3(&position, XMLoadFloat3(&position) + XMVectorSet(0, -1, 0, 0) * deltaTime);
 		}
 		transform->MoveTo(position);
 		XMFLOAT4 rot;
 		XMStoreFloat4(&rot, XMQuaternionRotationRollPitchYaw(0, (XM_PI / 180) * ((KEYPRESSED('A') ? -1 : 0) + (KEYPRESSED('D') ? 1 : 0)) * 90 * deltaTime, 0));
 		transform->Rotate(rot);
-		XMFLOAT3 tempVelocity = {0, 0, ((KEYPRESSED('S') ? -.5f : 0) + (KEYPRESSED('W') ? 1 : 0)) * machine->maxVelocity * deltaTime};
+		XMFLOAT3 tempVelocity = {0, 0, ((KEYPRESSED('S') ? -.5f : 0) + (KEYPRESSED('W') ? 1 : 0)) * machine->maxVelocity * 30 * deltaTime};
 		if (machine->isBoosting)
 		{
-			tempVelocity.z += .05f * deltaTime;
+			tempVelocity.z += .1f * deltaTime;
 		}
 		velocity += XMLoadFloat3(&tempVelocity);
 		velocity = XMVector3ClampLength(velocity, 0, machine->internalMaxVelocity);
-		velocity += -velocity * .01f * deltaTime;
+		velocity += -velocity * (.01f * 60) * deltaTime;
 		XMStoreFloat3(&machine->velocity, velocity);
 		XMFLOAT3 localVelocity;
 		XMStoreFloat3(&localVelocity, XMVector3Rotate(velocity * deltaTime, XMLoadFloat4(&transform->GetRotation())));
