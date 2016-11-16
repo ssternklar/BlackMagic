@@ -7,6 +7,9 @@
 #include "Renderable.h"
 #include "ContentManager.h"
 
+#define NUM_SHADOW_CASCADES 5
+#define SHADOWMAP_DIM 1024
+
 class GraphicsDevice
 {
 public:
@@ -49,13 +52,15 @@ private:
 	ID3D11Buffer* _quad;
 
 	//Shadow mapping
-	ID3D11ShaderResourceView* _shadowMapTex;
-	ID3D11DepthStencilView* _shadowMapDS;
 	std::shared_ptr<VertexShader> _shadowMapVS;
 	ID3D11RasterizerState* _shadowRS;
 	std::shared_ptr<ID3D11SamplerState> _shadowSampler;
-	DirectX::XMFLOAT4X4 _shadowView;
-	DirectX::XMFLOAT4X4 _shadowProjection;
+	DirectX::XMFLOAT4X4 _shadowMatrices[NUM_SHADOW_CASCADES];
+	DirectX::XMFLOAT4X4 _shadowViews[NUM_SHADOW_CASCADES];
+	DirectX::XMFLOAT4X4 _shadowProjections[NUM_SHADOW_CASCADES];
+	//+1 since we're also storing the entire array's DSV/SRV
+	ID3D11DepthStencilView* _shadowMapDSVs[NUM_SHADOW_CASCADES];
+	ID3D11ShaderResourceView* _shadowMapSRV;
 
 
 	D3D_FEATURE_LEVEL _featureLevel;

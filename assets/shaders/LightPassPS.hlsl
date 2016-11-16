@@ -1,4 +1,5 @@
 #define NUM_LIGHTS 1
+#define NUM_SHADOW_CASCADES 5
 
 struct DirectionalLight
 {
@@ -15,7 +16,6 @@ struct GBuffer
 	float3 normal;
 };
 
-
 struct VertexToPixel
 {
 	float4 position : SV_POSITION;
@@ -24,8 +24,8 @@ struct VertexToPixel
 
 cbuffer perFrame : register(b0)
 {
-	matrix lightProjection;
-	matrix lightView;
+	matrix lightView[NUM_SHADOW_CASCADES];
+	matrix lightProjection[NUM_SHADOW_CASCADES];
 	DirectionalLight sceneLight;
 	float3 cameraPosition;
 };
@@ -34,7 +34,7 @@ Texture2D diffuseMap : register(t0);
 Texture2D specularMap : register(t1);
 Texture2D positionMap : register(t2);
 Texture2D normalMap : register(t3);
-Texture2D shadowMap : register(t4);
+Texture2DArray shadowMap : register(t4);
 Texture2D depth : register(t5);
 SamplerState mainSampler : register(s0);
 SamplerState shadowSampler : register(s1);
@@ -56,10 +56,6 @@ float3 colorFromScenelight(GBuffer input)
 
 	ambient += sceneLight.AmbientColor.xyz;
 
-	float4 lightspacePos = mul(float4(input.position, 1.0f), mul(lightView, lightProjection));
-	lightspacePos /= lightspacePos.w;
-
-
 	float3 texColor = input.diffuse;
 	return pow((ambient + diffuse + specular) * texColor, 1 / 2.2);
 }
@@ -72,6 +68,12 @@ float3 decompressNormal(float2 compressedNormal)
 	return float3(s * compressedNormal, n * 2 - 1);
 }
 
+float linearizeDepth(float logDepth, float n, float f)
+{
+	return (2 * n) / (f + n - logDepth * (f - n));
+
+}
+
 //TODO: Use optimization from http://vec3.ca/code/graphics/deferred-shading-tricks/ to reduce size of 
 //position buffer
 float4 main(VertexToPixel input) : SV_TARGET
@@ -82,9 +84,11 @@ float4 main(VertexToPixel input) : SV_TARGET
 	buffer.normal = decompressNormal(normalMap.Sample(mainSampler, input.uv));
 	buffer.position = positionMap.Sample(mainSampler, input.uv);
 
-	float4 lightspacePos = mul(float4(buffer.position, 1.0f), mul(lightView, lightProjection));
-	float4 shadowCoord = lightspacePos / 2 + 0.5f;
-	float visibility = ceil(shadowMap.Sample(shadowSampler, shadowCoord.xy).r - shadowCoord.z)/2 + 0.5;
+	float depthID = linearizeDepth((depth.Sample(mainSampler, input.uv).r), 0.1f, 100.0f);
+	depthID = floor(depthID * NUM_SHADOW_CASCADES);
+	float4 lightspacePos = mul(float4(buffer.position, 1.0f), mul(lightView[depthID], lightProjection[depthID]));
+	//float4 shadowCoord = lightspacePos / 2 + 0.5f;
+	//float visibility = ceil(shadowMap.Sample(shadowSampler, float3(shadowCoord.xy, depthID)).r - shadowCoord.z)/2 + 0.5;
 
-	return float4(shadowMap.Sample(shadowSampler, shadowCoord.xy).r * float3(1, 1, 1), 1.0f); //float4(visibility*colorFromScenelight(buffer), 1.0f); 
+	return float4(lightspacePos.xyy, 1.0f); //float4(visibility*colorFromScenelight(buffer), 1.0f); 
 }

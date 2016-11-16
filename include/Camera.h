@@ -2,6 +2,10 @@
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
 
+#define CAM_NEAR_Z 0.1f
+#define CAM_FAR_Z 100.0f
+#define CAM_FOV (0.4f*3.14f)
+
 class Camera
 {
 public:
@@ -25,5 +29,4 @@ private:
 	DirectX::XMFLOAT3 _pos, _dir;
 	float _speed;
 	DirectX::XMFLOAT2 _rot;
-	float _width, _height, _fov;
 };
