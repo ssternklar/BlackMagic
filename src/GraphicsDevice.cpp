@@ -327,12 +327,12 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 		float zNear = thisCascade*coeff + CAM_NEAR_Z;
 		float zFar = (thisCascade + 1)*coeff + CAM_NEAR_Z;
 		auto dir = XMVector3Normalize(XMLoadFloat3(&sceneLight.Direction));
-		auto up = DirectX::XMVectorSet(0, 1, 0, 0);
+		auto up = XMVectorSet(0, 1, 0, 0);
 
 		auto subfrustum = BoundingFrustum(XMMatrixPerspectiveFovLH(CAM_FOV, static_cast<float>(_width) / _height, zNear, zFar));
 		subfrustum.Transform(subfrustum, invView);
-		subfrustum.GetCorners(points);
-		
+		subfrustum.GetCorners(points); 
+
 		XMVECTOR centroid = XMVectorZero();
 		for(size_t i = 0; i < 8; i++)
 		{
@@ -342,8 +342,9 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 		centroid /= 8;
 
 		XMMATRIX shadowView = XMMatrixLookAtLH(centroid - (dir*XMVector3Length(pointsV[4]-pointsV[5])), centroid, up);
+		auto tc = XMVector3Transform(centroid, shadowView);
 
-		subfrustum.Transform(subfrustum, XMMatrixInverse(nullptr, shadowView));
+		subfrustum.Transform(subfrustum, shadowView);
 		subfrustum.GetCorners(points);
 		XMStoreFloat4x4(&_shadowViews[thisCascade], XMMatrixTranspose(shadowView));
 
