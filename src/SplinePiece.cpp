@@ -3,21 +3,25 @@
 DirectX::XMFLOAT3 SplinePiece::GetSplinePoint(float t)
 {
 	using namespace DirectX;
-	//asdf
+	if (t > 1)
+		t = 1;
+	if (t < 0)
+		t = 0;
 	float oneMinusT = 1 - t;
 	auto p0 = XMLoadFloat3(&(startPoint.position));
-	XMFLOAT3 cp;
-	startPoint.GetControlPoint(cp);
-	auto p1 = XMLoadFloat3(&cp);
-	endPoint.GetControlPoint(cp);
-	auto p2 = XMLoadFloat3(&cp);
+	XMFLOAT3 scp;
+	XMFLOAT3 ecp;
+	startPoint.GetControlPoint(scp);
+	auto p1 = XMLoadFloat3(&scp);
+	endPoint.GetControlPoint(ecp);
+	auto p2 = XMLoadFloat3(&ecp);
 	auto p3 = XMLoadFloat3(&(endPoint.position));
 	XMFLOAT3 ret;
 	auto pv =
-		t * t * t * p3 +
-		oneMinusT * t * t * p2 +
-		oneMinusT * oneMinusT * t * p1 +
-		oneMinusT * oneMinusT * oneMinusT * p0;
+		(oneMinusT * oneMinusT * oneMinusT * p0) +
+		(3 * oneMinusT * oneMinusT * t * p1) +
+		(3 * oneMinusT * t * t * p2) +
+		(t * t * t * p3);
 	XMStoreFloat3(&ret, pv);
 	return ret;
 }
@@ -26,20 +30,24 @@ DirectX::XMFLOAT3 SplinePiece::GetSplinePoint(float t)
 DirectX::XMFLOAT3 SplinePiece::GetSplineDerivative(float t)
 {
 	using namespace DirectX;
-	//asdf
+	if (t > 1)
+		t = 1;
+	if (t < 0)
+		t = 0;
 	float oneMinusT = 1 - t;
 	auto p0 = XMLoadFloat3(&(startPoint.position));
-	XMFLOAT3 cp;
-	startPoint.GetControlPoint(cp);
-	auto p1 = XMLoadFloat3(&cp);
-	endPoint.GetControlPoint(cp);
-	auto p2 = XMLoadFloat3(&cp);
+	XMFLOAT3 scp;
+	XMFLOAT3 ecp;
+	startPoint.GetControlPoint(scp);
+	auto p1 = XMLoadFloat3(&scp);
+	endPoint.GetControlPoint(ecp);
+	auto p2 = XMLoadFloat3(&ecp);
 	auto p3 = XMLoadFloat3(&(endPoint.position));
 	XMFLOAT3 ret;
 	auto pv =
-		3 * t * t * (p3 - p2) +
+		3 * oneMinusT * oneMinusT * (p1 - p0) +
 		6 * oneMinusT * t * (p2 - p1) +
-		3 * oneMinusT * oneMinusT * (p1 - p0);
+		3 * t * t * (p3 - p2);
 	XMStoreFloat3(&ret, pv);
 	return ret;
 }
@@ -47,12 +55,28 @@ DirectX::XMFLOAT3 SplinePiece::GetSplineDerivative(float t)
 void SplinePiece::GetPoint(float t, SplineControlPoint& outPoint)
 {
 	using namespace DirectX;
-	outPoint.position = GetSplinePoint(t);
-	auto quat = XMQuaternionSlerp(XMLoadFloat4(&(startPoint.rotation)), XMLoadFloat4(&(endPoint.rotation)), t);
-	XMStoreFloat4(&(outPoint.rotation), quat);
-	XMStoreFloat3(&(outPoint.scale), XMVectorLerp(XMLoadFloat3(&(startPoint.scale)), XMLoadFloat3(&(endPoint.scale)), t));
-	outPoint.tangent = GetSplinePoint(t);
-	XMStoreFloat3(&(outPoint.normal), quat * XMVectorSet(0, 1, 0, 0));
+	auto pos = GetSplinePoint(t);
+	auto scale = XMVectorLerp(XMLoadFloat3(&startPoint.scale), XMLoadFloat3(&endPoint.scale), t);
+	auto tangent = GetSplineDerivative(t);
+	auto startRotQuat = XMQuaternionNormalize(XMLoadFloat4(&(startPoint.rotation)));
+	auto endRotQuat = XMQuaternionNormalize(XMLoadFloat4(&(endPoint.rotation)));
+	auto up = XMQuaternionNormalize(XMQuaternionSlerp(startRotQuat, endRotQuat, t));
+	auto normal = XMVector3Normalize(XMVector3Rotate(XMVectorSet(0, 1, 0, 0), up));
+	auto tangentV = XMVector3Normalize(XMLoadFloat3(&tangent));
+	auto binormal = XMVector3Normalize(XMVector3Cross(normal, tangentV));
+	normal = XMVector3Cross(tangentV, binormal);
+	XMMATRIX mat;
+	mat.r[0] = binormal;
+	mat.r[1] = normal;
+	mat.r[2] = tangentV;
+	auto quat = (XMQuaternionRotationMatrix(mat));
+
+	outPoint.position = pos;
+	XMStoreFloat3(&outPoint.normal, normal);
+	XMStoreFloat3(&outPoint.tangent, tangentV);
+	XMStoreFloat3(&outPoint.scale, scale);
+	XMStoreFloat4(&outPoint.rotation, quat);
+
 }
 
 float SplinePiece::GuessNearestPoint(DirectX::XMFLOAT3& point, float& outDistanceSquared)

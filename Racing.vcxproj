@@ -146,6 +146,8 @@
     <ClCompile Include="src\ContentManager.cpp" />
     <ClCompile Include="src\DXCore.cpp" />
     <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\Machine.cpp" />
+    <ClCompile Include="src\MachineSystem.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
@@ -172,6 +174,8 @@
     <ClInclude Include="include\ECS.h" />
     <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\GameObject.h" />
+    <ClInclude Include="include\Machine.h" />
+    <ClInclude Include="include\MachineSystem.h" />
     <ClInclude Include="include\Renderable.h" />
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\Mesh.h" />

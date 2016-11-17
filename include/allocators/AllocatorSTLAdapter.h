@@ -9,13 +9,12 @@ namespace BlackMagic
 	class AllocatorSTLAdapter
 	{
 	public:
-		template <typename U> friend struct ArenaAllocator;
-
 		using value_type = T;
 		using pointer = T*;
 
 		Alloc* allocator;
 
+		AllocatorSTLAdapter() : allocator(nullptr) {};
 		AllocatorSTLAdapter(Alloc* alloc) : allocator(alloc) {};
 
 		template<typename U>
@@ -23,12 +22,15 @@ namespace BlackMagic
 		
 		pointer allocate(std::size_t n)
 		{
-			return static_cast<pointer>(allocator->allocate<T>(false, n));
+			if (allocator)
+				return static_cast<pointer>(allocator->allocate(sizeof(T), n));
+			return nullptr;
 		}
 
 		void deallocate(pointer p, std::size_t n)
 		{
-			allocator->deallocate<T>(p, false, n);
+			if(allocator)
+				allocator->deallocate((void*)p, sizeof(T), n);
 		}
 		
 		template<typename U>

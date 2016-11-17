@@ -3,10 +3,10 @@
 void SplineControlPoint::GetClosestPointOnPlane(DirectX::XMFLOAT3& InPoint, DirectX::XMFLOAT3* OutPoint)
 {
 	using namespace DirectX;
-	auto iop = XMLoadFloat3(&InPoint);
-	auto tp = XMLoadFloat3(&position);
-	auto n = XMLoadFloat3(&normal);
-	XMStoreFloat3(OutPoint, tp - (XMVector3Dot(iop - tp, n) * n));
+	auto inPointV = XMLoadFloat3(&InPoint);
+	auto splinePointPosition = XMLoadFloat3(&position);
+	auto splineNormal = XMLoadFloat3(&normal);
+	XMStoreFloat3(OutPoint, inPointV - (XMVector3Dot(inPointV - splinePointPosition, splineNormal) * splineNormal));
 }
 
 bool SplineControlPoint::IsInPlaneBounds(DirectX::XMFLOAT3& InPoint)
@@ -14,21 +14,21 @@ bool SplineControlPoint::IsInPlaneBounds(DirectX::XMFLOAT3& InPoint)
 	using namespace DirectX;
 	XMFLOAT3 closestPoint;
 	GetClosestPointOnPlane(InPoint, &closestPoint);
-	float sc = powf((scale.x / 2), 2);
 	auto diff = (XMLoadFloat3(&closestPoint) - XMLoadFloat3(&position));
-	return XMVector3Dot(diff, diff).m128_f32[0] < sc;
+	return XMVectorGetX(XMVector3Length(diff)) < scale.x / 2;
 }
 
 bool SplineControlPoint::IsCloseToPlane(DirectX::XMFLOAT3& InPoint, float limit)
 {
 	using namespace DirectX;
-	auto dot = XMVectorAbs(XMVector3Dot(XMLoadFloat3(&InPoint) - XMLoadFloat3(&position), XMLoadFloat3(&normal)));
-	return dot.m128_f32[0] < limit;
+	auto dot = XMVector3Dot(XMLoadFloat3(&InPoint) - XMLoadFloat3(&position), XMLoadFloat3(&normal));
+	
+	return XMVectorGetX(XMVectorAbs(dot)) < limit;
 }
 
 void SplineControlPoint::GetControlPoint(DirectX::XMFLOAT3& OutPoint)
 {
 	using namespace DirectX;
-	auto cp = XMLoadFloat3(&position) + (XMLoadFloat3(&tangent) * XMLoadFloat3(&scale));
+	auto cp = XMLoadFloat3(&position) + (XMLoadFloat3(&tangent));
 	XMStoreFloat3(&OutPoint, cp);
 }

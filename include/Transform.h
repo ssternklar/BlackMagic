@@ -20,6 +20,11 @@ public:
 
 	void SetScale(DirectX::XMFLOAT3 scale);
 	const DirectX::XMFLOAT4X4* Matrix();
+
+	DirectX::XMFLOAT3 GetPosition();
+	DirectX::XMFLOAT3 GetScale();
+	DirectX::XMFLOAT4 GetRotation();
+	DirectX::XMFLOAT3 GetForward();
 private:
 	TransformID _id = -1;
 };
