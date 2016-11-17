@@ -73,7 +73,7 @@ void SplinePiece::GetPoint(float t, SplineControlPoint& outPoint)
 
 	outPoint.position = pos;
 	XMStoreFloat3(&outPoint.normal, normal);
-	XMStoreFloat3(&outPoint.tangent, XMVector3Normalize(XMLoadFloat3(&tangent)));
+	XMStoreFloat3(&outPoint.tangent, tangentV);
 	XMStoreFloat3(&outPoint.scale, scale);
 	XMStoreFloat4(&outPoint.rotation, quat);
 

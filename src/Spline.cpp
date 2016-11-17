@@ -56,7 +56,7 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 		GetPoint(step, point);
 		auto position = XMLoadFloat3(&point.position);
 		XMStoreFloat3(&binormal, XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&point.normal), XMLoadFloat3(&point.tangent))));
-		auto localScale = XMVector3Rotate(XMVectorSet(point.scale.x, 0, 0, 0), XMQuaternionNormalize(XMLoadFloat4(&point.rotation)));
+		auto localScale = XMVector3Rotate(XMVectorSet(point.scale.x / 2, 0, 0, 0), XMQuaternionNormalize(XMLoadFloat4(&point.rotation)));
 		//left vertex
 		XMStoreFloat3(&vertices[i].Position, position - localScale);
 		vertices[i].Normal = point.normal;

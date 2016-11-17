@@ -70,7 +70,7 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	if (in.is_open())
 	{
 		in.read((char*)&pieces, 4);
-		memorySize = sizeof(unsigned int) * 3 + sizeof(SplinePiece) * pieces;
+		memorySize = sizeof(unsigned int) * 4 + sizeof(SplinePiece) * pieces;
 		memory = (byte*)_allocator->allocate(memorySize, 1);
 		in.seekg(std::ios::beg);
 		in.read((char*)memory, memorySize);
@@ -79,14 +79,14 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 
 	//Fix spline pointers
 	Spline* sp = reinterpret_cast<Spline*>(memory);
-	sp->segments = reinterpret_cast<SplinePiece*>(memory + 12);
+	sp->segments = reinterpret_cast<SplinePiece*>(memory + 16);
 
 	std::shared_ptr<Spline> ret =
 		std::shared_ptr<Spline>((Spline*)memory,
 		[&](Spline* splineToDelete) {
 		if(splineToDelete)
 		{
-			_allocator->deallocate((void*)splineToDelete, sizeof(unsigned int) * 3 + sizeof(SplineControlPoint) * splineToDelete->segmentCount, 1);
+			_allocator->deallocate((void*)splineToDelete, sizeof(unsigned int) * 4 + sizeof(SplineControlPoint) * splineToDelete->segmentCount, 1);
 		}
 	}, ContentAllocatorAdapter(_allocator));
 
