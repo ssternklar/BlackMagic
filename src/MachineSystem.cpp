@@ -82,7 +82,7 @@ void MachineSystem::tick(ECS::World* world, float deltaTime)
 			machine->lastTrackControlPoint.GetClosestPointOnPlane(position, &closestPointOnPlane);
 			auto pointPosV = XMLoadFloat3(&machine->lastTrackControlPoint.position);
 			auto closestPointV = XMLoadFloat3(&closestPointOnPlane);
-			XMStoreFloat3(&position, pointPosV + XMVector3ClampLength(closestPointV - pointPosV, 0, (machine->lastTrackControlPoint.scale.x) * .98f) + (XMLoadFloat3(&machine->lastTrackControlPoint.normal) * .1f));
+			XMStoreFloat3(&position, pointPosV + XMVector3ClampLength(closestPointV - pointPosV, 0, (machine->lastTrackControlPoint.scale.x / 2) * .98f) + (XMLoadFloat3(&machine->lastTrackControlPoint.normal) * .1f));
 			auto slowAmt = XMVectorAbs(XMVector3Dot(XMLoadFloat3(&machine->lastTrackControlPoint.tangent), XMLoadFloat3(&transform->GetForward())));
 			float healthDecreaseAmt;
 			XMStoreFloat(&healthDecreaseAmt, XMVector3Length(velocity * slowAmt * 10));
