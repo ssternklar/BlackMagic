@@ -341,8 +341,10 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 		}
 		centroid /= 8;
 
-		XMMATRIX shadowView = XMMatrixLookAtLH(centroid - (dir*XMVector3Length(pointsV[4]-pointsV[5])), centroid, up);
-		auto tc = XMVector3Transform(centroid, shadowView);
+		float len;
+		XMStoreFloat(&len, XMVector3Length(pointsV[4] - pointsV[5]));
+		float dist = max(zFar - zNear, len)+50.0f;
+		XMMATRIX shadowView = XMMatrixLookAtLH(centroid - (dist*dir), centroid, up);
 
 		subfrustum.Transform(subfrustum, shadowView);
 		subfrustum.GetCorners(points);
@@ -603,7 +605,7 @@ void GraphicsDevice::InitBuffers()
 	{
 		shadowDS.Flags = 0;
 		shadowDS.Format = DXGI_FORMAT_D32_FLOAT;
-		shadowDS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		shadowDS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 		shadowDS.Texture2DArray.MipSlice = 0;
 		shadowDS.Texture2DArray.ArraySize = 1;
 		shadowDS.Texture2DArray.FirstArraySlice = i;

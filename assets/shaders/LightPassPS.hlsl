@@ -88,7 +88,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 	depthID = floor(depthID * NUM_SHADOW_CASCADES);
 	float4 lightspacePos = mul(float4(buffer.position, 1.0f), mul(lightView[depthID], lightProjection[depthID]));
 	float4 shadowCoord = lightspacePos / 2 + 0.5f;
-	float visibility = ceil(shadowMap.Sample(shadowSampler, float3(shadowCoord.xy, depthID)).r - shadowCoord.z)/2 + 0.5;
+	float sMap = shadowMap.Sample(shadowSampler, float3(shadowCoord.xy, depthID)).r;
+	float visibility = ceil(sMap - shadowCoord.z)/2 + 0.5;
 
-	return float4(shadowMap.Sample(shadowSampler, float3(shadowCoord.xy, depthID)).rrr, 1.0f); //float4(visibility*colorFromScenelight(buffer), 1.0f); 
+	return float4(sMap.rrr, 1.0f); //float4(visibility*colorFromScenelight(buffer), 1.0f); 
 }

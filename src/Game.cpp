@@ -125,9 +125,9 @@ void Game::LoadContent()
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	for(size_t y = 0; y < 20; y++)
+	for(size_t y = 5; y < 15; y++)
 	{
-		for(size_t x = 0; x < 20; x++)
+		for(size_t x = 5; x < 15; x++)
 		{
 			auto pos = XMFLOAT3{ static_cast<float>(x)*1.5f, 0, static_cast<float>(y)*1.5f };
 			Entity* ent = gameWorld->create();
