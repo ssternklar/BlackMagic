@@ -9,7 +9,7 @@
 
 // For the DirectX Math library
 using namespace DirectX;
-
+using namespace BlackMagic;
 using namespace ECS;
 
 // --------------------------------------------------------
@@ -29,8 +29,10 @@ Game::Game(HINSTANCE hInstance)
 		true)
 	// Show extra stats (fps) in title bar?
 {
-	_transformMemory = operator new(400 * TransformData::Size);
-	TransformData::Init(400, _transformMemory);
+	//_transformMemory = operator new(400 * TransformData::Size);
+	//TransformData::Init(400, _transformMemory);
+	_transformMemory = new TransformData();
+
 
 	// TODO: Pass our custom allocator here. Also see ECS.h line 2.
 	gameWorld = ECS::World::createWorld();
@@ -68,8 +70,8 @@ void Game::Init()
 		std::cout << "[Error] Renderer init failed with code " << hr << std::endl;
 		std::exit(hr);
 	}
-	allocMem = new byte[1024 * 1024 * 1024];
-	alloc = new BlackMagic::BestFitAllocator(1024 * 1024 * 1024, 32, allocMem);
+	allocMem = new BlackMagic::byte[1024 * 1024 * 1024];
+	alloc = new BlackMagic::BestFitAllocator(32, 1024 * 1024 * 1024, allocMem);
 	_content = std::make_unique<ContentManager>(_renderer->Device(), _renderer->Context(), L"./assets/", alloc);
 	
 	_renderer->Init(_content.get());
@@ -170,7 +172,7 @@ void Game::Update(float deltaTime, float totalTime)
 	// this ticks all registered systems
 	gameWorld->tick(deltaTime);
 	
-	TransformData::UpdateTransforms();
+	TransformData::GetSingleton()->UpdateTransforms();
 }
 
 // --------------------------------------------------------

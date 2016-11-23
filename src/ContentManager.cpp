@@ -21,7 +21,7 @@ template<>
 std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::make_shared<Mesh>(fullPath, _device);
+	auto ptr = std::allocate_shared<Mesh>(ContentAllocatorAdapter(_allocator), fullPath, _device);
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -33,7 +33,7 @@ std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 	auto fullPath = _assetDirectory + L"/" + name;
 	auto result = CreateWICTextureFromFile(_device, _context, fullPath.c_str(), nullptr, &srv);
 
-	auto ptr = std::make_shared<Texture>(nullptr, srv, nullptr);
+	auto ptr = std::allocate_shared<Texture>(ContentAllocatorAdapter(_allocator), nullptr, srv, nullptr);
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -42,7 +42,7 @@ template<>
 std::shared_ptr<VertexShader> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::make_shared<VertexShader>(_device, _context);
+	auto ptr = std::allocate_shared<VertexShader>(ContentAllocatorAdapter(_allocator), _device, _context);
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
@@ -52,7 +52,7 @@ template<>
 std::shared_ptr<PixelShader> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::make_shared<PixelShader>(_device, _context);
+	auto ptr = std::allocate_shared<PixelShader>(ContentAllocatorAdapter(_allocator), _device, _context);
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
@@ -82,7 +82,7 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	sp->segments = reinterpret_cast<SplinePiece*>(memory + 16);
 
 	std::shared_ptr<Spline> ret =
-		std::shared_ptr<Spline>((Spline*)memory,
+		std::shared_ptr<Spline>(sp,
 		[&](Spline* splineToDelete) {
 		if(splineToDelete)
 		{

@@ -3,24 +3,34 @@
 #include "Transform.h"
 
 using namespace DirectX;
+using namespace BlackMagic;
 
-//5 pointers + an ID
-size_t TransformData::Size = sizeof(XMFLOAT4X4*) + sizeof(XMFLOAT4*) + 2*sizeof(XMFLOAT3*) + sizeof(bool*) + sizeof(TransformID);
-XMFLOAT4X4 TransformData::_matrices[400];
-XMFLOAT4 TransformData::_rotations[400];
-XMFLOAT3 TransformData::_positions[400];
-XMFLOAT3 TransformData::_scales[400];
-std::stack<TransformID> TransformData::_availableTransforms;
-TransformID TransformData::_nextAvailableTransform = 0;
+TransformData* TransformData::singletonRef = nullptr;
 
-
-void TransformData::Init(size_t allocCount, void* mem)
+TransformData::TransformData() : matrixAllocator(
+	64,
+	sizeof(XMFLOAT4X4) * 400,
+	sizeof(XMFLOAT4X4),
+	(byte*)&(_matrices[0]))
 {
+	singletonRef = this;
+}
+
+TransformData* TransformData::GetSingleton()
+{
+	return singletonRef;
 }
 
 TransformID TransformData::AllocateTransform()
 {
-	size_t res;
+	XMFLOAT4X4* alloc = matrixAllocator.allocate<XMFLOAT4X4>(false);
+	TransformID res = alloc - _matrices;
+	_matrices[res]._44 = 1;
+	if (res > highestAllocated)
+	{
+		highestAllocated = res;
+	}
+	/*size_t res;
 	if (_availableTransforms.empty())
 	{
 		static size_t last;
@@ -31,18 +41,26 @@ TransformID TransformData::AllocateTransform()
 	{
 		res = _availableTransforms.top();
 		_availableTransforms.pop();
-	}
+	}*/
 	return res;
 }
 
 void TransformData::DeallocateTransform(TransformID id)
 {
+	memset(&(_matrices[id]), 0, sizeof(XMFLOAT4X4));
+	matrixAllocator.deallocate<XMFLOAT4X4>(&(_matrices[id]));
+	if (id == highestAllocated)
+	{
+		//decrease it. Figure out who has the next highest.
+		//check the bottom row?
+	}
 }
 
 void TransformData::UpdateTransforms()
 {
-	for(size_t i = 0; i < _nextAvailableTransform; i++)
+	for(size_t i = 0; i < highestAllocated + 1; i++)
 	{
+		//perhaps don't process invalid transforms?
 		auto r = XMLoadFloat4(&_rotations[i]);
 		auto p = XMLoadFloat3(&_positions[i]);
 		auto s = XMLoadFloat3(&_scales[i]);

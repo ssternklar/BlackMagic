@@ -7,6 +7,7 @@ class MachineSystem : public ECS::EntitySystem, public ECS::EventSubscriber<ECS:
 	std::shared_ptr<Spline> track;
 public:
 	static void SetTransformRotation(Transform* transform, SplineControlPoint* point);
+	MachineSystem() {}
 	MachineSystem(std::shared_ptr<Spline> track);
 	virtual void configure(ECS::World* world) override;
 	virtual void unconfigure(ECS::World* world) override;

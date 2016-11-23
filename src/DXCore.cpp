@@ -34,6 +34,18 @@ DXCore::DXCore(
 	unsigned int windowHeight, // Height of the window's client area
 	bool debugTitleBarStats) // Show extra stats (fps) in title bar?
 {
+	//Also in WindowsPlatform.cpp
+#if defined(DEBUG) | defined(_DEBUG)
+	// Enable memory leak detection as a quick and dirty
+	// way of determining if we forgot to clean something up
+	//  - You may want to use something more advanced, like Visual Leak Detector
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+
+	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+	_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+
+
 	// Save a static reference to this object.
 	//  - Since the OS-level message function must be a non-member (global) function, 
 	//    it won't be able to directly interact with our DXCore object otherwise.
