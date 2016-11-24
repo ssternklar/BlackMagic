@@ -6,6 +6,7 @@ using namespace DirectX;
 
 FZERO::~FZERO()
 {
+	gameWorld->unregisterSystem(sys);
 	gameWorld->destroyWorld();
 }
 
@@ -16,20 +17,19 @@ void FZERO::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 	//auto adapter = AllocatorSTLAdapter<Entity, BestFitAllocator>(allocator);
 	//gameWorld = ECS::World::createWorld(ECS::Allocator(adapter));
 	gameWorld = ECS::World::createWorld();
-
 	LoadContent();
-
-	_directionalLights.push_back({
+	DirectionalLight light = {
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
 		{ 1, 0, 0 }
-	});
-
-	_directionalLights.push_back({
+	};
+	_directionalLights.push_back(light);
+	DirectionalLight light2 = {
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
 		{ -1, 0, 0 }
-	});
+	};
+	_directionalLights.push_back(light2);
 }
 
 void FZERO::LoadContent()
@@ -37,6 +37,7 @@ void FZERO::LoadContent()
 	auto _content = platform->GetContentManager();
 	splineMesh = std::make_shared<Mesh>();
 	_spline = _content->Load<Spline>(L"spline.bin");
+	_spline->GenerateMesh(platform->GetGraphicsDevice(), splineMesh.get());
 
 	auto sphere = _content->Load<Mesh>(L"/models/sphere.obj");
 
@@ -71,7 +72,7 @@ void FZERO::LoadContent()
 
 	// Add our test system
 
-	MachineSystem* sys = allocator.allocate<MachineSystem>();
+	sys = allocator.allocate<MachineSystem>();
 	sys = new (sys) MachineSystem(_spline);
 	gameWorld->registerSystem(sys);
 

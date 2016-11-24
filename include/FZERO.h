@@ -39,7 +39,7 @@ private:
 
 	std::shared_ptr<Mesh> splineMesh;
 	std::shared_ptr<Spline> _spline;
-
+	MachineSystem* sys;
 	// ECS Stuff
 	ECS::World* gameWorld;
 };

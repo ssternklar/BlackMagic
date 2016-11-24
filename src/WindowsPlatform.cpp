@@ -172,6 +172,10 @@ bool WindowsPlatform::InitWindow()
 	QueryPerformanceFrequency((LARGE_INTEGER*)&perfFreq);
 	perfCounterSeconds = 1.0 / (double)perfFreq;
 
+	__int64 now;
+	QueryPerformanceCounter((LARGE_INTEGER*)&now);
+	currentTime = now;
+
 	// Ensure the window was created properly
 	if (hWnd == NULL)
 	{

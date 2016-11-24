@@ -38,7 +38,7 @@ bool PlatformBase::BlackMagicInit()
 
 	transformData = allocatorAllocator->allocate<TransformData>();
 	new (transformData) TransformData;
-	gameMemorySize = allocatorAllocator->GetRemainingSize();
+	gameMemorySize = allocatorAllocator->GetRemainingSize() - 32;
 	gameMemory = (byte*)allocatorAllocator->allocate(gameMemorySize);
 
 	return true;
