@@ -1,5 +1,6 @@
 #pragma once
 #include "PlatformBase.h"
+#include "DirectXGraphicsDevice.h"
 #ifdef _WIN32
 #include <Windows.h>
 #include <windowsx.h>
@@ -32,5 +33,8 @@ namespace BlackMagic
 		);
 		WindowsPlatform(HINSTANCE instance);
 		~WindowsPlatform();
+		HINSTANCE GetHINSTANCE();
+		HWND GetHWND();
+		MSG GetMSG();
 	};
 }

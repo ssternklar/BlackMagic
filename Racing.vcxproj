@@ -148,6 +148,7 @@
     <ClCompile Include="src\FZERO.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\GameAbstraction.cpp" />
+    <ClCompile Include="src\GraphicsDevice.cpp" />
     <ClCompile Include="src\InputData.cpp" />
     <ClCompile Include="src\Machine.cpp" />
     <ClCompile Include="src\MachineSystem.cpp" />
@@ -156,7 +157,7 @@
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\PlatformBase.cpp" />
     <ClCompile Include="src\Renderable.cpp" />
-    <ClCompile Include="src\GraphicsDevice.cpp" />
+    <ClCompile Include="src\DirectXGraphicsDevice.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
     <ClCompile Include="src\Spline.cpp" />
     <ClCompile Include="src\SplineControlPoint.cpp" />
@@ -181,6 +182,8 @@
     <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\GameAbstraction.h" />
     <ClInclude Include="include\GameObject.h" />
+    <ClInclude Include="include\GraphicsBuffer.h" />
+    <ClInclude Include="include\GraphicsDevice.h" />
     <ClInclude Include="include\InputData.h" />
     <ClInclude Include="include\Machine.h" />
     <ClInclude Include="include\MachineSystem.h" />
@@ -189,7 +192,7 @@
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\IResource.h" />
-    <ClInclude Include="include\GraphicsDevice.h" />
+    <ClInclude Include="include\DirectXGraphicsDevice.h" />
     <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\Spline.h" />

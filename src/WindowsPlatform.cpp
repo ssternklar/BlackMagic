@@ -102,7 +102,9 @@ LRESULT BlackMagic::WindowsPlatform::WindowProc(HWND hWnd, UINT uMsg, WPARAM wPa
 
 void WindowsPlatform::InitPlatformGraphicsDevice()
 {
-	graphicsDevice->InitDx(hWnd, windowWidth, windowHeight);
+	graphicsDevice = static_cast<GraphicsDevice*>(allocatorAllocator->allocate<DirectXGraphicsDevice>(false));
+	auto dxGDevice = new (graphicsDevice) DirectXGraphicsDevice;
+	dxGDevice->InitDx(hWnd, windowWidth, windowHeight);
 
 	// The window exists but is not visible yet
 	// We need to tell Windows to show it, and how to show it
@@ -249,4 +251,19 @@ WindowsPlatform::WindowsPlatform(HINSTANCE instance)
 
 WindowsPlatform::~WindowsPlatform()
 {
+}
+
+HINSTANCE BlackMagic::WindowsPlatform::GetHINSTANCE()
+{
+	return hInstance;
+}
+
+HWND BlackMagic::WindowsPlatform::GetHWND()
+{
+	return hWnd;
+}
+
+MSG BlackMagic::WindowsPlatform::GetMSG()
+{
+	return msg;
 }

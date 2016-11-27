@@ -62,7 +62,7 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	_renderer = std::make_unique<GraphicsDevice>();
+	_renderer = std::make_unique<DirectXGraphicsDevice>();
 	
 	auto hr = _renderer->InitDx(hWnd, width, height);
 	if (hr)

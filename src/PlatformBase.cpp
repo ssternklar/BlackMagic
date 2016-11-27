@@ -18,8 +18,6 @@ bool PlatformBase::BlackMagicInit()
 	byte* ptr;
 	GetSystemMemory(CPU_MEMORY_SIZE, &ptr);
 	allocatorAllocator = new (ptr) StackAllocator(32, CPU_MEMORY_SIZE);
-	graphicsDevice = allocatorAllocator->allocate<GraphicsDevice>(false);
-	new (graphicsDevice) GraphicsDevice;
 
 	byte* contentMemory = (byte*)allocatorAllocator->allocate(1024 * 1024 * 512);
 	BestFitAllocator* contentAllocator = new (contentMemory) BestFitAllocator(32, 1024 * 1024 * 512);
@@ -49,12 +47,12 @@ InputData* PlatformBase::GetInputData()
 	return &inputData;
 }
 
-GraphicsDevice * BlackMagic::PlatformBase::GetGraphicsDevice()
+BlackMagic::GraphicsDevice* BlackMagic::PlatformBase::GetGraphicsDevice()
 {
 	return graphicsDevice;
 }
 
-ContentManager * BlackMagic::PlatformBase::GetContentManager()
+ContentManager* BlackMagic::PlatformBase::GetContentManager()
 {
 	return contentManager;
 }
