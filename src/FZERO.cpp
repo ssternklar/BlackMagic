@@ -1,5 +1,5 @@
 #include "FZERO.h"
-
+#include "DirectXGraphicsDevice.h"
 using namespace BlackMagic;
 using namespace ECS;
 using namespace DirectX;
@@ -59,7 +59,7 @@ void FZERO::LoadContent()
 	samplerDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	auto sampler = platform->GetGraphicsDevice()->CreateSamplerState(samplerDesc);
+	auto sampler = ((DirectXGraphicsDevice*)platform->GetGraphicsDevice())->CreateSamplerState(samplerDesc);
 
 	auto gridMat = std::make_shared<Material>(
 		gPassVS, gPassPS,

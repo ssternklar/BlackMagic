@@ -17,6 +17,7 @@ namespace BlackMagic
 		virtual void Present(unsigned int interval, unsigned int flags) = 0;
 		virtual GraphicsBuffer CreateBuffer(GraphicsBuffer::BufferType bufferType, void* data, size_t bufferSize) = 0;
 		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) = 0;
+		virtual void CleanupBuffer(GraphicsBuffer buffer) = 0;
 		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights) = 0;
 
 		// TODO: Add correct allocator type to vectors?

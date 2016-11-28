@@ -8,13 +8,9 @@ namespace BlackMagic
 			VERTEX_BUFFER,
 			INDEX_BUFFER
 		};
+		GraphicsBuffer() {}
+		GraphicsBuffer(void* ptr) : buffer(ptr) {}
 
 		void* buffer;
-
-		template<class T>
-		T GetBuffer<T>()
-		{
-			return reinterpret_cast<T>(buffer);
-		}
 	};
 }
