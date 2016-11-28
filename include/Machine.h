@@ -2,7 +2,6 @@
 
 #include <memory>
 #include "Spline.h"
-#include "DXCore.h"
 #include "Transform.h"
 
 class Machine

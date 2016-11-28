@@ -1,6 +1,8 @@
 #include "Spline.h"
 #include "Vertex.h"
 
+using BufferType = BlackMagic::GraphicsBuffer::BufferType;
+
 void Spline::GetPoint(float t, SplineControlPoint& outPoint)
 {
 	float modifiedT = t * segmentCount;
@@ -38,7 +40,7 @@ void Spline::GuessNearestPoint(DirectX::XMFLOAT3& point, SplineControlPoint& out
 	return GetPoint(GuessNearestPoint(point), outPoint);
 }
 
-void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
+void Spline::GenerateMesh(BlackMagic::GraphicsDevice* device, Mesh* mesh)
 {
 	const size_t numVerts = 5000;
 	const size_t numIndices = numVerts * 3;
@@ -101,7 +103,10 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 	D3D11_SUBRESOURCE_DATA indData = {};
 	indData.pSysMem = &indices[0];
 
-	mesh->Set(device->CreateBuffer(vertDesc, vertData), device->CreateBuffer(indDesc, indData), numIndices);
+	auto vB = device->CreateBuffer(BufferType::VERTEX_BUFFER, vertices, static_cast<UINT>(numVerts * sizeof(Vertex)));
+	auto iB = device->CreateBuffer(BufferType::INDEX_BUFFER, indices, static_cast<UINT>(numIndices * sizeof(UINT)));
+
+	mesh->Set((ID3D11Buffer*)vB.buffer, (ID3D11Buffer*)iB.buffer, numIndices);
 	delete[] vertices;
 	delete[] indices;
 }

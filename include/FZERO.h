@@ -9,7 +9,6 @@
 
 #include "Camera.h"
 #include "DirectionalLight.h"
-#include "DXCore.h"
 #include "Spline.h"
 #include "Machine.h"
 #include "MachineSystem.h"

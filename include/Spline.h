@@ -12,5 +12,5 @@ public:
 	void GetPoint(float t, SplineControlPoint& outPoint);
 	float GuessNearestPoint(DirectX::XMFLOAT3& point, float* outDistanceSquared = nullptr);
 	void GuessNearestPoint(DirectX::XMFLOAT3& point, SplineControlPoint& outPoint);
-	void GenerateMesh(GraphicsDevice* device, Mesh* mesh);
+	void GenerateMesh(BlackMagic::GraphicsDevice* device, Mesh* mesh);
 };

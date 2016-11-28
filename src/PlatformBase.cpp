@@ -3,6 +3,10 @@
 #include <new>
 #include <Windows.h>
 #endif
+
+
+#include "DirectXGraphicsDevice.h"
+
 using namespace BlackMagic;
 
 const int CPU_MEMORY_SIZE = 1024 * 1024 * 1024;
@@ -25,9 +29,12 @@ bool PlatformBase::BlackMagicInit()
 	contentManager = allocatorAllocator->allocate<ContentManager>(false);
 	InitWindow();
 	InitPlatformGraphicsDevice();
+
+	auto dxGDevice = (DirectXGraphicsDevice*)graphicsDevice;
+
 	contentManager = new (contentManager) ContentManager(
-		graphicsDevice->Device(),
-		graphicsDevice->Context(),
+		dxGDevice->Device(),
+		dxGDevice->Context(),
 		L"./assets/",
 		contentAllocator
 	);

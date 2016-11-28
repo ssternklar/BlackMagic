@@ -105,14 +105,16 @@ GraphicsBuffer DirectXGraphicsDevice::CreateBuffer(GraphicsBuffer::BufferType bu
 {
 	D3D11_BUFFER_DESC desc = {};
 	desc.BindFlags = bufferType == GraphicsBuffer::BufferType::VERTEX_BUFFER ? D3D11_BIND_VERTEX_BUFFER : D3D11_BIND_INDEX_BUFFER;
-	desc.ByteWidth = static_cast<UINT>(bufferSize * sizeof(Vertex));
+	desc.ByteWidth = bufferSize;
 	desc.Usage = D3D11_USAGE_IMMUTABLE;
 
 	D3D11_SUBRESOURCE_DATA dat = {};
 	dat.pSysMem = data;
 
 	GraphicsBuffer buffer;
-	_device->CreateBuffer(&desc, &dat, (ID3D11Buffer**)&(buffer.buffer));
+	ID3D11Buffer* b;
+	_device->CreateBuffer(&desc, &dat, &b);
+	buffer.buffer = b;
 	return buffer;
 }
 

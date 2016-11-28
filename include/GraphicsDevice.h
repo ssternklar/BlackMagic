@@ -9,8 +9,6 @@ namespace BlackMagic
 	class GraphicsDevice
 	{
 	public:
-		GraphicsDevice();
-		~GraphicsDevice();
 		virtual void Clear(DirectX::XMFLOAT4 color) = 0;
 		virtual void Init(ContentManager* content) = 0;
 		virtual void OnResize(unsigned int width, unsigned int height) = 0;
