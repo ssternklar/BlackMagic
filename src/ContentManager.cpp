@@ -25,7 +25,18 @@ template<>
 std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::allocate_shared<Mesh>(ContentAllocatorAdapter(_allocator), fullPath, graphicsDevice);
+	auto ptr = std::shared_ptr<Mesh>(new (_allocator->allocate(sizeof(Mesh))) Mesh(fullPath, graphicsDevice),
+		[&](Mesh* meshToDelete)
+		{
+			if (meshToDelete)
+			{
+				graphicsDevice->CleanupBuffer(meshToDelete->VertexBuffer());
+				graphicsDevice->CleanupBuffer(meshToDelete->IndexBuffer());
+				_allocator->deallocate((void*)meshToDelete, sizeof(Mesh), 1);
+			}
+		},
+		ContentAllocatorAdapter(_allocator)
+		);
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -87,8 +98,8 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 
 	std::shared_ptr<Spline> ret =
 		std::shared_ptr<Spline>(sp,
-		[&](Spline* splineToDelete) {
-		if(splineToDelete)
+			[&](Spline* splineToDelete) {
+		if (splineToDelete)
 		{
 			_allocator->deallocate((void*)splineToDelete, sizeof(unsigned int) * 4 + sizeof(SplineControlPoint) * splineToDelete->segmentCount, 1);
 		}
@@ -108,5 +119,5 @@ std::shared_ptr<T> ContentManager::load_Internal(const std::wstring& name)
 		"VertexShader\n"
 		"PixelShader\n"
 		"Spline\n"
-	);
+		);
 }

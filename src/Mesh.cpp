@@ -209,11 +209,6 @@ Mesh::Mesh(const std::wstring& file, GraphicsDevice* device)
 
 Mesh::~Mesh()
 {
-	//if (_vBuf)
-	//	_vBuf->Release();
-	
-	//if (_iBuf)
-	//	_iBuf->Release();
 }
 
 GraphicsBuffer Mesh::VertexBuffer() const

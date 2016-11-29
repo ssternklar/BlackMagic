@@ -121,13 +121,13 @@ GraphicsBuffer DirectXGraphicsDevice::CreateBuffer(GraphicsBuffer::BufferType bu
 
 void DirectXGraphicsDevice::ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize)
 {
-	((ID3D11Buffer*)buffer.buffer)->Release();
+	buffer.GetAs<ID3D11Buffer*>()->Release();
 	buffer = CreateBuffer(bufferType, newData, newBufferSize);
 }
 
 void BlackMagic::DirectXGraphicsDevice::CleanupBuffer(GraphicsBuffer buffer)
 {
-	((ID3D11Buffer*)buffer.buffer)->Release();
+	if(buffer.buffer) buffer.GetAs<ID3D11Buffer*>()->Release();
 }
 
 void DirectXGraphicsDevice::OnResize(UINT width, UINT height)

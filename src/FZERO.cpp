@@ -6,6 +6,8 @@ using namespace DirectX;
 
 FZERO::~FZERO()
 {
+	platform->GetGraphicsDevice()->CleanupBuffer(splineMesh->VertexBuffer());
+	platform->GetGraphicsDevice()->CleanupBuffer(splineMesh->IndexBuffer());
 	gameWorld->unregisterSystem(sys);
 	gameWorld->destroyWorld();
 }
