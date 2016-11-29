@@ -7,7 +7,7 @@
 #include "Renderable.h"
 #include "ContentManager.h"
 
-#define NUM_SHADOW_CASCADES 5
+#define NUM_SHADOW_CASCADES 1
 #define SHADOWMAP_DIM 1024
 
 class GraphicsDevice
