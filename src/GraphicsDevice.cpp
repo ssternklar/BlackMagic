@@ -356,7 +356,7 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 		XMMATRIX shadowView = XMMatrixLookAtLH(centroid - 50*(dir), centroid, up);
 		lightTransform.r[3] = centroid - dir;
 
-		subfrustum.Transform(subfrustum, XMMatrixInverse(nullptr, shadowView));
+		subfrustum.Transform(subfrustum, shadowView);
 		subfrustum.GetCorners(points);
 		XMStoreFloat4x4(&_shadowViews[thisCascade], XMMatrixTranspose(shadowView));
 
@@ -369,8 +369,8 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 		XMVECTOR tMax = XMLoadFloat3(&max);
 		XMVectorSetW(tMin, 1.0f);
 		XMVectorSetW(tMax, 1.0f);
-		tMin = XMVector4Transform(tMin, XMMatrixInverse(nullptr, shadowView));
-		tMax = XMVector4Transform(tMax, XMMatrixInverse(nullptr, shadowView));
+		tMin = XMVector4Transform(tMin, shadowView);
+		tMax = XMVector4Transform(tMax, shadowView);
 		XMStoreFloat3(&min, XMVectorMin(tMin, tMax));
 		XMStoreFloat3(&max, XMVectorMax(tMin, tMax));*/
 

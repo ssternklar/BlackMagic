@@ -1,5 +1,5 @@
 #define NUM_LIGHTS 1
-#define NUM_SHADOW_CASCADES 1
+#define NUM_SHADOW_CASCADES 5
 
 struct DirectionalLight
 {
@@ -89,6 +89,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 lightspacePos = mul(float4(buffer.position, 1.0f), mul(lightView[depthID], lightProjection[depthID]));
 	lightspacePos /= lightspacePos.w;
 	float4 shadowCoord = lightspacePos / 2 + 0.5f;
+	shadowCoord.y = 1 - shadowCoord.y;
 	float sMap = shadowMap.Sample(shadowSampler, float3(shadowCoord.xy, depthID)).r;
 	float visibility = ceil(sMap - shadowCoord.z)/2 + 0.5;
 
