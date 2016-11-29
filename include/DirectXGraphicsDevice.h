@@ -33,6 +33,7 @@ namespace BlackMagic {
 		IDXGISwapChain* _swapChain;
 		ID3D11RenderTargetView* _backBuffer;
 		ID3D11DepthStencilView* _depthStencil;
+		BestFitAllocator* contentManagerAllocator;
 
 		//Resources for deferred rendering	
 		ID3D11ShaderResourceView* _depthStencilTexture;

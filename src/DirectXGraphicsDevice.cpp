@@ -1,5 +1,6 @@
 #include "DirectXGraphicsDevice.h"
 #include "Vertex.h"
+#include "GraphicsTypes.h"
 
 using namespace BlackMagic;
 using DirectX::XMFLOAT2;
@@ -83,10 +84,10 @@ void DirectXGraphicsDevice::Clear(XMFLOAT4 color)
 {
 	FLOAT black[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_context->ClearRenderTargetView(_backBuffer, reinterpret_cast<const FLOAT*>(&color));
-	_context->ClearRenderTargetView(*_diffuseMap, reinterpret_cast<const FLOAT*>(&color));
-	_context->ClearRenderTargetView(*_specularMap, black);
-	_context->ClearRenderTargetView(*_normalMap, black);
-	_context->ClearRenderTargetView(*_positionMap, black);
+	_context->ClearRenderTargetView(_diffuseMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), reinterpret_cast<const FLOAT*>(&color));
+	_context->ClearRenderTargetView(_specularMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
+	_context->ClearRenderTargetView(_normalMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
+	_context->ClearRenderTargetView(_positionMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
 	_context->ClearDepthStencilView(_depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
@@ -230,6 +231,7 @@ HRESULT DirectXGraphicsDevice::InitDx(HWND window, UINT width, UINT height)
 
 void DirectXGraphicsDevice::Init(ContentManager* content)
 {
+	contentManagerAllocator = content->GetAllocator();
 	//Initialize the GBuffer and depth buffer
 	InitBuffers();
 	
@@ -280,7 +282,12 @@ void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Ent
 	Material* currentMaterial = nullptr;
 
 	//TODO: Sort renderables by material and texture to minimize state switches
-	ID3D11RenderTargetView* rts[4] = { *_diffuseMap, *_specularMap, *_positionMap, *_normalMap };
+	ID3D11RenderTargetView* rts[4] = {
+		_diffuseMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
+		_specularMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
+		_positionMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
+		_normalMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>()
+	};
 	_context->OMSetRenderTargets(4, rts, _depthStencil);
 
 	//Load object attributes into the g-buffer (geometry pass)
@@ -318,10 +325,10 @@ void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Ent
 	_lightPassPS->SetFloat3("cameraPosition", cPos);
 	_lightPassPS->SetData("directionalLights", &lights[0], sizeof(DirectionalLight)*lights.size() + padding);
 	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.get());
-	_lightPassPS->SetShaderResourceView("diffuseMap", *_diffuseMap);
-	_lightPassPS->SetShaderResourceView("specularMap", *_specularMap);
-	_lightPassPS->SetShaderResourceView("positionMap", *_positionMap);
-	_lightPassPS->SetShaderResourceView("normalMap", *_normalMap);
+	_lightPassPS->SetShaderResourceView("diffuseMap", _diffuseMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_lightPassPS->SetShaderResourceView("specularMap", _specularMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_lightPassPS->SetShaderResourceView("positionMap", _positionMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_lightPassPS->SetShaderResourceView("normalMap", _normalMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
 	_lightPassPS->CopyAllBufferData();
 
 	_context->IASetVertexBuffers(0, 1, &_quad, &quadStride, &offset);
@@ -453,8 +460,9 @@ Texture* DirectXGraphicsDevice::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
 	_device->CreateTexture2D(&desc, nullptr, &tex);
 	_device->CreateRenderTargetView(tex, nullptr, &rtv);
 	_device->CreateShaderResourceView(tex, nullptr, &srv);
+	tex->Release();
 
-	return new Texture(tex, srv, rtv);
+	return new Texture(GraphicsTexture(srv), GraphicsRenderTarget(rtv));
 }
 
 

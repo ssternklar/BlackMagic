@@ -23,9 +23,9 @@ void Renderable::PrepareMaterial(Transform& transform, XMFLOAT4X4 view, XMFLOAT4
 	vs->SetMatrix4x4("view", view);
 	vs->SetMatrix4x4("projection", proj);
 	
-	ps->SetShaderResourceView("mainTex", *_material->MainTexture());
+	ps->SetShaderResourceView("mainTex", _material->MainTexture()->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
 	ps->SetSamplerState("mainSampler", _material->MainSampler());
-	ps->SetShaderResourceView("normalMap", *_material->NormalMap());
+	ps->SetShaderResourceView("normalMap", _material->NormalMap()->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
 	
 	vs->SetShader();
 	ps->SetShader();

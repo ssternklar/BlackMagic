@@ -178,7 +178,7 @@
     <ClInclude Include="include\FZERO.h" />
     <ClInclude Include="include\GameAbstraction.h" />
     <ClInclude Include="include\GameObject.h" />
-    <ClInclude Include="include\GraphicsBuffer.h" />
+    <ClInclude Include="include\GraphicsTypes.h" />
     <ClInclude Include="include\GraphicsDevice.h" />
     <ClInclude Include="include\InputData.h" />
     <ClInclude Include="include\Machine.h" />

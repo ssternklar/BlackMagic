@@ -52,9 +52,9 @@ void Material::Apply(
 	_vertShader->SetMatrix4x4("view", view);
 	_vertShader->SetMatrix4x4("projection", proj);
 
-	_pixelShader->SetShaderResourceView("mainTex", *_texture);
+	_pixelShader->SetShaderResourceView("mainTex", _texture->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
 	_pixelShader->SetSamplerState("mainSampler", _mainSampler.get());
-	_pixelShader->SetShaderResourceView("normalMap", *_normalMap);
+	_pixelShader->SetShaderResourceView("normalMap", _normalMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
 	//_pixelShader->SetData("directionalLights", &lights[0], sizeof(DirectionalLight)*lights.size() + padding);
 
 	_vertShader->SetShader();

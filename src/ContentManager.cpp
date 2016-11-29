@@ -9,12 +9,16 @@
 #include "Texture.h"
 #include "Mesh.h"
 #include "Spline.h"
+#include "DirectXGraphicsDevice.h"
 
+using namespace BlackMagic;
 using namespace DirectX;
 
-ContentManager::ContentManager(ID3D11Device* device, ID3D11DeviceContext* ctx, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
-	: _device(device), _context(ctx), _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator)))
+ContentManager::ContentManager(GraphicsDevice* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
+	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator)))
 {
+	_device = ((DirectXGraphicsDevice*)device)->Device();
+	_context = ((DirectXGraphicsDevice*)device)->Context();
 }
 
 template<>
@@ -33,7 +37,7 @@ std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 	auto fullPath = _assetDirectory + L"/" + name;
 	auto result = CreateWICTextureFromFile(_device, _context, fullPath.c_str(), nullptr, &srv);
 
-	auto ptr = std::allocate_shared<Texture>(ContentAllocatorAdapter(_allocator), nullptr, srv, nullptr);
+	auto ptr = std::allocate_shared<Texture>(ContentAllocatorAdapter(_allocator), srv, nullptr);
 	_resources[name] = ptr;
 	return ptr;
 }

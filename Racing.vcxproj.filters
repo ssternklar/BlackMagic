@@ -182,7 +182,7 @@
     <ClInclude Include="include\GraphicsDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\GraphicsBuffer.h">
+    <ClInclude Include="include\GraphicsTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
