@@ -15,7 +15,7 @@ using namespace BlackMagic;
 using namespace DirectX;
 
 ContentManager::ContentManager(GraphicsDevice* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
-	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator)))
+	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator))), graphicsDevice(device)
 {
 	_device = ((DirectXGraphicsDevice*)device)->Device();
 	_context = ((DirectXGraphicsDevice*)device)->Context();
@@ -25,7 +25,7 @@ template<>
 std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::allocate_shared<Mesh>(ContentAllocatorAdapter(_allocator), fullPath, _device);
+	auto ptr = std::allocate_shared<Mesh>(ContentAllocatorAdapter(_allocator), fullPath, graphicsDevice);
 	_resources[name] = ptr;
 	return ptr;
 }

@@ -36,7 +36,7 @@ private:
 
 	std::vector<DirectionalLight> _directionalLights;
 
-	std::shared_ptr<Mesh> splineMesh;
+	std::shared_ptr<BlackMagic::Mesh> splineMesh;
 	std::shared_ptr<Spline> _spline;
 	MachineSystem* sys;
 	// ECS Stuff

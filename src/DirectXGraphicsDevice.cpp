@@ -308,9 +308,9 @@ void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Ent
 		//Upload buffers and draw
 		renderable->_material->Upload();
 
-		auto vBuf = renderable->_mesh->VertexBuffer();
+		auto vBuf = renderable->_mesh->VertexBuffer().GetAs<ID3D11Buffer*>();
 		_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
-		_context->IASetIndexBuffer(renderable->_mesh->IndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		_context->IASetIndexBuffer(renderable->_mesh->IndexBuffer().GetAs<ID3D11Buffer*>(), DXGI_FORMAT_R32_UINT, 0);
 		_context->DrawIndexed(static_cast<UINT>(renderable->_mesh->IndexCount()), 0, 0);
 	}
 

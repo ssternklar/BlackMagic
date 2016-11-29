@@ -41,7 +41,7 @@ namespace BlackMagic
 		std::wstring _assetDirectory;
 		ContentMap _resources;
 		BlackMagic::BestFitAllocator* _allocator;
-	
+		GraphicsDevice* graphicsDevice;
 
 		template<typename T>
 		std::shared_ptr<T> load_Internal(const std::wstring& name);

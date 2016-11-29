@@ -1,23 +1,26 @@
 #pragma once
 
-#include <d3d11.h>
 #include <string>
 #include "IResource.h"
-
-class Mesh : public IResource
+#include "GraphicsTypes.h"
+namespace BlackMagic
 {
-public:
-	Mesh();
-	Mesh(const std::wstring& file, ID3D11Device* device);
-	~Mesh();
+	class GraphicsDevice;
+	class Mesh : public IResource
+	{
+	public:
+		Mesh();
+		Mesh(const std::wstring& file, GraphicsDevice* device);
+		~Mesh();
 
-	ID3D11Buffer* VertexBuffer() const;
-	ID3D11Buffer* IndexBuffer() const;
+		GraphicsBuffer VertexBuffer() const;
+		GraphicsBuffer IndexBuffer() const;
 
-	size_t IndexCount() const;
-	void Set(ID3D11Buffer* vertexBuffer, ID3D11Buffer* indexBuffer, size_t numIndices);
+		size_t IndexCount() const;
+		void Set(GraphicsDevice* device, GraphicsBuffer vertexBuffer, GraphicsBuffer indexBuffer, size_t numIndices);
 
-private:
-	ID3D11Buffer *_vBuf, *_iBuf;
-	size_t _numIndices;
-};
+	private:
+		GraphicsBuffer _vBuf, _iBuf;
+		size_t _numIndices;
+	};
+}
