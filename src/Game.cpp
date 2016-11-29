@@ -138,7 +138,7 @@ void Game::LoadContent()
 	}
 
 	Entity* planeEntity = gameWorld->create();
-	auto planePos = XMFLOAT3{ 15, -1.1f, 15 };
+	auto planePos = XMFLOAT3{ 15, -1.0f, 15 };
 	auto planeScale = XMFLOAT3{ 15, 1, 15 };
 	planeEntity->assign<Transform>(planePos, quatIdentity, planeScale);
 	planeEntity->assign<Renderable>(plane, testMat);

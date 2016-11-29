@@ -317,25 +317,18 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 	const float coeff = (CAM_FAR_Z - CAM_NEAR_Z) / NUM_SHADOW_CASCADES;
 	auto frustum = cam.Frustum();
 	auto vT = cam.ViewMatrix();
-	auto pT = cam.ProjectionMatrix();
-	auto invVP = XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&pT)*XMLoadFloat4x4(&vT)));
 	auto dir = XMVector3Normalize(XMLoadFloat3(&sceneLight.Direction));
 	auto up = XMVectorSet(0, 1, 0, 0);
 	auto side = XMVector3Normalize(XMVector3Cross(dir, up));
 	up = XMVector3Normalize(XMVector3Cross(side, dir));
-	XMMATRIX lightTransform;
-	lightTransform.r[0] = side;
-	lightTransform.r[1] = up;
-	lightTransform.r[2] = dir;
-
 
 	XMFLOAT3 points[8];
 	XMVECTOR pointsV[8];
 	BoundingBox box;
 	for(size_t thisCascade = 0; thisCascade < NUM_SHADOW_CASCADES; thisCascade++)
 	{
-		float zNear = thisCascade*coeff + CAM_NEAR_Z;
-		float zFar = (thisCascade + 1)*coeff + CAM_NEAR_Z;
+		float zNear = CAM_NEAR_Z;
+		float zFar = (thisCascade+1)*coeff;
 
 		auto subfrustum = BoundingFrustum(XMMatrixPerspectiveFovLH(CAM_FOV, static_cast<float>(_width) / _height, zNear, zFar));
 		subfrustum.Transform(subfrustum, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&vT))));
@@ -353,18 +346,18 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 		float len;
 		XMStoreFloat(&len, XMVector3Length(pointsV[4] - pointsV[5]));
 		float dist = max(zFar - zNear, len)+50.0f;
-		XMMATRIX shadowView = XMMatrixLookAtLH(centroid - 50*(dir), centroid, up);
-		lightTransform.r[3] = centroid - dir;
+		XMMATRIX shadowView = XMMatrixLookAtLH(centroid - (dir), centroid, up);
 
 		subfrustum.Transform(subfrustum, shadowView);
 		subfrustum.GetCorners(points);
-		XMStoreFloat4x4(&_shadowViews[thisCascade], XMMatrixTranspose(shadowView));
 
 		XMFLOAT3 min, max;
 		BoundingBox::CreateFromPoints(box, 8, points, sizeof(XMFLOAT3));
 		XMStoreFloat3(&min, XMLoadFloat3(&box.Center) - XMLoadFloat3(&box.Extents));
 		XMStoreFloat3(&max, XMLoadFloat3(&box.Center) + XMLoadFloat3(&box.Extents));
 		
+		//shadowView = XMMatrixLookAtLH(centroid + dir*-max.z, centroid, up);
+		XMStoreFloat4x4(&_shadowViews[thisCascade], XMMatrixTranspose(shadowView));
 		/*XMVECTOR tMin = XMLoadFloat3(&min);
 		XMVECTOR tMax = XMLoadFloat3(&max);
 		XMVectorSetW(tMin, 1.0f);

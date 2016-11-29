@@ -93,5 +93,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float sMap = shadowMap.Sample(shadowSampler, float3(shadowCoord.xy, depthID)).r;
 	float visibility = ceil(sMap - shadowCoord.z)/2 + 0.5;
 
-	return float4(sMap.rrr, 1.0f); //float4(, 1.0f); //float4(visibility*colorFromScenelight(buffer), 1.0f); 
+	return float4((sMap.r > shadowCoord.z).rrr, 1.0f); //float4(, 1.0f); //float4(visibility*colorFromScenelight(buffer), 1.0f); 
 }
