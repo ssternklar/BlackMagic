@@ -8,6 +8,8 @@
 #include "SimpleShader.h"
 #include "Texture.h"
 
+using BlackMagic::Texture;
+
 class Material
 {
 public:

@@ -11,6 +11,7 @@
 
 using VertexShader = SimpleVertexShader;
 using PixelShader = SimplePixelShader;
+using BlackMagic::IResource;
 using ContentAllocatorAdapter = BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::weak_ptr<IResource>>, BlackMagic::BestFitAllocator>;
 using ContentMap = std::unordered_map<std::wstring, std::weak_ptr<IResource>, std::hash<std::wstring>, std::equal_to<std::wstring>, ContentAllocatorAdapter>;
 namespace BlackMagic
@@ -27,6 +28,12 @@ namespace BlackMagic
 			if (_resources.find(name) != _resources.end() && !_resources[name].expired())
 				return std::static_pointer_cast<T>(_resources[name].lock());
 
+			return load_Internal<T>(name);
+		}
+
+		template<typename T>
+		std::shared_ptr<T> LoadUnchecked(const std::wstring& name)
+		{
 			return load_Internal<T>(name);
 		}
 

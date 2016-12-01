@@ -17,7 +17,7 @@ namespace BlackMagic
 		GraphicsBuffer IndexBuffer() const;
 
 		size_t IndexCount() const;
-		void Set(GraphicsDevice* device, GraphicsBuffer vertexBuffer, GraphicsBuffer indexBuffer, size_t numIndices);
+		void Set(GraphicsBuffer vertexBuffer, GraphicsBuffer indexBuffer, size_t numIndices);
 
 	private:
 		GraphicsBuffer _vBuf, _iBuf;

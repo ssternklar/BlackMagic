@@ -45,14 +45,15 @@ void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 	v1.Binormal = v2.Binormal = v3.Binormal = binormal;
 }
 
-Mesh::Mesh()
-	: _vBuf(nullptr),
+Mesh::Mesh() :
+	IResource(nullptr),
+	_vBuf(nullptr),
 	_iBuf(nullptr),
 	_numIndices(0)
 {}
 
 
-Mesh::Mesh(const std::wstring& file, GraphicsDevice* device)
+Mesh::Mesh(const std::wstring& file, GraphicsDevice* device) : IResource(device)
 {
 	// File input object
 	std::ifstream obj(file);
@@ -209,6 +210,8 @@ Mesh::Mesh(const std::wstring& file, GraphicsDevice* device)
 
 Mesh::~Mesh()
 {
+	device->CleanupBuffer(_vBuf);
+	device->CleanupBuffer(_iBuf);
 }
 
 GraphicsBuffer Mesh::VertexBuffer() const
@@ -226,14 +229,10 @@ size_t Mesh::IndexCount() const
 	return _numIndices;
 }
 
-void Mesh::Set(GraphicsDevice* device, GraphicsBuffer vertexBuffer, GraphicsBuffer indexBuffer, size_t numIndices)
+void Mesh::Set(GraphicsBuffer vertexBuffer, GraphicsBuffer indexBuffer, size_t numIndices)
 {
-	if (_vBuf.buffer)
-		device->CleanupBuffer(_vBuf);
-
-	if (_iBuf.buffer)
-		device->CleanupBuffer(_iBuf);
-
+	device->CleanupBuffer(_vBuf);
+	device->CleanupBuffer(_iBuf);
 	_vBuf = vertexBuffer;
 	_iBuf = indexBuffer;
 	_numIndices = numIndices;

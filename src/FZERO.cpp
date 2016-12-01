@@ -6,8 +6,6 @@ using namespace DirectX;
 
 FZERO::~FZERO()
 {
-	platform->GetGraphicsDevice()->CleanupBuffer(splineMesh->VertexBuffer());
-	platform->GetGraphicsDevice()->CleanupBuffer(splineMesh->IndexBuffer());
 	gameWorld->unregisterSystem(sys);
 	gameWorld->destroyWorld();
 }
@@ -38,7 +36,8 @@ void FZERO::LoadContent()
 {
 	auto _content = platform->GetContentManager();
 	splineMesh = std::make_shared<Mesh>();
-	_spline = _content->Load<Spline>(L"spline.bin");
+	splineMesh->device = platform->GetGraphicsDevice();
+	_spline = _content->LoadUnchecked<Spline>(L"spline.bin");
 	_spline->GenerateMesh(platform->GetGraphicsDevice(), splineMesh.get());
 
 	auto sphere = _content->Load<Mesh>(L"/models/sphere.obj");

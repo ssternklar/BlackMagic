@@ -17,11 +17,12 @@ namespace BlackMagic
 		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) = 0;
 		virtual void CleanupBuffer(GraphicsBuffer buffer) = 0;
 		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights) = 0;
+		virtual GraphicsTexture CreateTexture(const char* texturePath, GraphicsRenderTarget* outOptionalRenderTarget = nullptr) = 0;
+		virtual void CleanupTexture(GraphicsTexture texture) = 0;
+		virtual void CleanupRenderTarget(GraphicsRenderTarget renderTarget) = 0;
 		/*virtual GraphicsShader CreateShader(GraphicsShader::ShaderType shaderType, const char* shaderPath);
 		virtual void CleanupShader(GraphicsShader::ShaderType shaderType, GraphicsShader shader);
-		virtual GraphicsTexture CreateTexture(const char* texturePath, GraphicsRenderTarget* outOptionalRenderTarget = nullptr);
-		virtual void CleanupTexture(GraphicsTexture texture);
-		virtual void CleanupRenderTarget(GraphicsRenderTarget renderTarget);*/
+		*/
 
 		// TODO: Add correct allocator type to vectors?
 		void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw)

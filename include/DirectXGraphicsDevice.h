@@ -27,6 +27,9 @@ namespace BlackMagic {
 		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) override;
 		virtual void CleanupBuffer(GraphicsBuffer buffer);
 		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights) override;
+		virtual GraphicsTexture CreateTexture(const char* texturePath, GraphicsRenderTarget* outOptionalRenderTarget = nullptr) override;
+		virtual void CleanupTexture(GraphicsTexture texture) override;
+		virtual void CleanupRenderTarget(GraphicsRenderTarget renderTarget) override;
 	private:
 		ID3D11Device* _device;
 		ID3D11DeviceContext* _context;

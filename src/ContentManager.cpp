@@ -5,7 +5,6 @@
 #include <fstream>
 #include <functional>
 
-#include "WICTextureLoader.h"
 #include "Texture.h"
 #include "Mesh.h"
 #include "Spline.h"
@@ -25,18 +24,7 @@ template<>
 std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::shared_ptr<Mesh>(new (_allocator->allocate(sizeof(Mesh))) Mesh(fullPath, graphicsDevice),
-		[&](Mesh* meshToDelete)
-		{
-			if (meshToDelete)
-			{
-				graphicsDevice->CleanupBuffer(meshToDelete->VertexBuffer());
-				graphicsDevice->CleanupBuffer(meshToDelete->IndexBuffer());
-				_allocator->deallocate((void*)meshToDelete, sizeof(Mesh), 1);
-			}
-		},
-		ContentAllocatorAdapter(_allocator)
-		);
+	auto ptr = std::allocate_shared<Mesh>(ContentAllocatorAdapter(_allocator), fullPath, graphicsDevice);
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -44,11 +32,11 @@ std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
 template<>
 std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 {
-	ID3D11ShaderResourceView* srv;
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto result = CreateWICTextureFromFile(_device, _context, fullPath.c_str(), nullptr, &srv);
 
-	auto ptr = std::allocate_shared<Texture>(ContentAllocatorAdapter(_allocator), srv, nullptr);
+	GraphicsTexture tex = graphicsDevice->CreateTexture((const char*)fullPath.c_str());
+
+	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator), graphicsDevice, tex, GraphicsRenderTarget(nullptr));
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -103,9 +91,9 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 		{
 			_allocator->deallocate((void*)splineToDelete, sizeof(unsigned int) * 4 + sizeof(SplineControlPoint) * splineToDelete->segmentCount, 1);
 		}
-	}, ContentAllocatorAdapter(_allocator));
+	}, BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>(_allocator));
 
-	_resources[name] = ret;
+	//_resources[name] = ret;
 	return ret;
 }
 

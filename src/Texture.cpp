@@ -1,9 +1,11 @@
 #include "Texture.h"
+#include "GraphicsDevice.h"
 
 using namespace BlackMagic;
 
-Texture::Texture(GraphicsTexture srView, GraphicsRenderTarget rtView)
+Texture::Texture(GraphicsDevice* device, GraphicsTexture srView, GraphicsRenderTarget rtView)
 	:
+	IResource(device),
 	_rtView(rtView),
 	_srView(srView)
 {
@@ -11,14 +13,8 @@ Texture::Texture(GraphicsTexture srView, GraphicsRenderTarget rtView)
 
 Texture::~Texture()
 {
-	/*if (_rtView)
-	{
-		_rtView->Release();
-	}
-	if (_srView)
-	{
-		_srView->Release();
-	}*/
+	device->CleanupTexture(_srView);
+	device->CleanupRenderTarget(_rtView);
 }
 
 GraphicsTexture Texture::GetGraphicsTexture() const

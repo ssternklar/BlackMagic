@@ -1,6 +1,7 @@
 #include "DirectXGraphicsDevice.h"
 #include "Vertex.h"
 #include "GraphicsTypes.h"
+#include "WICTextureLoader.h"
 
 using namespace BlackMagic;
 using DirectX::XMFLOAT2;
@@ -339,6 +340,23 @@ void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Ent
 	_context->PSSetShaderResources(0, 4, srvs);
 }
 
+GraphicsTexture DirectXGraphicsDevice::CreateTexture(const char * texturePath, GraphicsRenderTarget * outOptionalRenderTarget)
+{
+	ID3D11ShaderResourceView* srv;
+	auto result = DirectX::CreateWICTextureFromFile(_device, (wchar_t*)texturePath, nullptr, &srv);
+	return GraphicsTexture(srv);
+}
+
+void BlackMagic::DirectXGraphicsDevice::CleanupTexture(GraphicsTexture texture)
+{
+	if(texture.buffer) texture.GetAs<ID3D11ShaderResourceView*>()->Release();
+}
+
+void BlackMagic::DirectXGraphicsDevice::CleanupRenderTarget(GraphicsRenderTarget renderTarget)
+{
+	if(renderTarget.buffer) renderTarget.GetAs<ID3D11RenderTargetView*>()->Release();
+}
+
 void DirectXGraphicsDevice::InitBuffers()
 {
 	// The above function created the back buffer render target
@@ -462,7 +480,7 @@ Texture* DirectXGraphicsDevice::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
 	_device->CreateShaderResourceView(tex, nullptr, &srv);
 	tex->Release();
 
-	return new Texture(GraphicsTexture(srv), GraphicsRenderTarget(rtv));
+	return new Texture(this, GraphicsTexture(srv), GraphicsRenderTarget(rtv));
 }
 
 

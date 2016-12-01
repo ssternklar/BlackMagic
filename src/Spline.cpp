@@ -107,7 +107,7 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 	auto vB = device->CreateBuffer(BufferType::VERTEX_BUFFER, vertices, static_cast<UINT>(numVerts * sizeof(Vertex)));
 	auto iB = device->CreateBuffer(BufferType::INDEX_BUFFER, indices, static_cast<UINT>(numIndices * sizeof(UINT)));
 
-	mesh->Set(device, vB, iB, numIndices);
+	mesh->Set(vB, iB, numIndices);
 	delete[] vertices;
 	delete[] indices;
 }

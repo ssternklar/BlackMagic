@@ -148,6 +148,7 @@
     <ClCompile Include="src\GameAbstraction.cpp" />
     <ClCompile Include="src\GraphicsDevice.cpp" />
     <ClCompile Include="src\InputData.cpp" />
+    <ClCompile Include="src\IResource.cpp" />
     <ClCompile Include="src\Machine.cpp" />
     <ClCompile Include="src\MachineSystem.cpp" />
     <ClCompile Include="src\Main.cpp" />

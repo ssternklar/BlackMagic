@@ -4,16 +4,19 @@
 #include <memory>
 #include "GraphicsTypes.h"
 #include "IResource.h"
-class Texture : public IResource
+namespace BlackMagic
 {
-public:
-	explicit Texture(BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView);
-	~Texture();
+	class Texture : public IResource
+	{
+	public:
+		explicit Texture(BlackMagic::GraphicsDevice* device, BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView);
+		~Texture();
 
-	BlackMagic::GraphicsTexture GetGraphicsTexture() const;
-	BlackMagic::GraphicsRenderTarget GetGraphicsRenderTarget() const;
+		BlackMagic::GraphicsTexture GetGraphicsTexture() const;
+		BlackMagic::GraphicsRenderTarget GetGraphicsRenderTarget() const;
 
-private:
-	BlackMagic::GraphicsTexture _srView;
-	BlackMagic::GraphicsRenderTarget _rtView;
-};
+	private:
+		BlackMagic::GraphicsTexture _srView;
+		BlackMagic::GraphicsRenderTarget _rtView;
+	};
+}
