@@ -16,7 +16,7 @@ void FZERO::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 	allocator = BestFitAllocator(32, memorySize, gameMemory);
 	//auto adapter = AllocatorSTLAdapter<Entity, BestFitAllocator>(allocator);
 	//gameWorld = ECS::World::createWorld(ECS::Allocator(adapter));
-	gameWorld = ECS::World::createWorld();
+	gameWorld = ECS::World::createWorld(AllocatorSTLAdapter<ECS::Entity, BestFitAllocator>(&allocator));
 	LoadContent();
 	DirectionalLight light = {
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
