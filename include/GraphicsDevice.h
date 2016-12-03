@@ -8,7 +8,7 @@
 #include "ContentManager.h"
 
 #define NUM_SHADOW_CASCADES 5
-#define SHADOWMAP_DIM 1024
+#define SHADOWMAP_DIM 1025
 
 class GraphicsDevice
 {

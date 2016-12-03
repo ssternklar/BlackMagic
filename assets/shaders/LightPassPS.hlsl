@@ -1,5 +1,8 @@
 #define NUM_LIGHTS 1
 #define NUM_SHADOW_CASCADES 5
+#define ZNEAR 0.1f
+#define ZFAR 100.0f
+#define SPLIT_SIZE ((ZFAR - ZNEAR)/NUM_SHADOW_CASCADES)
 
 struct DirectionalLight
 {
@@ -37,7 +40,8 @@ Texture2D normalMap : register(t3);
 Texture2DArray shadowMap : register(t4);
 Texture2D depth : register(t5);
 SamplerState mainSampler : register(s0);
-SamplerState shadowSampler : register(s1);
+SamplerComparisonState shadowSampler : register(s1);
+
 
 float3 colorFromScenelight(GBuffer input)
 {
@@ -74,6 +78,25 @@ float linearizeDepth(float logDepth, float n, float f)
 
 }
 
+float sampleShadowMap(float3 pos, float cascade)
+{
+	float4 lightspacePos = mul(float4(pos, 1.0f), mul(lightView[cascade], lightProjection[cascade]));
+	lightspacePos /= lightspacePos.w;
+	float4 shadowCoord = lightspacePos / 2 + 0.5f;
+	shadowCoord.y = 1 - shadowCoord.y;
+	
+	float sMap = 0.0f;
+	for (int y = -1; y <= 1; y++)
+	{
+		for (int x = -1; x <= 1; x++)
+		{
+			sMap += shadowMap.GatherCmp(shadowSampler, float3(shadowCoord.xy, cascade), lightspacePos.z, int2(x, y)).r;
+		}
+	}
+	sMap /= 16;
+	return sMap;
+}
+
 //TODO: Use optimization from http://vec3.ca/code/graphics/deferred-shading-tricks/ to reduce size of 
 //position buffer
 float4 main(VertexToPixel input) : SV_TARGET
@@ -84,14 +107,19 @@ float4 main(VertexToPixel input) : SV_TARGET
 	buffer.normal = decompressNormal(normalMap.Sample(mainSampler, input.uv));
 	buffer.position = positionMap.Sample(mainSampler, input.uv);
 
-	float depthID = linearizeDepth((depth.Sample(mainSampler, input.uv).r), 0.1f, 100.0f);
-	depthID = floor(depthID * NUM_SHADOW_CASCADES);
-	float4 lightspacePos = mul(float4(buffer.position, 1.0f), mul(lightView[depthID], lightProjection[depthID]));
-	lightspacePos /= lightspacePos.w;
-	float4 shadowCoord = lightspacePos / 2 + 0.5f;
-	shadowCoord.y = 1 - shadowCoord.y;
-	float sMap = shadowMap.Sample(shadowSampler, float3(shadowCoord.xy, depthID)).r;
-	float visibility = ceil(sMap - shadowCoord.z)/2 + 0.5;
+	float linearDepth = linearizeDepth((depth.Sample(mainSampler, input.uv).r), ZNEAR, ZFAR);
+	float depthID = floor(linearDepth * NUM_SHADOW_CASCADES);
 
-	return float4((sMap.r > shadowCoord.z).rrr, 1.0f); //float4(, 1.0f); //float4(visibility*colorFromScenelight(buffer), 1.0f); 
+	//Based on MJP's CSM blending implementation
+	float distToNextCascade = (ZNEAR + (depthID+1) * SPLIT_SIZE)/ZFAR-linearDepth;
+	float shadow = sampleShadowMap(buffer.position, depthID);
+	//TODO: Get rid of this branch
+	if (distToNextCascade <= 0.1f && depthID < NUM_SHADOW_CASCADES-1)
+	{
+		float nextShadow = sampleShadowMap(buffer.position, depthID+1);
+		float t = smoothstep(0.0f, 0.1f, distToNextCascade);
+		shadow = lerp(nextShadow, shadow, t);
+	}
+	
+	return float4(shadow.rrr, 1.0f);
 }

@@ -264,14 +264,15 @@ void GraphicsDevice::Init(ContentManager* content)
 	_gBufferSampler = CreateSamplerState(sampDesc);
 
 	D3D11_SAMPLER_DESC shadowSampDesc = {};
-	shadowSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-	shadowSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-	shadowSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-	shadowSampDesc.BorderColor[3] = 0.0f;
-	shadowSampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	shadowSampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	shadowSampDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
-	shadowSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	shadowSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	shadowSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	shadowSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	shadowSampDesc.BorderColor[0] = 1.0f;
+	shadowSampDesc.BorderColor[1] = 1.0f;
+	shadowSampDesc.BorderColor[2] = 1.0f;
+	shadowSampDesc.BorderColor[3] = 1.0f;
+	shadowSampDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	shadowSampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 	_shadowSampler = CreateSamplerState(shadowSampDesc);
 
 	D3D11_RASTERIZER_DESC shadowRSDesc = {};
@@ -318,7 +319,7 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 	auto frustum = cam.Frustum();
 	auto vT = cam.ViewMatrix();
 	auto dir = XMVector3Normalize(XMLoadFloat3(&sceneLight.Direction));
-	auto up = XMVectorSet(0, 1, 0, 0);
+	auto up = XMVectorSet(1, 0, 0, 0);
 	auto side = XMVector3Normalize(XMVector3Cross(dir, up));
 	up = XMVector3Normalize(XMVector3Cross(side, dir));
 
@@ -340,32 +341,31 @@ void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::
 			pointsV[i] = XMLoadFloat3(&points[i]);
 			centroid += pointsV[i];
 		}
+		
 		centroid /= 8;
 		centroid = XMVectorSetW(centroid, 1.0f);
 
 		float len;
 		XMStoreFloat(&len, XMVector3Length(pointsV[4] - pointsV[5]));
 		float dist = max(zFar - zNear, len)+50.0f;
-		XMMATRIX shadowView = XMMatrixLookAtLH(centroid - (dir), centroid, up);
+		XMMATRIX shadowView = XMMatrixLookAtLH(centroid - dist*(dir), centroid, up);
 
+		XMStoreFloat4x4(&_shadowViews[thisCascade], XMMatrixTranspose(shadowView));
 		subfrustum.Transform(subfrustum, shadowView);
 		subfrustum.GetCorners(points);
 
+		static float extent = 0.0f;
+		XMVECTOR minV, maxV;
 		XMFLOAT3 min, max;
 		BoundingBox::CreateFromPoints(box, 8, points, sizeof(XMFLOAT3));
-		XMStoreFloat3(&min, XMLoadFloat3(&box.Center) - XMLoadFloat3(&box.Extents));
-		XMStoreFloat3(&max, XMLoadFloat3(&box.Center) + XMLoadFloat3(&box.Extents));
-		
-		//shadowView = XMMatrixLookAtLH(centroid + dir*-max.z, centroid, up);
-		XMStoreFloat4x4(&_shadowViews[thisCascade], XMMatrixTranspose(shadowView));
-		/*XMVECTOR tMin = XMLoadFloat3(&min);
-		XMVECTOR tMax = XMLoadFloat3(&max);
-		XMVectorSetW(tMin, 1.0f);
-		XMVectorSetW(tMax, 1.0f);
-		tMin = XMVector4Transform(tMin, shadowView);
-		tMax = XMVector4Transform(tMax, shadowView);
-		XMStoreFloat3(&min, XMVectorMin(tMin, tMax));
-		XMStoreFloat3(&max, XMVectorMax(tMin, tMax));*/
+		XMVECTOR center = XMLoadFloat3(&box.Center), extents = XMLoadFloat3(&box.Extents);
+		XMVECTOR unitsPerTexel = XMVectorSet(extent / SHADOWMAP_DIM, extent / SHADOWMAP_DIM, 1.0f, 1.0f);
+		minV = center - extents;
+		maxV = center + extents;
+		extent = max(extent, max(XMVectorGetX(maxV), max(XMVectorGetY(maxV), XMVectorGetZ(maxV))));
+		XMStoreFloat3(&min, XMVectorFloor(minV / unitsPerTexel)*unitsPerTexel);
+		XMStoreFloat3(&max, XMVectorFloor(maxV / unitsPerTexel)*unitsPerTexel);
+
 
 		XMMATRIX shadowProj = XMMatrixTranspose(XMMatrixOrthographicOffCenterLH(min.x, max.x, min.y, max.y, min.z, max.z));
 		XMStoreFloat4x4(&_shadowProjections[thisCascade], shadowProj);
@@ -559,7 +559,7 @@ void GraphicsDevice::InitBuffers()
 	D3D11_TEXTURE2D_DESC shadowMapDesc;
 	shadowMapDesc.Width = SHADOWMAP_DIM;
 	shadowMapDesc.Height = SHADOWMAP_DIM;
-	shadowMapDesc.MipLevels = 1;
+	shadowMapDesc.MipLevels = 0;
 	shadowMapDesc.ArraySize = NUM_SHADOW_CASCADES;
 	shadowMapDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 	shadowMapDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -593,7 +593,7 @@ void GraphicsDevice::InitBuffers()
 	shadowSRV.Format = DXGI_FORMAT_R32_FLOAT;
 	shadowSRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 	shadowSRV.Texture2DArray.MostDetailedMip = 0;
-	shadowSRV.Texture2DArray.MipLevels = 1;
+	shadowSRV.Texture2DArray.MipLevels = -1;
 	shadowSRV.Texture2DArray.ArraySize = NUM_SHADOW_CASCADES;
 	shadowSRV.Texture2DArray.FirstArraySlice = 0;
 	

@@ -81,7 +81,7 @@ void Game::Init()
 	_globalLight = DirectionalLight{
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ -1, -1, 0 }
+		{ 0, -1, 0 }
 	};
 }
 
@@ -94,8 +94,8 @@ void Game::LoadContent()
 	auto rocks = _content->Load<Texture>(L"/textures/rock.jpg");
 	auto rocksNormals = _content->Load<Texture>(L"/textures/rockNormals.jpg");
 
-	auto sand = _content->Load<Texture>(L"/textures/sand_texture.JPG");
-	auto sandNormals = _content->Load<Texture>(L"textures/sand_normal.JPG");
+	auto blankTex = _content->Load<Texture>(L"/textures/grey_texture.png");
+	auto blankNormals = _content->Load<Texture>(L"textures/test_normals.png");
 
 	auto gPassVS = _content->Load<VertexShader>(L"/shaders/GBufferVS.cso");
 	auto gPassPS = _content->Load<PixelShader>(L"/shaders/GBufferPS.cso");
@@ -118,8 +118,8 @@ void Game::LoadContent()
 
 	auto testMat = std::make_shared<Material>(
 		gPassVS, gPassPS,
-		sand, sampler,
-		sandNormals);
+		blankTex, sampler,
+		blankNormals);
 	
 	XMFLOAT4 quatIdentity;
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
@@ -139,7 +139,7 @@ void Game::LoadContent()
 
 	Entity* planeEntity = gameWorld->create();
 	auto planePos = XMFLOAT3{ 15, -1.0f, 15 };
-	auto planeScale = XMFLOAT3{ 15, 1, 15 };
+	auto planeScale = XMFLOAT3{ 150, 1, 150 };
 	planeEntity->assign<Transform>(planePos, quatIdentity, planeScale);
 	planeEntity->assign<Renderable>(plane, testMat);
 	planeEntity->assign<BoundingBox>(planePos, planeScale);
@@ -171,8 +171,8 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	//_directionalLights[0].Direction.x = cos(totalTime*0.3f);
-	//_directionalLights[0].Direction.y = sin(totalTime*0.3f);
+	//_globalLight.Direction.x = cos(totalTime*0.3f);
+	//_globalLight.Direction.y = sin(totalTime*0.3f);
 
 	_camera.Update(deltaTime);
 
