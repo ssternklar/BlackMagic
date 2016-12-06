@@ -6,13 +6,17 @@
 
 #include "SimpleShader.h"
 
+#include <allocators/AllocatorSTLAdapter.h>
+#include <allocators/BadBestFitAllocator.h>
+
 using VertexShader = SimpleVertexShader;
 using PixelShader = SimplePixelShader;
-
+using ContentAllocatorAdapter = BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::weak_ptr<IResource>>, BlackMagic::BestFitAllocator>;
+using ContentMap = std::unordered_map<std::wstring, std::weak_ptr<IResource>, std::hash<std::wstring>, std::equal_to<std::wstring>, ContentAllocatorAdapter>;
 class ContentManager
 {
 public:
-	ContentManager(ID3D11Device* device, ID3D11DeviceContext* ctx, const std::wstring& assetDirectory);
+	ContentManager(ID3D11Device* device, ID3D11DeviceContext* ctx, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator);
 
 	template<typename T>
 	std::shared_ptr<T> Load(const std::wstring& name)
@@ -27,7 +31,9 @@ private:
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
 	std::wstring _assetDirectory;
-	std::unordered_map<std::wstring, std::weak_ptr<IResource>> _resources;
+	ContentMap _resources;
+	BlackMagic::BestFitAllocator* _allocator;
+	
 
 	template<typename T>
 	std::shared_ptr<T> load_Internal(const std::wstring& name);

@@ -172,14 +172,14 @@ namespace BlackMagic
 		{
 			if (callDestructor)
 			{
-				/*for (int i = 0; i < n; i++)
+				for (int i = 0; i < n; i++)
 				{
 					dealloc[i]->~T();
-				}*/
+				}
 			}
 			deallocate((void*)dealloc, sizeof(T), n);
 		}
-
+		
 		size_t FreeListSize()
 		{
 			size_t count = 0;

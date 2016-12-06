@@ -1,10 +1,10 @@
 #include "Game.h"
 #include "Vertex.h"
 
-#include <DirectXCollision.h>
+#include <new>
 #include <iostream>
+#include <memory>
 #include "Texture.h"
-#include "TransformData.h"
 #include "WICTextureLoader.h"
 
 // For the DirectX Math library
@@ -26,13 +26,11 @@ Game::Game(HINSTANCE hInstance)
 		"DirectX Game", // Text for the window's title bar
 		1280, // Width of the window's client area
 		720, // Height of the window's client area
-		true),
+		true)
 	// Show extra stats (fps) in title bar?
-	_camera({0, 0, -5}, {0, 0, 1}, 2)
 {
-	_camera.UpdateProjectionMatrix(width, height);
-	_transformMemory = operator new(300 * TransformData::Size);
-	TransformData::Init(300, _transformMemory);
+	_transformMemory = operator new(400 * TransformData::Size);
+	TransformData::Init(400, _transformMemory);
 
 	// TODO: Pass our custom allocator here. Also see ECS.h line 2.
 	gameWorld = ECS::World::createWorld();
@@ -70,32 +68,42 @@ void Game::Init()
 		std::cout << "[Error] Renderer init failed with code " << hr << std::endl;
 		std::exit(hr);
 	}
+	allocMem = new byte[1024 * 1024 * 1024];
+	alloc = new BlackMagic::BestFitAllocator(1024 * 1024 * 1024, 32, allocMem);
+	_content = std::make_unique<ContentManager>(_renderer->Device(), _renderer->Context(), L"./assets/", alloc);
 	
-	_content = std::make_unique<ContentManager>(_renderer->Device(), _renderer->Context(), L"./assets/");
 	_renderer->Init(_content.get());
+	splineMesh = std::make_shared<Mesh>();//std::unique_ptr<Mesh>(new Mesh());
+	_spline = _content->Load<Spline>(L"spline.bin");
+	_spline->GenerateMesh(_renderer.get(), splineMesh.get());
 
 	dxFeatureLevel = _renderer->FeatureLevel();
 
 	LoadContent();
 
-	_globalLight = DirectionalLight{
+	_directionalLights.push_back({
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ 0, -1, 0 }
-	};
+		{ 1, 0, 0 }
+	});
+
+	_directionalLights.push_back({
+		{ 0.0f, 0.0f, 0.0f, 1.0f },
+		{ 1.0f, 1.0f, 1.0f, 1.0f },
+		{ -1, 0, 0 }
+	});
 }
 
 
 void Game::LoadContent()
 {
 	auto sphere = _content->Load<Mesh>(L"/models/sphere.obj");
-	auto plane = _content->Load<Mesh>(L"/models/plane.obj");
 
 	auto rocks = _content->Load<Texture>(L"/textures/rock.jpg");
 	auto rocksNormals = _content->Load<Texture>(L"/textures/rockNormals.jpg");
 
-	auto blankTex = _content->Load<Texture>(L"/textures/grey_texture.png");
-	auto blankNormals = _content->Load<Texture>(L"textures/test_normals.png");
+	auto sand = _content->Load<Texture>(L"/textures/sand_texture.JPG");
+	auto sandNormals = _content->Load<Texture>(L"textures/sand_normal.JPG");
 
 	auto gPassVS = _content->Load<VertexShader>(L"/shaders/GBufferVS.cso");
 	auto gPassPS = _content->Load<PixelShader>(L"/shaders/GBufferPS.cso");
@@ -115,37 +123,24 @@ void Game::LoadContent()
 		gPassVS, gPassPS,
 		rocks, sampler,
 		rocksNormals);
-
-	auto testMat = std::make_shared<Material>(
-		gPassVS, gPassPS,
-		blankTex, sampler,
-		blankNormals);
 	
 	XMFLOAT4 quatIdentity;
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	for(size_t y = 5; y < 15; y++)
-	{
-		for(size_t x = 5; x < 15; x++)
-		{
-			auto pos = XMFLOAT3{ static_cast<float>(x)*1.5f, 0, static_cast<float>(y)*1.5f };
-			Entity* ent = gameWorld->create();
-			ent->assign<Transform>(pos, quatIdentity, defaultScale);
-			ent->assign<Renderable>(sphere, gridMat);
-			ent->assign<BoundingSphere>(pos, 10.0f);
-		}
-	}
-
-	Entity* planeEntity = gameWorld->create();
-	auto planePos = XMFLOAT3{ 15, -1.0f, 15 };
-	auto planeScale = XMFLOAT3{ 150, 1, 150 };
-	planeEntity->assign<Transform>(planePos, quatIdentity, planeScale);
-	planeEntity->assign<Renderable>(plane, testMat);
-	planeEntity->assign<BoundingBox>(planePos, planeScale);
-
 	// Add our test system
-	gameWorld->registerSystem(new TestSystem());
+	gameWorld->registerSystem(new MachineSystem(_spline));
+
+	Entity* ent = gameWorld->create();
+	ent->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
+	ent->assign<Renderable>(splineMesh, gridMat);
+
+	Entity* machine = gameWorld->create();
+	machine->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
+	machine->assign<Renderable>(sphere, gridMat);
+	machine->assign<Machine>();
+	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -1 });
+	_camera->UpdateProjectionMatrix(width, height);
 }
 
 // --------------------------------------------------------
@@ -157,9 +152,9 @@ void Game::OnResize()
 	// Handle base-level DX resize stuff
 	if (_renderer && _renderer->Device())
 		_renderer->OnResize(width, height);
-
-	// Update the camera's projection matrix since the window size changed
-	_camera.UpdateProjectionMatrix(width, height);
+	if(_camera.isValid())
+		// Update the camera's projection matrix since the window size changed
+		_camera->UpdateProjectionMatrix(width, height);
 }
 
 // --------------------------------------------------------
@@ -170,11 +165,6 @@ void Game::Update(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
-
-	//_globalLight.Direction.x = cos(totalTime*0.3f);
-	//_globalLight.Direction.y = sin(totalTime*0.3f);
-
-	_camera.Update(deltaTime);
 
 	// World update
 	// this ticks all registered systems
@@ -193,8 +183,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	_renderer->Clear(color);
 	std::vector<Entity*> renderables;
 	renderables.reserve(100);
-	_renderer->Cull(_camera, gameWorld, renderables);
-	_renderer->Render(_camera, renderables, _globalLight);
+	_renderer->Cull(_camera.get(), gameWorld, renderables);
+	_renderer->Render(_camera.get(), renderables, _directionalLights);
 	_renderer->Present(0, 0);
 }
 
@@ -245,7 +235,6 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	{
 		float dx = static_cast<float>(x - prevMousePos.x);
 		float dy = static_cast<float>(y - prevMousePos.y);
-		_camera.Rotate(dy * 0.002f * 3.14f, dx * 0.002f * 3.14f);
 	}
 
 	// Save the previous mouse position, so we have it for the future

@@ -25,7 +25,6 @@ Transform::~Transform()
 	TransformData::DeallocateTransform(_id);
 }
 
-
 void Transform::Move(XMFLOAT3 dp)
 {
 	auto& ptr = TransformData::_positions[_id];
@@ -70,4 +69,26 @@ void Transform::SetScale(XMFLOAT3 scale)
 const DirectX::XMFLOAT4X4* Transform::Matrix()
 {
 	return TransformData::GetMatrix(_id);
+}
+
+XMFLOAT3 Transform::GetPosition()
+{
+	return TransformData::_positions[_id];
+}
+
+XMFLOAT3 Transform::GetScale()
+{
+	return TransformData::_scales[_id];
+}
+
+XMFLOAT4 Transform::GetRotation()
+{
+	return TransformData::_rotations[_id];
+}
+
+XMFLOAT3 Transform::GetForward()
+{
+	XMFLOAT3 ret;
+	XMStoreFloat3(&ret, XMVector3Rotate(XMVectorSet(0,0,1,0), XMLoadFloat4(&TransformData::_rotations[_id])));
+	return ret;
 }

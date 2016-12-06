@@ -66,6 +66,12 @@
     <ClCompile Include="src\GraphicsDevice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Machine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MachineSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Camera.h">
@@ -144,6 +150,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\GraphicsDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Machine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MachineSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

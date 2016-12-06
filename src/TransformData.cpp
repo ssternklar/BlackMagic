@@ -16,7 +16,6 @@ TransformID TransformData::_nextAvailableTransform = 0;
 
 void TransformData::Init(size_t allocCount, void* mem)
 {
-	
 }
 
 TransformID TransformData::AllocateTransform()
