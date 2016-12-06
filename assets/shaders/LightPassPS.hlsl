@@ -85,15 +85,16 @@ float sampleShadowMap(float3 pos, float cascade)
 	float4 shadowCoord = lightspacePos / 2 + 0.5f;
 	shadowCoord.y = 1 - shadowCoord.y;
 	
+	//8x8 PCF
 	float sMap = 0.0f;
-	for (int y = -1; y <= 1; y++)
+	for (int y = -3; y <= 3; y++)
 	{
-		for (int x = -1; x <= 1; x++)
+		for (int x = -3; x <= 3; x++)
 		{
-			sMap += shadowMap.GatherCmp(shadowSampler, float3(shadowCoord.xy, cascade), lightspacePos.z, int2(x, y)).r;
+			sMap += shadowMap.SampleCmpLevelZero(shadowSampler, float3(shadowCoord.xy, cascade), lightspacePos.z, int2(x,y));
 		}
 	}
-	sMap /= 16;
+	sMap /= 64;
 	return sMap;
 }
 
@@ -121,5 +122,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 		shadow = lerp(nextShadow, shadow, t);
 	}
 	
-	return float4(shadow.rrr, 1.0f);
+	return float4(shadow*colorFromScenelight(buffer) , 1.0f);
 }
