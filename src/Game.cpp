@@ -81,17 +81,12 @@ void Game::Init()
 
 	LoadContent();
 
-	_directionalLights.push_back({
+	_globalLight = {
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ 1, 0, 0 }
-	});
+		{ -1, -1, -1 }
+	};
 
-	_directionalLights.push_back({
-		{ 0.0f, 0.0f, 0.0f, 1.0f },
-		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ -1, 0, 0 }
-	});
 }
 
 
@@ -139,7 +134,7 @@ void Game::LoadContent()
 	machine->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
 	machine->assign<Renderable>(sphere, gridMat);
 	machine->assign<Machine>();
-	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -1 });
+	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -5 });
 	_camera->UpdateProjectionMatrix(width, height);
 }
 
@@ -183,8 +178,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	_renderer->Clear(color);
 	std::vector<Entity*> renderables;
 	renderables.reserve(100);
-	_renderer->Cull(_camera.get(), gameWorld, renderables);
-	_renderer->Render(_camera.get(), renderables, _directionalLights);
+	_renderer->Cull(_camera.get(), gameWorld, renderables, true);
+	_renderer->Render(_camera.get(), renderables, _globalLight);
 	_renderer->Present(0, 0);
 }
 

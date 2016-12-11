@@ -60,7 +60,7 @@ float3 colorFromScenelight(GBuffer input)
 
 	ambient += sceneLight.AmbientColor.xyz;
 
-	float3 texColor = input.diffuse;
+	float3 texColor = input.diffuse.rgb;
 	return pow((ambient + diffuse + specular) * texColor, 1 / 2.2);
 }
 
@@ -105,7 +105,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	GBuffer buffer;
 	buffer.diffuse = diffuseMap.Sample(mainSampler, input.uv);
 	buffer.specular = specularMap.Sample(mainSampler, input.uv);
-	buffer.normal = decompressNormal(normalMap.Sample(mainSampler, input.uv));
+	buffer.normal = decompressNormal(normalMap.Sample(mainSampler, input.uv).xy);
 	buffer.position = positionMap.Sample(mainSampler, input.uv);
 
 	float linearDepth = linearizeDepth((depth.Sample(mainSampler, input.uv).r), ZNEAR, ZFAR);

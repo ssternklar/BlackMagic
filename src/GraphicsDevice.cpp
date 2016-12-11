@@ -285,15 +285,18 @@ void GraphicsDevice::Init(ContentManager* content)
 	_device->CreateRasterizerState(&shadowRSDesc, &_shadowRS);
 }
 
-//TODO: Fix BoundingFrustum generation issues (near&far planes are too close)
-void GraphicsDevice::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw)
-{
-	DirectX::BoundingBox sceneBox;
+#if defined(DEBUG) || defined(_DEBUG)
+#define DRAW_EVERYTHING
+#endif
 
+//TODO: Fix BoundingFrustum generation issues (near&far planes are too close)
+void GraphicsDevice::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything)
+{
+#ifndef DRAW_EVERYTHING
 	//Collect objects with sphere colliders
 	for (auto* ent : gameWorld->each<Transform, Renderable, DirectX::BoundingSphere>())
 	{
-		if (cam.Frustum().Contains(ent->get<DirectX::BoundingSphere>().get()) != DirectX::ContainmentType::DISJOINT)
+		if (debugDrawEverything || cam.Frustum().Contains(ent->get<DirectX::BoundingSphere>().get()) != DirectX::ContainmentType::DISJOINT)
 		{
 			objectsToDraw.push_back(ent);
 		}
@@ -302,11 +305,17 @@ void GraphicsDevice::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<
 	//Collect objects with box colliders
 	for(auto* ent : gameWorld->each<Transform, Renderable, DirectX::BoundingBox>())
 	{
-		if (true)//cam.Frustum().Intersects(ent->get<DirectX::BoundingBox>().get()))
+		if (debugDrawEverything || cam.Frustum().Intersects(ent->get<DirectX::BoundingBox>().get()))
 		{
 			objectsToDraw.push_back(ent);
 		}
 	}
+#else
+	for(auto* ent : gameWorld->each<Transform,Renderable>())
+	{
+		objectsToDraw.push_back(ent);
+	}
+#endif
 }
 
 void GraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight)

@@ -2,7 +2,7 @@
 
 #include <DirectXMath.h>
 
-using TransformID = int32_t;
+using TransformID = size_t;
 
 class Transform
 {
