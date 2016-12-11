@@ -20,7 +20,7 @@
 	virtual void tick(ECS::World* world, float deltaTime) override
 	{
 		world->each<Transform>([deltaTime](auto ent, auto transform) {
-			transform->Rotate({ 0, 1, 0 }, 3.14f / 20.f * deltaTime);
+			//transform->Rotate({ 0, 1, 0 }, 3.14f / 20.f * deltaTime);
 		});
 	}
 };*/
@@ -66,7 +66,7 @@ private:
 
 	ECS::ComponentHandle<Camera> _camera;
 
-	std::vector<DirectionalLight> _directionalLights;
+	DirectionalLight _globalLight;
 	
 	std::unique_ptr<ContentManager> _content;
 	std::unique_ptr<GraphicsDevice> _renderer;
