@@ -52,7 +52,6 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 	float step = 0;
 	SplineControlPoint point;
 	XMFLOAT3 binormal;
-	int uvY = 0;
 	XMVECTOR lastNormal = XMVectorZero();
 	for (int i = 0; i < numVerts; i += 2)
 	{
@@ -65,14 +64,14 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 		vertices[i].Normal = point.normal;
 		vertices[i].Tangent = point.tangent;
 		vertices[i].Binormal = binormal;
-		vertices[i].UV = { 0, 0 };
+		vertices[i].UV = { 0, step };
 		
 		//right vertex
 		XMStoreFloat3(&vertices[i+1].Position, position + localScale);
 		vertices[i+1].Normal = point.normal;
 		vertices[i+1].Tangent = point.tangent;
 		vertices[i+1].Binormal = binormal;
-		vertices[i+1].UV = { 1, 0 };
+		vertices[i+1].UV = { 1, step };
 
 		lastNormal = XMLoadFloat3(&point.normal);
 		step += stepAmt;
@@ -87,22 +86,6 @@ void Spline::GenerateMesh(GraphicsDevice* device, Mesh* mesh)
 		indices[(i * 3) + 4] = (i + 2) % numVerts;
 		indices[(i * 3) + 5] = (i + 3) % numVerts;
 	}
-
-	D3D11_BUFFER_DESC vertDesc = {};
-	vertDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertDesc.ByteWidth = static_cast<UINT>(numVerts * sizeof(Vertex));
-	vertDesc.Usage = D3D11_USAGE_IMMUTABLE;
-
-	D3D11_SUBRESOURCE_DATA vertData = {};
-	vertData.pSysMem = &vertices[0];
-
-	D3D11_BUFFER_DESC indDesc = {};
-	indDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indDesc.ByteWidth = static_cast<UINT>(numIndices * sizeof(UINT));
-	indDesc.Usage = D3D11_USAGE_IMMUTABLE;
-
-	D3D11_SUBRESOURCE_DATA indData = {};
-	indData.pSysMem = &indices[0];
 
 	auto vB = device->CreateBuffer(BufferType::VERTEX_BUFFER, vertices, static_cast<UINT>(numVerts * sizeof(Vertex)));
 	auto iB = device->CreateBuffer(BufferType::INDEX_BUFFER, indices, static_cast<UINT>(numIndices * sizeof(UINT)));
