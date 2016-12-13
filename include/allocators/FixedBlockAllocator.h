@@ -23,7 +23,7 @@ namespace BlackMagic
 		}
 
 	public:
-		FixedBlockAllocator(size_t size, size_t alignment, size_t blockSize, byte* buffer = nullptr)
+		FixedBlockAllocator(size_t alignment, size_t size, size_t blockSize, byte* buffer = nullptr)
 		{
 			size_t alignedSize = alignSize(alignment, blockSize);
 			if (buffer == nullptr)
@@ -54,7 +54,7 @@ namespace BlackMagic
 
 		void* allocate(size_t size, size_t n = 1)
 		{
-			if (size + n > blockSize)
+			if (size * n > blockSize)
 			{
 				throw "Requested allocation larger than block size!";
 			}
@@ -81,7 +81,7 @@ namespace BlackMagic
 
 		void deallocate(void* dealloc, size_t size, size_t n = 1)
 		{
-			if (size + n > blockSize)
+			if (size * n > blockSize)
 			{
 				throw "Requested deallocation larger than block size!";
 			}

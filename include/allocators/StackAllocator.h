@@ -43,7 +43,7 @@ namespace BlackMagic
 			size_t requestedSize = size * n;
 			void* ret = nullptr;
 			size_t offset = alignSize(alignment, requestedSize);
-			if (currentPointer + offset <= storage + size)
+			if (currentPointer + offset <= storage + this->size)
 			{
 				ret = currentPointer;
 				currentPointer += offset;
@@ -55,10 +55,10 @@ namespace BlackMagic
 		T* allocate(bool callConstructor = false, size_t n = 1)
 		{
 			void* memory = allocate(sizeof(T), n);
-			if (callConstructor)
+			/*if (callConstructor)
 			{
 				return new (memory) T[n];
-			}
+			}*/
 			return (T*)memory;
 		}
 

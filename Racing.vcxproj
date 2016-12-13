@@ -144,15 +144,19 @@
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
-    <ClCompile Include="src\DXCore.cpp" />
-    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\FZERO.cpp" />
+    <ClCompile Include="src\GameAbstraction.cpp" />
+    <ClCompile Include="src\GraphicsDevice.cpp" />
+    <ClCompile Include="src\InputData.cpp" />
+    <ClCompile Include="src\IResource.cpp" />
     <ClCompile Include="src\Machine.cpp" />
     <ClCompile Include="src\MachineSystem.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\PlatformBase.cpp" />
     <ClCompile Include="src\Renderable.cpp" />
-    <ClCompile Include="src\GraphicsDevice.cpp" />
+    <ClCompile Include="src\DirectXGraphicsDevice.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
     <ClCompile Include="src\Spline.cpp" />
     <ClCompile Include="src\SplineControlPoint.cpp" />
@@ -160,6 +164,7 @@
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\TransformData.cpp" />
+    <ClCompile Include="src\WindowsPlatform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -170,17 +175,21 @@
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />
-    <ClInclude Include="include\DXCore.h" />
     <ClInclude Include="include\ECS.h" />
-    <ClInclude Include="include\Game.h" />
+    <ClInclude Include="include\FZERO.h" />
+    <ClInclude Include="include\GameAbstraction.h" />
     <ClInclude Include="include\GameObject.h" />
+    <ClInclude Include="include\GraphicsTypes.h" />
+    <ClInclude Include="include\GraphicsDevice.h" />
+    <ClInclude Include="include\InputData.h" />
     <ClInclude Include="include\Machine.h" />
     <ClInclude Include="include\MachineSystem.h" />
+    <ClInclude Include="include\PlatformBase.h" />
     <ClInclude Include="include\Renderable.h" />
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\IResource.h" />
-    <ClInclude Include="include\GraphicsDevice.h" />
+    <ClInclude Include="include\DirectXGraphicsDevice.h" />
     <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\Spline.h" />
@@ -190,6 +199,7 @@
     <ClInclude Include="include\Transform.h" />
     <ClInclude Include="include\TransformData.h" />
     <ClInclude Include="include\Vertex.h" />
+    <ClInclude Include="include\WindowsPlatform.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="assets\shaders\GBufferPS.hlsl">
@@ -223,6 +233,14 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)include\</AdditionalIncludeDirectories>
     </FxCompile>
     <FxCompile Include="assets\shaders\ShadowMapVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\SkyboxPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\SkyboxVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
     </FxCompile>

@@ -2,20 +2,28 @@
 
 #include <d3d11.h>
 #include <memory>
-
+#include "GraphicsTypes.h"
 #include "IResource.h"
-
-class Texture : public IResource
+namespace BlackMagic
 {
-public:
-	explicit Texture(ID3D11Resource* tex, ID3D11ShaderResourceView* srView, ID3D11RenderTargetView* rtView);
-	~Texture();
+	class Texture : public IResource
+	{
+	public:
+		explicit Texture(BlackMagic::GraphicsDevice* device, BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView);
+		~Texture();
 
-	operator ID3D11ShaderResourceView*() const;
-	operator ID3D11RenderTargetView*() const;
+		BlackMagic::GraphicsTexture GetGraphicsTexture() const;
+		BlackMagic::GraphicsRenderTarget GetGraphicsRenderTarget() const;
 
-private:
-	ID3D11Resource* _tex;
-	ID3D11ShaderResourceView* _srView;
-	ID3D11RenderTargetView* _rtView;
-};
+	protected:
+		BlackMagic::GraphicsTexture _srView;
+		BlackMagic::GraphicsRenderTarget _rtView;
+	};
+
+	class Cubemap : public Texture
+	{
+	public:
+		explicit Cubemap(BlackMagic::GraphicsDevice* device, BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView)
+			: Texture(device, srView, rtView) {}
+	};
+}

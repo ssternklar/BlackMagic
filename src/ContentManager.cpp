@@ -5,23 +5,27 @@
 #include <fstream>
 #include <functional>
 
-#include "WICTextureLoader.h"
 #include "Texture.h"
 #include "Mesh.h"
 #include "Spline.h"
+#include "DirectXGraphicsDevice.h"
+#include "DDSTextureLoader.h"
 
+using namespace BlackMagic;
 using namespace DirectX;
 
-ContentManager::ContentManager(ID3D11Device* device, ID3D11DeviceContext* ctx, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
-	: _device(device), _context(ctx), _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator)))
+ContentManager::ContentManager(GraphicsDevice* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
+	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator))), graphicsDevice(device)
 {
+	_device = ((DirectXGraphicsDevice*)device)->Device();
+	_context = ((DirectXGraphicsDevice*)device)->Context();
 }
 
 template<>
 std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::make_shared<Mesh>(fullPath, _device);
+	auto ptr = std::allocate_shared<Mesh>(ContentAllocatorAdapter(_allocator), fullPath, graphicsDevice);
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -29,11 +33,22 @@ std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
 template<>
 std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 {
+	auto fullPath = _assetDirectory + L"/" + name;
+
+	GraphicsTexture tex = graphicsDevice->CreateTexture((const char*)fullPath.c_str());
+
+	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator), graphicsDevice, tex, GraphicsRenderTarget(nullptr));
+	_resources[name] = ptr;
+	return ptr;
+}
+
+template<>
+std::shared_ptr<Cubemap> ContentManager::load_Internal(const std::wstring& name)
+{
 	ID3D11ShaderResourceView* srv;
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto result = CreateWICTextureFromFile(_device, _context, fullPath.c_str(), nullptr, &srv);
-
-	auto ptr = std::make_shared<Texture>(nullptr, srv, nullptr);
+	auto result = CreateDDSTextureFromFile(_device, _context, fullPath.c_str(), nullptr, &srv);
+	auto ptr = std::allocate_shared<Cubemap>(AllocatorSTLAdapter<Cubemap, BestFitAllocator>(_allocator), graphicsDevice, GraphicsTexture(srv), GraphicsRenderTarget(nullptr));;
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -42,7 +57,7 @@ template<>
 std::shared_ptr<VertexShader> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::make_shared<VertexShader>(_device, _context);
+	auto ptr = std::allocate_shared<VertexShader>(ContentAllocatorAdapter(_allocator), _device, _context);
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
@@ -52,7 +67,7 @@ template<>
 std::shared_ptr<PixelShader> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::make_shared<PixelShader>(_device, _context);
+	auto ptr = std::allocate_shared<PixelShader>(ContentAllocatorAdapter(_allocator), _device, _context);
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
@@ -82,15 +97,15 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	sp->segments = reinterpret_cast<SplinePiece*>(memory + 16);
 
 	std::shared_ptr<Spline> ret =
-		std::shared_ptr<Spline>((Spline*)memory,
-		[&](Spline* splineToDelete) {
-		if(splineToDelete)
+		std::shared_ptr<Spline>(sp,
+			[&](Spline* splineToDelete) {
+		if (splineToDelete)
 		{
 			_allocator->deallocate((void*)splineToDelete, sizeof(unsigned int) * 4 + sizeof(SplineControlPoint) * splineToDelete->segmentCount, 1);
 		}
-	}, ContentAllocatorAdapter(_allocator));
+	}, BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>(_allocator));
 
-	_resources[name] = ret;
+	//_resources[name] = ret;
 	return ret;
 }
 
@@ -104,5 +119,5 @@ std::shared_ptr<T> ContentManager::load_Internal(const std::wstring& name)
 		"VertexShader\n"
 		"PixelShader\n"
 		"Spline\n"
-	);
+		);
 }

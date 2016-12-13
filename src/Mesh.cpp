@@ -4,7 +4,10 @@
 #include <fstream>
 #include <vector>
 #include "Vertex.h"
+#include "GraphicsDevice.h"
+#include "GraphicsTypes.h"
 
+using namespace BlackMagic;
 using namespace DirectX;
 
 void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
@@ -42,14 +45,15 @@ void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 	v1.Binormal = v2.Binormal = v3.Binormal = binormal;
 }
 
-Mesh::Mesh()
-	: _vBuf(nullptr),
+Mesh::Mesh() :
+	IResource(nullptr),
+	_vBuf(nullptr),
 	_iBuf(nullptr),
 	_numIndices(0)
 {}
 
 
-Mesh::Mesh(const std::wstring& file, ID3D11Device* device)
+Mesh::Mesh(const std::wstring& file, GraphicsDevice* device) : IResource(device)
 {
 	// File input object
 	std::ifstream obj(file);
@@ -197,50 +201,25 @@ Mesh::Mesh(const std::wstring& file, ID3D11Device* device)
 	// - "vertCounter" is BOTH the number of vertices and the number of indices
 	// - Yes, the indices are a bit redundant here (one per vertex)
 
-	//Create D3D buffers for vertex and index data and populate them
-	D3D11_BUFFER_DESC vertDesc = {};
-	vertDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertDesc.ByteWidth = static_cast<UINT>(vertCounter * sizeof(Vertex));
-	vertDesc.Usage = D3D11_USAGE_IMMUTABLE;
-
-	D3D11_SUBRESOURCE_DATA vertData = {};
-	vertData.pSysMem = &verts[0];
-
-	D3D11_BUFFER_DESC indDesc = {};
-	indDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indDesc.ByteWidth = static_cast<UINT>(vertCounter * sizeof(UINT));
-	indDesc.Usage = D3D11_USAGE_IMMUTABLE;
-
-	D3D11_SUBRESOURCE_DATA indData = {};
-	indData.pSysMem = &indices[0];
-
 	_numIndices = indices.size();
 
-	auto err = device->CreateBuffer(&vertDesc, &vertData, &_vBuf);
-	if (err != S_OK)
-		fprintf(stderr, "Error creating vertex buffer: %d", err);
-
-	err = device->CreateBuffer(&indDesc, &indData, &_iBuf);
-	if (err != S_OK)
-		fprintf(stderr, "Error creating index buffer: %d", err);
+	_vBuf = device->CreateBuffer(GraphicsBuffer::BufferType::VERTEX_BUFFER, verts.data(), static_cast<UINT>(vertCounter * sizeof(Vertex)));
+	_iBuf = device->CreateBuffer(GraphicsBuffer::BufferType::INDEX_BUFFER, indices.data(), static_cast<UINT>(vertCounter * sizeof(UINT)));
 }
 
 
 Mesh::~Mesh()
 {
-	if (_vBuf)
-		_vBuf->Release();
-	
-	if (_iBuf)
-		_iBuf->Release();
+	device->CleanupBuffer(_vBuf);
+	device->CleanupBuffer(_iBuf);
 }
 
-ID3D11Buffer* Mesh::VertexBuffer() const
+GraphicsBuffer Mesh::VertexBuffer() const
 {
 	return _vBuf;
 }
 
-ID3D11Buffer* Mesh::IndexBuffer() const
+GraphicsBuffer Mesh::IndexBuffer() const
 {
 	return _iBuf;
 }
@@ -250,14 +229,10 @@ size_t Mesh::IndexCount() const
 	return _numIndices;
 }
 
-void Mesh::Set(ID3D11Buffer* vertexBuffer, ID3D11Buffer* indexBuffer, size_t numIndices)
+void Mesh::Set(GraphicsBuffer vertexBuffer, GraphicsBuffer indexBuffer, size_t numIndices)
 {
-	if (_vBuf)
-		_vBuf->Release();
-
-	if (_iBuf)
-		_iBuf->Release();
-
+	device->CleanupBuffer(_vBuf);
+	device->CleanupBuffer(_iBuf);
 	_vBuf = vertexBuffer;
 	_iBuf = indexBuffer;
 	_numIndices = numIndices;

@@ -1,29 +1,33 @@
 #pragma once
 
+#include "allocators\FixedBlockAllocator.h"
 #include <DirectXMath.h>
 #include <stack>
 #include "Transform.h"
 
-
-class TransformData
+namespace BlackMagic
 {
-	friend class Transform;
+	class TransformData
+	{
+		friend class Transform;
 
-public:
-	static size_t Size;
+	public:
+		TransformData();
+		size_t Size = sizeof(DirectX::XMFLOAT4X4*) + sizeof(DirectX::XMFLOAT4*) + 2 * sizeof(DirectX::XMFLOAT3*) + sizeof(bool*) + sizeof(TransformID);
+		static TransformData* GetSingleton();
 
-	static void Init(size_t allocCount, void* mem);
+		TransformID AllocateTransform();
+		void DeallocateTransform(TransformID);
 
-	static TransformID AllocateTransform();
-	static void DeallocateTransform(TransformID);
-
-	static void UpdateTransforms();
-	static const DirectX::XMFLOAT4X4* GetMatrix(TransformID id);
-private:
-	static DirectX::XMFLOAT4X4 _matrices[500];
-	static DirectX::XMFLOAT4 _rotations[500];
-	static DirectX::XMFLOAT3 _positions[500];
-	static DirectX::XMFLOAT3 _scales[500];
-	//static std::stack<TransformID> _availableTransforms;
-	static TransformID _nextAvailableTransform;
-};
+		void UpdateTransforms();
+		const DirectX::XMFLOAT4X4* GetMatrix(TransformID id);
+	private:
+		FixedBlockAllocator matrixAllocator;
+		DirectX::XMFLOAT4X4 _matrices[400];
+		DirectX::XMFLOAT4 _rotations[400];
+		DirectX::XMFLOAT3 _positions[400];
+		DirectX::XMFLOAT3 _scales[400];
+		size_t highestAllocated = 0;
+		static TransformData* singletonRef;
+	};
+}

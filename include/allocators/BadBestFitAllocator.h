@@ -20,7 +20,8 @@ namespace BlackMagic
 		header* freeList;
 
 	public:
-		BestFitAllocator(size_t maxSize, size_t alignment, byte* buffer = nullptr)
+		BestFitAllocator() {}
+		BestFitAllocator(size_t alignment, size_t maxSize, byte* buffer = nullptr)
 		{
 			size = maxSize;
 			this->alignment = alignment;

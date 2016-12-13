@@ -1,5 +1,9 @@
 #pragma once
 
+#include "allocators/AllocatorSTLAdapter.h"
+#include "allocators/BadBestFitAllocator.h"
+#define ECS_ALLOCATOR_TYPE BlackMagic::AllocatorSTLAdapter<ECS::Entity, BlackMagic::BestFitAllocator>
+
 /*
 Copyright (c) 2016 Sam Bloomberg
 
@@ -207,7 +211,7 @@ namespace ECS
 		* any of the above, wrap it in a struct.
 		*/
 		template<typename T, typename... Args>
-		ComponentHandle<T> assign(Args... args)
+		ComponentHandle<T> assign(Args&&... args)
 		{
 			using ComponentAllocator = std::allocator_traits<World::EntityAllocator>::template rebind_alloc<Internal::ComponentContainer<T>>;
 
@@ -810,7 +814,7 @@ namespace ECS
 			auto found = subscribers.find(index);
 			if (found == subscribers.end())
 			{
-				std::vector<Internal::BaseEventSubscriber*, SubscriberPtrAllocator> subList;
+				std::vector<Internal::BaseEventSubscriber*, SubscriberPtrAllocator> subList(entAlloc);
 				subList.push_back(subscriber);
 
 				subscribers.insert({ index, subList });
@@ -980,7 +984,7 @@ namespace ECS
 		std::vector<Entity*, EntityPtrAllocator> entities;
 		std::vector<EntitySystem*, SystemPtrAllocator> systems;
 		std::unordered_map<std::type_index,
-			std::vector<Internal::BaseEventSubscriber*>,
+			std::vector<Internal::BaseEventSubscriber*, SubscriberPtrAllocator>,
 			std::hash<std::type_index>,
 			std::equal_to<std::type_index>,
 			SubscriberPairAllocator> subscribers;

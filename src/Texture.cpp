@@ -1,7 +1,11 @@
 #include "Texture.h"
+#include "GraphicsDevice.h"
 
-Texture::Texture(ID3D11Resource* tex, ID3D11ShaderResourceView* srView, ID3D11RenderTargetView* rtView)
-	: _tex(tex),
+using namespace BlackMagic;
+
+Texture::Texture(GraphicsDevice* device, GraphicsTexture srView, GraphicsRenderTarget rtView)
+	:
+	IResource(device),
 	_rtView(rtView),
 	_srView(srView)
 {
@@ -9,26 +13,16 @@ Texture::Texture(ID3D11Resource* tex, ID3D11ShaderResourceView* srView, ID3D11Re
 
 Texture::~Texture()
 {
-	if (_rtView)
-	{
-		_rtView->Release();
-	}
-	if (_srView)
-	{
-		_srView->Release();
-	}
-	if (_tex)
-	{
-		_tex->Release();
-	}
+	device->CleanupTexture(_srView);
+	device->CleanupRenderTarget(_rtView);
 }
 
-Texture::operator ID3D11ShaderResourceView*() const
+GraphicsTexture Texture::GetGraphicsTexture() const
 {
 	return _srView;
 }
 
-Texture::operator ID3D11RenderTargetView*() const
+GraphicsRenderTarget Texture::GetGraphicsRenderTarget() const
 {
 	return _rtView;
 }
