@@ -61,12 +61,21 @@ namespace BlackMagic {
 		DirectX::XMFLOAT4X4 _shadowMatrices[NUM_SHADOW_CASCADES];
 		DirectX::XMFLOAT4X4 _shadowViews[NUM_SHADOW_CASCADES];
 		DirectX::XMFLOAT4X4 _shadowProjections[NUM_SHADOW_CASCADES];
-		//+1 since we're also storing the entire array's DSV/SRV
 		ID3D11DepthStencilView* _shadowMapDSVs[NUM_SHADOW_CASCADES];
 		ID3D11ShaderResourceView* _shadowMapSRV;
+
+		//Skybox
+		std::shared_ptr<Mesh> _skybox;
+		std::shared_ptr<Cubemap> _skyboxTex;
+		std::shared_ptr<VertexShader> _skyboxVS;
+		std::shared_ptr<PixelShader> _skyboxPS;
+		std::shared_ptr<ID3D11SamplerState> _skyboxSampler;
+		ID3D11DepthStencilState* _skyboxDS;
+		ID3D11RasterizerState* _skyboxRS;
 
 		void InitBuffers();
 		Texture* createEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
 		void RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight);
+		void RenderSkybox(const Camera& cam);
 	};
 }

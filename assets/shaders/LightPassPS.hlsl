@@ -9,6 +9,8 @@ struct DirectionalLight
 	float4 AmbientColor : COLOR;
 	float4 DiffuseColor : COLOR;
 	float3 Direction	: NORMAL;
+	float padding;
+	float3 Up			: NORMAL;
 };
 
 struct GBuffer

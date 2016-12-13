@@ -15,8 +15,15 @@ namespace BlackMagic
 		BlackMagic::GraphicsTexture GetGraphicsTexture() const;
 		BlackMagic::GraphicsRenderTarget GetGraphicsRenderTarget() const;
 
-	private:
+	protected:
 		BlackMagic::GraphicsTexture _srView;
 		BlackMagic::GraphicsRenderTarget _rtView;
+	};
+
+	class Cubemap : public Texture
+	{
+	public:
+		explicit Cubemap(BlackMagic::GraphicsDevice* device, BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView)
+			: Texture(device, srView, rtView) {}
 	};
 }

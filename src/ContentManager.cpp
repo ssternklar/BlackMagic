@@ -9,6 +9,7 @@
 #include "Mesh.h"
 #include "Spline.h"
 #include "DirectXGraphicsDevice.h"
+#include "DDSTextureLoader.h"
 
 using namespace BlackMagic;
 using namespace DirectX;
@@ -37,6 +38,17 @@ std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 	GraphicsTexture tex = graphicsDevice->CreateTexture((const char*)fullPath.c_str());
 
 	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator), graphicsDevice, tex, GraphicsRenderTarget(nullptr));
+	_resources[name] = ptr;
+	return ptr;
+}
+
+template<>
+std::shared_ptr<Cubemap> ContentManager::load_Internal(const std::wstring& name)
+{
+	ID3D11ShaderResourceView* srv;
+	auto fullPath = _assetDirectory + L"/" + name;
+	auto result = CreateDDSTextureFromFile(_device, _context, fullPath.c_str(), nullptr, &srv);
+	auto ptr = std::allocate_shared<Cubemap>(AllocatorSTLAdapter<Cubemap, BestFitAllocator>(_allocator), graphicsDevice, GraphicsTexture(srv), GraphicsRenderTarget(nullptr));;
 	_resources[name] = ptr;
 	return ptr;
 }

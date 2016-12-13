@@ -6,4 +6,6 @@ struct DirectionalLight
 	DirectX::XMFLOAT4 AmbientColor;
 	DirectX::XMFLOAT4 DiffuseColor;
 	DirectX::XMFLOAT3 Direction;
+	float padding;
+	DirectX::XMFLOAT3 Up;
 };
