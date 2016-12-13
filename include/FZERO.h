@@ -34,7 +34,7 @@ private:
 
 	ECS::ComponentHandle<Camera> _camera;
 
-	std::vector<DirectionalLight> _directionalLights;
+	DirectionalLight _globalLight;
 
 	std::shared_ptr<BlackMagic::Mesh> splineMesh;
 	std::shared_ptr<Spline> _spline;

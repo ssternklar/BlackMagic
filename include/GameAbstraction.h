@@ -1,5 +1,5 @@
-#include "PlatformBase.h"
 #pragma once
+#include "PlatformBase.h"
 
 namespace BlackMagic
 {

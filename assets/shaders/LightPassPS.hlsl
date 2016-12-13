@@ -1,4 +1,8 @@
-#define NUM_LIGHTS 2
+#define NUM_LIGHTS 1
+#define NUM_SHADOW_CASCADES 5
+#define ZNEAR 0.1f
+#define ZFAR 100.0f
+#define SPLIT_SIZE ((ZFAR - ZNEAR)/NUM_SHADOW_CASCADES)
 
 struct DirectionalLight
 {
@@ -15,7 +19,6 @@ struct GBuffer
 	float3 normal;
 };
 
-
 struct VertexToPixel
 {
 	float4 position : SV_POSITION;
@@ -24,7 +27,9 @@ struct VertexToPixel
 
 cbuffer perFrame : register(b0)
 {
-	DirectionalLight directionalLights[NUM_LIGHTS];
+	matrix lightView[NUM_SHADOW_CASCADES];
+	matrix lightProjection[NUM_SHADOW_CASCADES];
+	DirectionalLight sceneLight;
 	float3 cameraPosition;
 };
 
@@ -32,29 +37,31 @@ Texture2D diffuseMap : register(t0);
 Texture2D specularMap : register(t1);
 Texture2D positionMap : register(t2);
 Texture2D normalMap : register(t3);
+Texture2DArray shadowMap : register(t4);
+Texture2D depth : register(t5);
 SamplerState mainSampler : register(s0);
+SamplerComparisonState shadowSampler : register(s1);
 
-float3 colorFromDirectionalLights(GBuffer input)
+
+float3 colorFromScenelight(GBuffer input)
 {
 	float3 ambient, diffuse, specular;
 	ambient = diffuse = specular = float3(0, 0, 0);
 
 	float3 v = normalize(cameraPosition - input.position);
-	for (uint i = 0; i < 1; i++)
-	{
-		float3 l = -normalize(directionalLights[i].Direction);
-		float nDotL = saturate(dot(input.normal, l));
-		diffuse += nDotL * directionalLights[i].DiffuseColor.xyz;
+	
+	float3 l = -normalize(sceneLight.Direction);
+	float nDotL = saturate(dot(input.normal, l));
+	diffuse += nDotL * sceneLight.DiffuseColor.xyz;
 
-		float3 h = normalize(l + v);
-		float spec = pow(max(dot(input.normal, h), 0), 32);
-		specular += spec * input.specular.rgb;
+	float3 h = normalize(l + v);
+	float spec = pow(max(dot(input.normal, h), 0), 32);
+	specular += spec * input.specular.rgb;
 
-		ambient += directionalLights[i].AmbientColor.xyz;
-	}
+	ambient += sceneLight.AmbientColor.xyz;
 
-	float3 texColor = input.diffuse;
-	return pow((ambient + diffuse) * texColor + specular, 1 / 2.2);
+	float3 texColor = input.diffuse.rgb;
+	return pow((ambient + diffuse + specular) * texColor, 1 / 2.2);
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
@@ -65,6 +72,32 @@ float3 decompressNormal(float2 compressedNormal)
 	return float3(s * compressedNormal, n * 2 - 1);
 }
 
+float linearizeDepth(float logDepth, float n, float f)
+{
+	return (2 * n) / (f + n - logDepth * (f - n));
+
+}
+
+float sampleShadowMap(float3 pos, float cascade)
+{
+	float4 lightspacePos = mul(float4(pos, 1.0f), mul(lightView[cascade], lightProjection[cascade]));
+	lightspacePos /= lightspacePos.w;
+	float4 shadowCoord = lightspacePos / 2 + 0.5f;
+	shadowCoord.y = 1 - shadowCoord.y;
+	
+	//8x8 PCF
+	float sMap = 0.0f;
+	for (int y = -3; y <= 3; y++)
+	{
+		for (int x = -3; x <= 3; x++)
+		{
+			sMap += shadowMap.SampleCmpLevelZero(shadowSampler, float3(shadowCoord.xy, cascade), lightspacePos.z, int2(x,y));
+		}
+	}
+	sMap /= 64;
+	return sMap;
+}
+
 //TODO: Use optimization from http://vec3.ca/code/graphics/deferred-shading-tricks/ to reduce size of 
 //position buffer
 float4 main(VertexToPixel input) : SV_TARGET
@@ -72,8 +105,22 @@ float4 main(VertexToPixel input) : SV_TARGET
 	GBuffer buffer;
 	buffer.diffuse = diffuseMap.Sample(mainSampler, input.uv);
 	buffer.specular = specularMap.Sample(mainSampler, input.uv);
-	buffer.normal = decompressNormal(normalMap.Sample(mainSampler, input.uv));
+	buffer.normal = decompressNormal(normalMap.Sample(mainSampler, input.uv).xy);
 	buffer.position = positionMap.Sample(mainSampler, input.uv);
 
-	return float4(colorFromDirectionalLights(buffer), 1.0);
+	float linearDepth = linearizeDepth((depth.Sample(mainSampler, input.uv).r), ZNEAR, ZFAR);
+	float depthID = floor(linearDepth * NUM_SHADOW_CASCADES);
+
+	//Based on MJP's CSM blending implementation
+	float distToNextCascade = (ZNEAR + (depthID+1) * SPLIT_SIZE)/ZFAR-linearDepth;
+	float shadow = sampleShadowMap(buffer.position, depthID);
+	//TODO: Get rid of this branch
+	if (distToNextCascade <= 0.1f && depthID < NUM_SHADOW_CASCADES-1)
+	{
+		float nextShadow = sampleShadowMap(buffer.position, depthID+1);
+		float t = smoothstep(0.0f, 0.1f, distToNextCascade);
+		shadow = lerp(nextShadow, shadow, t);
+	}
+	
+	return float4(shadow*colorFromScenelight(buffer) , 1.0f);
 }

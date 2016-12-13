@@ -18,18 +18,12 @@ void FZERO::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 	//gameWorld = ECS::World::createWorld(ECS::Allocator(adapter));
 	gameWorld = ECS::World::createWorld(AllocatorSTLAdapter<ECS::Entity, BestFitAllocator>(&allocator));
 	LoadContent();
-	DirectionalLight light = {
+
+	_globalLight = {
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ 1, 0, 0 }
+		{ -1, -1, 0 }
 	};
-	_directionalLights.push_back(light);
-	DirectionalLight light2 = {
-		{ 0.0f, 0.0f, 0.0f, 1.0f },
-		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ -1, 0, 0 }
-	};
-	_directionalLights.push_back(light2);
 }
 
 void FZERO::LoadContent()
@@ -113,6 +107,6 @@ void FZERO::Draw(float deltaTime)
 	std::vector<Entity*> renderables;
 	renderables.reserve(100);
 	_renderer->Cull(_camera.get(), gameWorld, renderables);
-	_renderer->Render(_camera.get(), renderables, _directionalLights);
+	_renderer->Render(_camera.get(), renderables, _globalLight);
 	_renderer->Present(0, 0);
 }

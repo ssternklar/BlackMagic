@@ -31,14 +31,24 @@ DirectX::XMFLOAT3 Camera::Position() const
 	return pos;
 }
 
+BoundingFrustum Camera::Frustum() const
+{
+	return _frustum;
+}
+
 void Camera::Update(Transform* transform)
 {
 	auto quaternion = XMLoadFloat4(&transform->GetRotation());
 	auto offsetV = XMVector3Rotate(XMLoadFloat3(&offset), quaternion);
 	auto up = XMVector3Rotate(XMVectorSet(0, 1, 0, 0), quaternion);
 	auto position = XMLoadFloat3(&transform->GetPosition());
-	XMStoreFloat4x4(&_viewMat, XMMatrixTranspose(XMMatrixLookToLH(position + offsetV, XMLoadFloat3(&transform->GetForward()), up)));
+	auto view = XMMatrixLookToLH(position + offsetV, XMLoadFloat3(&transform->GetForward()), up);
+	XMStoreFloat4x4(&_viewMat, XMMatrixTranspose(view));
 	XMStoreFloat3(&pos, position + offsetV);
+
+	auto proj = XMMatrixTranspose(XMLoadFloat4x4(&_projMat));
+	BoundingFrustum frustum{ proj };
+	frustum.Transform(frustum, XMMatrixInverse(nullptr, view));
 }
 
 void Camera::UpdateProjectionMatrix(int width, int height)

@@ -26,7 +26,8 @@ namespace BlackMagic {
 		virtual GraphicsBuffer CreateBuffer(GraphicsBuffer::BufferType desc, void* data, size_t bufferSize) override;
 		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) override;
 		virtual void CleanupBuffer(GraphicsBuffer buffer);
-		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const std::vector<DirectionalLight>& lights) override;
+		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) override;
+		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
 		virtual GraphicsTexture CreateTexture(const char* texturePath, GraphicsRenderTarget* outOptionalRenderTarget = nullptr) override;
 		virtual void CleanupTexture(GraphicsTexture texture) override;
 		virtual void CleanupRenderTarget(GraphicsRenderTarget renderTarget) override;
@@ -52,8 +53,20 @@ namespace BlackMagic {
 		D3D_FEATURE_LEVEL _featureLevel;
 		UINT _width, _height;
 
+		ID3D11BlendState* _blendState;
+		//Shadow mapping
+		std::shared_ptr<VertexShader> _shadowMapVS;
+		ID3D11RasterizerState* _shadowRS;
+		std::shared_ptr<ID3D11SamplerState> _shadowSampler;
+		DirectX::XMFLOAT4X4 _shadowMatrices[NUM_SHADOW_CASCADES];
+		DirectX::XMFLOAT4X4 _shadowViews[NUM_SHADOW_CASCADES];
+		DirectX::XMFLOAT4X4 _shadowProjections[NUM_SHADOW_CASCADES];
+		//+1 since we're also storing the entire array's DSV/SRV
+		ID3D11DepthStencilView* _shadowMapDSVs[NUM_SHADOW_CASCADES];
+		ID3D11ShaderResourceView* _shadowMapSRV;
+
 		void InitBuffers();
 		Texture* createEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
-
+		void RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight);
 	};
 }

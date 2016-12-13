@@ -1,3 +1,4 @@
+#pragma once
 #include "allocators\globals.h"
 #include "allocators\StackAllocator.h"
 #include "allocators\BadBestFitAllocator.h"
@@ -6,7 +7,6 @@
 #include "InputData.h"
 #include "TransformData.h"
 #include "Transform.h"
-#pragma once
 
 namespace BlackMagic {
 
