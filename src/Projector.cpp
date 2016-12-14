@@ -17,9 +17,8 @@ BlackMagic::Projector::Projector(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 direct
 	auto p = XMLoadFloat3(&pos);
 	auto d = XMVector3Normalize(XMLoadFloat3(&direction));
 	auto u = XMLoadFloat3(&up);
-	//XMVectorSet(0.65,1,0.38,0)
-	auto view = XMMatrixLookToLH(p, d, u);
-	auto proj = XMMatrixOrthographicLH(2, 1, 0.1f, 1.0f);
+	auto view = XMMatrixLookToLH(XMVectorSet(0,1,0,0), XMVectorSet(0,-1,0,0), u);
+	auto proj = XMMatrixOrthographicLH(10, 10, 0.1f, 10.0f);
 	XMStoreFloat4x4(&_mat, XMMatrixTranspose(proj*view));
 	_tex = tex;
 }

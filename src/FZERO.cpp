@@ -37,6 +37,9 @@ void FZERO::LoadContent()
 	_spline->GenerateMesh(platform->GetGraphicsDevice(), splineMesh.get());
 
 	auto sphere = _content->Load<Mesh>(L"/models/sphere.obj");
+	auto planeMesh = _content->Load<Mesh>(L"/models/plane.obj");
+	auto blankTex = _content->Load<Texture>(L"/textures/grey_texture.png");
+	auto blankNormals = _content->Load<Texture>(L"/textures/test_normals.png");
 
 	auto rocks = _content->Load<Texture>(L"/textures/rock.jpg");
 	auto rocksNormals = _content->Load<Texture>(L"/textures/rockNormals.jpg");
@@ -63,6 +66,8 @@ void FZERO::LoadContent()
 		rocks, sampler,
 		rocksNormals);
 
+	auto testMat = std::make_shared<Material>(gPassVS, gPassPS, blankTex, sampler, blankNormals);
+
 	XMFLOAT4 quatIdentity;
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
@@ -83,16 +88,20 @@ void FZERO::LoadContent()
 	machine->assign<Machine>();
 	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -5 });
 
+	Entity* plane = gameWorld->create();
+	plane->assign<Transform>(XMFLOAT3{ 0,-1,0 }, quatIdentity, XMFLOAT3(100, 1, 100));
+	plane->assign<Renderable>(planeMesh, testMat);
+
 	unsigned int width, height;
 	platform->GetScreenDimensions(&width, &height);
 	_camera->UpdateProjectionMatrix(width, height);
 
 	auto healthZoneTex = _content->Load<Texture>(L"/textures/health_zone.png");
 
-	for(int i = 0; i < 100; i++)
+	for(int i = 0; i < _spline->segmentCount; i++)
 	{
 		SplineControlPoint p;
-		_spline->GetPoint(i/100.0f, p);
+		_spline->segments[i].GetPoint(0, p);
 		XMFLOAT3 dir;
 		XMStoreFloat3(&dir, -XMLoadFloat3(&p.normal));
 		_healthZoneProjectors.emplace_back(Projector{p.position, dir, p.tangent, healthZoneTex});
@@ -133,7 +142,7 @@ void FZERO::Draw(float deltaTime)
 	renderables.reserve(100);
 	_renderer->Cull(_camera.get(), gameWorld, renderables);
 	_renderer->Render(_camera.get(), renderables, _globalLight);
-	_renderer->RenderProjectors(p);
+	_renderer->RenderProjectors(_healthZoneProjectors);
 	_renderer->RenderSkybox(_camera.get());
 	_renderer->Present(0, 0);
 }
