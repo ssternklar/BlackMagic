@@ -4,6 +4,7 @@
 #include "Renderable.h"
 #include "ContentManager.h"
 #include "GraphicsTypes.h"
+#include "Projector.h"
 #define NUM_SHADOW_CASCADES 5
 #define SHADOWMAP_DIM 1025
 
@@ -21,6 +22,8 @@ namespace BlackMagic
 		virtual void CleanupBuffer(GraphicsBuffer buffer) = 0;
 		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) = 0;
 		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) = 0;
+		virtual void RenderProjectors(const std::vector<Projector>& projectors) = 0;
+		virtual void RenderSkybox(const Camera& cam) = 0;
 		virtual GraphicsTexture CreateTexture(const char* texturePath, GraphicsRenderTarget* outOptionalRenderTarget = nullptr) = 0;
 		virtual void CleanupTexture(GraphicsTexture texture) = 0;
 		virtual void CleanupRenderTarget(GraphicsRenderTarget renderTarget) = 0;

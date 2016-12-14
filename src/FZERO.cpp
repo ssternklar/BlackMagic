@@ -81,11 +81,22 @@ void FZERO::LoadContent()
 	machine->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
 	machine->assign<Renderable>(sphere, gridMat);
 	machine->assign<Machine>();
-	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -1 });
+	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -5 });
 
 	unsigned int width, height;
 	platform->GetScreenDimensions(&width, &height);
 	_camera->UpdateProjectionMatrix(width, height);
+
+	auto healthZoneTex = _content->Load<Texture>(L"/textures/health_zone.png");
+
+	for(int i = 0; i < 100; i++)
+	{
+		SplineControlPoint p;
+		_spline->GetPoint(i/100.0f, p);
+		XMFLOAT3 dir;
+		XMStoreFloat3(&dir, -XMLoadFloat3(&p.normal));
+		_healthZoneProjectors.emplace_back(Projector{p.position, dir, p.tangent, healthZoneTex});
+	}
 }
 
 void FZERO::Update(float deltaTime)
@@ -107,8 +118,22 @@ void FZERO::Draw(float deltaTime)
 	const XMFLOAT4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
 	_renderer->Clear(color);
 	std::vector<Entity*> renderables;
+
+	std::vector<Projector> p;
+	
+	SplineControlPoint c;
+	for (auto* e : gameWorld->each<Machine>())
+		c = e->get<Machine>()->lastTrackControlPoint;
+
+	XMFLOAT3 dir;
+	XMStoreFloat3(&dir, -XMLoadFloat3(&c.normal));
+	p.emplace_back(Projector{ c.position, dir, c.tangent, platform->GetContentManager()->Load<Texture>(L"/textures/health_zone.png") });
+
+
 	renderables.reserve(100);
 	_renderer->Cull(_camera.get(), gameWorld, renderables);
 	_renderer->Render(_camera.get(), renderables, _globalLight);
+	_renderer->RenderProjectors(p);
+	_renderer->RenderSkybox(_camera.get());
 	_renderer->Present(0, 0);
 }

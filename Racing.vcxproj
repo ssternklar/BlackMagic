@@ -155,6 +155,7 @@
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\PlatformBase.cpp" />
+    <ClCompile Include="src\Projector.cpp" />
     <ClCompile Include="src\Renderable.cpp" />
     <ClCompile Include="src\DirectXGraphicsDevice.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="include\Machine.h" />
     <ClInclude Include="include\MachineSystem.h" />
     <ClInclude Include="include\PlatformBase.h" />
+    <ClInclude Include="include\Projector.h" />
     <ClInclude Include="include\Renderable.h" />
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\Mesh.h" />
@@ -231,6 +233,10 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)include\</AdditionalIncludeDirectories>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\ProjectorPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="assets\shaders\ShadowMapVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

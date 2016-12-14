@@ -88,6 +88,11 @@ DirectXGraphicsDevice::~DirectXGraphicsDevice()
 	{
 		_skyboxRS->Release();
 	}
+
+	if (_projectionBlend)
+	{
+		_projectionBlend->Release();
+	}
 }
 
 
@@ -296,6 +301,7 @@ void DirectXGraphicsDevice::Init(ContentManager* content)
 	_shadowMapVS = content->Load<VertexShader>(L"/shaders/ShadowMapVS.cso");
 	_skyboxVS = content->Load<VertexShader>(L"/shaders/SkyboxVS.cso");
 	_skyboxPS = content->Load<PixelShader>(L"/shaders/SkyboxPS.cso");
+	_projectionPS = content->Load<PixelShader>(L"/shaders/ProjectorPS.cso");
 
 	//Set up g-buffer sampler
 	D3D11_SAMPLER_DESC sampDesc = {};
@@ -312,10 +318,10 @@ void DirectXGraphicsDevice::Init(ContentManager* content)
 	shadowSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 	shadowSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 	shadowSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	shadowSampDesc.BorderColor[0] = 1.0f;
-	shadowSampDesc.BorderColor[1] = 1.0f;
-	shadowSampDesc.BorderColor[2] = 1.0f;
-	shadowSampDesc.BorderColor[3] = 1.0f;
+	shadowSampDesc.BorderColor[0] = 0.0f;
+	shadowSampDesc.BorderColor[1] = 0.0f;
+	shadowSampDesc.BorderColor[2] = 0.0f;
+	shadowSampDesc.BorderColor[3] = 0.0f;
 	shadowSampDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 	shadowSampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 	_shadowSampler = CreateSamplerState(shadowSampDesc);
@@ -348,6 +354,35 @@ void DirectXGraphicsDevice::Init(ContentManager* content)
 	skyboxRS.CullMode = D3D11_CULL_FRONT;
 	skyboxRS.FillMode = D3D11_FILL_SOLID;
 	_device->CreateRasterizerState(&skyboxRS, &_skyboxRS);
+
+	D3D11_SAMPLER_DESC projectorDesc = {};
+	projectorDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	projectorDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	projectorDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	projectorDesc.BorderColor[0] = 0.0f;
+	projectorDesc.BorderColor[1] = 0.0f;
+	projectorDesc.BorderColor[2] = 0.0f;
+	projectorDesc.BorderColor[3] = 0.0f;
+	projectorDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	projectorDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	projectorDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
+	projectorDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	_projectionSampler = CreateSamplerState(projectorDesc);
+
+	D3D11_BLEND_DESC projectorBlend = {};
+	projectorBlend.AlphaToCoverageEnable = false;
+	projectorBlend.IndependentBlendEnable = false;
+	projectorBlend.RenderTarget->BlendEnable = true;
+	projectorBlend.RenderTarget->SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	projectorBlend.RenderTarget->DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	projectorBlend.RenderTarget->BlendOp = D3D11_BLEND_OP_ADD;
+	projectorBlend.RenderTarget->SrcBlendAlpha = D3D11_BLEND_ZERO;
+	projectorBlend.RenderTarget->DestBlendAlpha = D3D11_BLEND_ONE;
+	projectorBlend.RenderTarget->BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	projectorBlend.RenderTarget->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	_device->CreateBlendState(&projectorBlend, &_projectionBlend);
+
+
 }
 
 #if defined(DEBUG) || defined(_DEBUG)
@@ -436,7 +471,7 @@ void DirectXGraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vecto
 		XMStoreFloat3(&min, XMVectorFloor(minV / unitsPerTexel)*unitsPerTexel);
 		XMStoreFloat3(&max, XMVectorFloor(maxV / unitsPerTexel)*unitsPerTexel);
 
-		XMMATRIX shadowProj = XMMatrixTranspose(XMMatrixOrthographicOffCenterLH(min.x, max.x, min.y, max.y, min.z, max.z));
+		XMMATRIX shadowProj = XMMatrixTranspose(XMMatrixOrthographicOffCenterLH(min.x, max.x, min.y, max.y, min.z, 1.1f*max.z));
 		XMStoreFloat4x4(&_shadowProjections[thisCascade], shadowProj);
 
 		//Save old viewport for reapplying later
@@ -483,6 +518,39 @@ void DirectXGraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vecto
 		//Unbind the depth texture
 		_context->OMSetRenderTargets(0, nullptr, nullptr);
 	}
+}
+
+void DirectXGraphicsDevice::RenderProjectors(const std::vector<Projector>& projectors)
+{
+	const UINT stride = sizeof(XMFLOAT2);
+	const UINT offset = 0;
+
+	_context->OMSetRenderTargets(1, &_backBuffer, nullptr);
+
+	ID3D11BlendState* oldState;
+	float oldBlendColor[4], blendColor[4] = { 0,0,0,0 };
+	UINT oldSampleMask, sampleMask = 0xFFFFFFFF;
+	_context->OMGetBlendState(&oldState, oldBlendColor, &oldSampleMask);
+	_context->OMSetBlendState(_projectionBlend, blendColor, sampleMask);
+
+	_lightPassVS->SetShader();
+	_projectionPS->SetShader();
+	_projectionPS->SetShaderResourceView("positionMap", _positionMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_projectionPS->SetSamplerState("mainSampler", _projectionSampler.get());
+
+	for(const auto& p : projectors)
+	{
+		_projectionPS->SetShaderResourceView("projectedTex", p.Texture().GetAs<ID3D11ShaderResourceView*>());
+		_projectionPS->SetMatrix4x4("vp", p.Matrix());
+		_projectionPS->CopyAllBufferData();
+		_context->IASetVertexBuffers(0, 1, &_quad, &stride, &offset);
+		_context->Draw(6, 0);
+	}
+
+	ID3D11ShaderResourceView* zeros[1] = { 0 };
+	_context->PSSetShaderResources(1, 1, zeros);
+	_context->OMSetBlendState(oldState, oldBlendColor, oldSampleMask);
+	_context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
 }
 
 

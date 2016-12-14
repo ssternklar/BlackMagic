@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include "GraphicsDevice.h"
+#include "Projector.h"
 
 namespace BlackMagic {
 	class DirectXGraphicsDevice : public GraphicsDevice
@@ -27,6 +28,8 @@ namespace BlackMagic {
 		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) override;
 		virtual void CleanupBuffer(GraphicsBuffer buffer);
 		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) override;
+		virtual void RenderProjectors(const std::vector<Projector>& projectors) override;
+		virtual void RenderSkybox(const Camera& cam) override;
 		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
 		virtual GraphicsTexture CreateTexture(const char* texturePath, GraphicsRenderTarget* outOptionalRenderTarget = nullptr) override;
 		virtual void CleanupTexture(GraphicsTexture texture) override;
@@ -73,9 +76,13 @@ namespace BlackMagic {
 		ID3D11DepthStencilState* _skyboxDS;
 		ID3D11RasterizerState* _skyboxRS;
 
+		//Projected Textures
+		std::shared_ptr<PixelShader> _projectionPS;
+		std::shared_ptr<ID3D11SamplerState> _projectionSampler;
+		ID3D11BlendState* _projectionBlend;
+
 		void InitBuffers();
 		Texture* createEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
 		void RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight);
-		void RenderSkybox(const Camera& cam);
 	};
 }
