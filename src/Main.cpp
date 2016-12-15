@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include "WindowsPlatform.h"
 #include "FZERO.h"
+#include <d3d11.h>
 
 // --------------------------------------------------------
 // Entry point for a graphical (non-console) Windows application

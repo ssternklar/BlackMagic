@@ -47,6 +47,8 @@ bool PlatformBase::BlackMagicInit()
 void PlatformBase::BlackMagicCleanup()
 {
 	contentManager->Cleanup();
+	contentManager->~ContentManager();
+	graphicsDevice->~GraphicsDevice();
 	ReturnSystemMemory(TheCPUMemory);
 }
 

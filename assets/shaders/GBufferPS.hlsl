@@ -27,7 +27,6 @@ GBuffer main(VertexToPixel input)
 
 	output.diffuse = float4(mainTex.Sample(mainSampler, input.uv).rgb, 1.0);
 
-	output.specular = float4(1, 1, 1, 32);
 
 	float3x3 tbn = float3x3(
 		normalize(input.tangent), 
@@ -35,6 +34,7 @@ GBuffer main(VertexToPixel input)
 		normalize(input.normal));
 	input.normal = normalMap.Sample(mainSampler, input.uv) * 2 - 1;
 	input.normal = normalize(mul(input.normal, tbn));
+	output.specular = float4(1, 1, 1, dot(input.normal, input.normal)*64);
 
 	float f = sqrt(2 / (1 - input.normal.z));
 	output.normal = input.normal.xy * f;

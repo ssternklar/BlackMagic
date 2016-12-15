@@ -44,6 +44,8 @@ void FZERO::LoadContent()
 	auto blankTex = _content->Load<Texture>(L"/textures/grey_texture.png");
 	auto blankNormals = _content->Load<Texture>(L"/textures/test_normals.png");
 
+	auto cube = _content->Load<Mesh>(L"/models/cube.obj");
+
 	auto rocks = _content->Load<Texture>(L"/textures/rock.jpg");
 	auto rocksNormals = _content->Load<Texture>(L"/textures/rockNormals.jpg");
 
@@ -52,6 +54,8 @@ void FZERO::LoadContent()
 
 	auto gPassVS = _content->Load<VertexShader>(L"/shaders/GBufferVS.cso");
 	auto gPassPS = _content->Load<PixelShader>(L"/shaders/GBufferPS.cso");
+
+	auto helix = _content->Load<Mesh>(L"/models/helix.obj");
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -69,7 +73,11 @@ void FZERO::LoadContent()
 		rocks, sampler,
 		rocksNormals);
 
-	auto testMat = std::make_shared<Material>(gPassVS, gPassPS, blankTex, sampler, blankNormals);
+	auto testMat = std::make_shared<Material>(gPassVS, gPassPS, blankNormals, sampler, sandNormals);
+
+	auto blankMat = std::make_shared<Material>(
+		gPassVS, gPassPS, blankTex, sampler, blankNormals
+	);
 
 	XMFLOAT4 quatIdentity;
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
@@ -87,7 +95,7 @@ void FZERO::LoadContent()
 
 	Entity* machine = gameWorld->create();
 	machine->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
-	machine->assign<Renderable>(sphere, gridMat);
+	machine->assign<Renderable>(cube, testMat);
 	machine->assign<Machine>();
 	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -5 });
 
@@ -97,11 +105,19 @@ void FZERO::LoadContent()
 
 	auto healthZoneTex = _content->Load<Texture>(L"/textures/health_zone.png");
 
+	XMFLOAT3 helixScale = { 3,3,3 };
 	for(int i = 0; i < _spline->segmentCount; i++)
 	{
 		SplineControlPoint p;
 		_spline->segments[i].GetPoint(0, p);
 		_healthZoneProjectors.emplace_back(Projector{p, healthZoneTex});
+
+		if (i%2==0)
+		{
+			Entity* h = gameWorld->create();
+			h->assign<Transform>(p.position, p.rotation, helixScale);
+			h->assign<Renderable>(helix, blankMat);
+		}
 	}
 }
 

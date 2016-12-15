@@ -15,6 +15,13 @@ DirectXGraphicsDevice::DirectXGraphicsDevice()
 
 DirectXGraphicsDevice::~DirectXGraphicsDevice()
 {
+#if defined(DEBUG) || defined(_DEBUG)
+	ID3D11Debug* debugDevice = nullptr;
+	auto r = _device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
+	r = debugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	debugDevice->Release();
+#endif
+
 	if (_device)
 	{
 		_device->Release();
@@ -98,6 +105,8 @@ DirectXGraphicsDevice::~DirectXGraphicsDevice()
 	{
 		_projectionBlend->Release();
 	}
+
+
 }
 
 
