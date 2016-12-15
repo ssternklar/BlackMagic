@@ -37,6 +37,9 @@ void FZERO::LoadContent()
 	_spline->GenerateMesh(platform->GetGraphicsDevice(), splineMesh.get());
 
 	auto sphere = _content->Load<Mesh>(L"/models/sphere.obj");
+	auto planeMesh = _content->Load<Mesh>(L"/models/plane.obj");
+	auto blankTex = _content->Load<Texture>(L"/textures/grey_texture.png");
+	auto blankNormals = _content->Load<Texture>(L"/textures/test_normals.png");
 
 	auto rocks = _content->Load<Texture>(L"/textures/rock.jpg");
 	auto rocksNormals = _content->Load<Texture>(L"/textures/rockNormals.jpg");
@@ -63,6 +66,8 @@ void FZERO::LoadContent()
 		rocks, sampler,
 		rocksNormals);
 
+	auto testMat = std::make_shared<Material>(gPassVS, gPassPS, blankTex, sampler, blankNormals);
+
 	XMFLOAT4 quatIdentity;
 	DirectX::XMStoreFloat4(&quatIdentity, DirectX::XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
@@ -81,11 +86,20 @@ void FZERO::LoadContent()
 	machine->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, defaultScale);
 	machine->assign<Renderable>(sphere, gridMat);
 	machine->assign<Machine>();
-	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -1 });
+	_camera = machine->assign<Camera>(XMFLOAT3{ 0, 1, -5 });
 
 	unsigned int width, height;
 	platform->GetScreenDimensions(&width, &height);
 	_camera->UpdateProjectionMatrix(width, height);
+
+	auto healthZoneTex = _content->Load<Texture>(L"/textures/health_zone.png");
+
+	for(int i = 0; i < _spline->segmentCount; i++)
+	{
+		SplineControlPoint p;
+		_spline->segments[i].GetPoint(0, p);
+		_healthZoneProjectors.emplace_back(Projector{p, healthZoneTex});
+	}
 }
 
 void FZERO::Update(float deltaTime)
@@ -107,8 +121,11 @@ void FZERO::Draw(float deltaTime)
 	const XMFLOAT4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
 	_renderer->Clear(color);
 	std::vector<Entity*> renderables;
+
 	renderables.reserve(100);
 	_renderer->Cull(_camera.get(), gameWorld, renderables);
 	_renderer->Render(_camera.get(), renderables, _globalLight);
+	_renderer->RenderProjectors(_healthZoneProjectors);
+	_renderer->RenderSkybox(_camera.get());
 	_renderer->Present(0, 0);
 }

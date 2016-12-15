@@ -57,5 +57,5 @@ void Camera::UpdateProjectionMatrix(int width, int height)
 
 	//using 2pi/5 instead of pi/4 for fov
 	XMStoreFloat4x4(&_projMat,
-	                XMMatrixTranspose(XMMatrixPerspectiveFovLH(0.4f * 3.14f, aspect, 0.1f, 100)));
+	                XMMatrixTranspose(XMMatrixPerspectiveFovLH(0.4f * 3.14f, aspect, CAM_NEAR_Z, CAM_FAR_Z)));
 }
