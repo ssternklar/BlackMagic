@@ -13,6 +13,7 @@
 #include "Machine.h"
 #include "MachineSystem.h"
 #include "ECS.h"
+#include "Projector.h"
 
 class FZERO : public BlackMagic::GameAbstraction
 {
@@ -35,6 +36,7 @@ private:
 	ECS::ComponentHandle<Camera> _camera;
 
 	DirectionalLight _globalLight;
+	std::vector<BlackMagic::Projector> _healthZoneProjectors;
 
 	std::shared_ptr<BlackMagic::Mesh> splineMesh;
 	std::shared_ptr<Spline> _spline;
