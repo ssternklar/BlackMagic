@@ -42,6 +42,11 @@ namespace BlackMagic
 			return _allocator;
 		}
 
+		void Cleanup()
+		{
+			_resources.clear();
+		}
+
 	private:
 		ID3D11Device* _device;
 		ID3D11DeviceContext* _context;

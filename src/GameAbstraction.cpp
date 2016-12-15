@@ -13,12 +13,13 @@ int BlackMagic::GameAbstraction::RunGame()
 	size_t memSize;
 	platform->GetGameMemory(&gameMemory, &memSize);
 	Init(gameMemory, memSize);
-	while (!platform->ShouldExit())
+	while (!platform->ShouldExit() && !shouldExit)
 	{
 		platform->InputUpdate();
 		float dt = platform->GetDeltaTime();
 		Update(dt);
 		Draw(dt);
 	}
+	Destroy();
 	return 0;
 }

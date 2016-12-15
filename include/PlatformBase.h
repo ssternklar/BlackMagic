@@ -30,8 +30,10 @@ namespace BlackMagic {
 		virtual void InputUpdate() = 0;
 		virtual bool ShouldExit() = 0;
 		virtual float GetDeltaTime() = 0;
+		virtual void ReturnSystemMemory(byte* memory) = 0;
 		void GetScreenDimensions(unsigned int* width, unsigned int* height);
 		bool BlackMagicInit();
+		void BlackMagicCleanup();
 		InputData* GetInputData();
 		GraphicsDevice* GetGraphicsDevice();
 		ContentManager* GetContentManager();

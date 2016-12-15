@@ -4,8 +4,11 @@ using namespace BlackMagic;
 using namespace ECS;
 using namespace DirectX;
 
-FZERO::~FZERO()
+void FZERO::Destroy()
 {
+	_healthZoneProjectors.clear();
+	splineMesh = nullptr;
+	_spline = nullptr;
 	gameWorld->unregisterSystem(sys);
 	gameWorld->destroyWorld();
 }
@@ -106,7 +109,7 @@ void FZERO::Update(float deltaTime)
 {
 	if (platform->GetInputData()->GetButton(15))
 	{
-		//Quit()
+		shouldExit = true;
 	}
 	// World update
 	// this ticks all registered systems

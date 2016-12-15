@@ -14,5 +14,7 @@ int WINAPI WinMain(
 	BlackMagic::WindowsPlatform platform(hInstance);
 	platform.BlackMagicInit();
 	FZERO game(&platform);
-	return game.RunGame();
+	game.RunGame();
+	platform.BlackMagicCleanup();
+	return 0;
 }

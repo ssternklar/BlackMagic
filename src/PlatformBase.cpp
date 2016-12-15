@@ -19,6 +19,7 @@ bool PlatformBase::BlackMagicInit()
 	byte* ptr;
 	GetSystemMemory(CPU_MEMORY_SIZE, &ptr);
 	allocatorAllocator = new (ptr) StackAllocator(32, CPU_MEMORY_SIZE);
+	TheCPUMemory = ptr;
 
 	byte* contentMemory = (byte*)allocatorAllocator->allocate(1024 * 1024 * 512);
 	BestFitAllocator* contentAllocator = new (contentMemory) BestFitAllocator(32, 1024 * 1024 * 512);
@@ -41,6 +42,12 @@ bool PlatformBase::BlackMagicInit()
 	gameMemory = (byte*)allocatorAllocator->allocate(gameMemorySize);
 
 	return true;
+}
+
+void PlatformBase::BlackMagicCleanup()
+{
+	contentManager->Cleanup();
+	ReturnSystemMemory(TheCPUMemory);
 }
 
 InputData* PlatformBase::GetInputData()

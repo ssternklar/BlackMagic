@@ -25,6 +25,7 @@ namespace BlackMagic
 		virtual void InputUpdate() override;
 		virtual bool ShouldExit() override;
 		virtual float GetDeltaTime() override;
+		virtual void ReturnSystemMemory(byte* memory) override;
 		static LRESULT CALLBACK WindowProc(
 			HWND hWnd, // Window handle
 			UINT uMsg, // Message

@@ -19,10 +19,10 @@ class FZERO : public BlackMagic::GameAbstraction
 {
 public:
 	FZERO(BlackMagic::PlatformBase* platformBase) : BlackMagic::GameAbstraction(platformBase) {};
-	~FZERO();
 	virtual void Init(byte* gameMemory, size_t memorySize) override;
 	virtual void Update(float deltaTime) override;
 	virtual void Draw(float deltaTime) override;
+	virtual void Destroy() override;
 private:
 	//Load meshes, textures, shaders, etc.
 	void LoadContent();
