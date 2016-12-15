@@ -2,13 +2,14 @@
 
 #include <DirectXMath.h>
 #include "Texture.h"
+#include "SplineControlPoint.h"
 
 namespace BlackMagic
 {
 	class Projector
 	{
 	public:
-		Projector(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 up, const std::shared_ptr<Texture>& tex);
+		Projector(SplineControlPoint cp, const std::shared_ptr<Texture>& tex);
 		DirectX::XMFLOAT4X4 Matrix() const;
 		GraphicsTexture Texture() const;
 

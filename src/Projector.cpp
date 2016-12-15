@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-BlackMagic::Projector::Projector(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 up, const std::shared_ptr<BlackMagic::Texture>& tex)
+BlackMagic::Projector::Projector(SplineControlPoint cp, const std::shared_ptr<BlackMagic::Texture>& tex)
 {
 	D3D11_TEXTURE2D_DESC texDesc;
 	ID3D11Texture2D* texIntfc;
@@ -14,11 +14,11 @@ BlackMagic::Projector::Projector(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 direct
 	resource->Release();
 	texIntfc->Release();
 
-	auto p = XMLoadFloat3(&pos);
-	auto d = XMVector3Normalize(XMLoadFloat3(&direction));
-	auto u = XMLoadFloat3(&up);
-	auto view = XMMatrixLookToLH(XMVectorSet(0,1,0,0), XMVectorSet(0,-1,0,0), u);
-	auto proj = XMMatrixOrthographicLH(10, 10, 0.1f, 10.0f);
+	auto p = XMLoadFloat3(&cp.position);
+	auto d = XMVector3Normalize(XMLoadFloat3(&cp.normal));
+	auto u = XMLoadFloat3(&cp.tangent);
+	auto view = XMMatrixLookAtLH(p + d, p, u);
+	auto proj = XMMatrixOrthographicLH(4, 2, 0.1f, 1.1f);
 	XMStoreFloat4x4(&_mat, XMMatrixTranspose(proj*view));
 	_tex = tex;
 }

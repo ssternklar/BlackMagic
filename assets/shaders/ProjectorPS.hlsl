@@ -18,8 +18,10 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 pos = positionMap.Sample(mainSampler, input.uv);
 	float4 projectedPos = mul(float4(pos, 1.0f), vp);
 	float2 uv = projectedPos.xy / projectedPos.w;
-	projectedPos.xy = projectedPos.xy * 0.5f + 0.5f;
+	uv.xy = uv.xy * 0.5f + 0.5f;
 	uv.y = 1 - uv.y;
+	uv.xy = uv.xy / 2;
 	float2 inBounds = uv >= 0.0f && uv <= 1.0f;
 	return float4(projectedTex.Sample(mainSampler, uv).rgb, saturate(dot(inBounds, inBounds) - 1));
+
 }
