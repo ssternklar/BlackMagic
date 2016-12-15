@@ -208,6 +208,7 @@ void WindowsPlatform::InputUpdate()
 	inputData.SetButton(5, KEYPRESSED('S'));
 	inputData.SetButton(6, KEYPRESSED('D'));
 	inputData.SetButton(7, KEYPRESSED(' '));
+	inputData.SetButton(15, KEYPRESSED(VK_ESCAPE));
 }
 
 bool BlackMagic::WindowsPlatform::ShouldExit()
@@ -248,6 +249,13 @@ WindowsPlatform::WindowsPlatform(HINSTANCE instance)
 
 }
 
+void WindowsPlatform::ReturnSystemMemory(BlackMagic::byte* memory)
+{
+	if(memory)
+	{
+		delete[] memory;
+	}
+}
 
 WindowsPlatform::~WindowsPlatform()
 {
