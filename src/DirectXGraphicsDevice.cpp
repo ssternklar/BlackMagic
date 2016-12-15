@@ -61,6 +61,11 @@ DirectXGraphicsDevice::~DirectXGraphicsDevice()
 		delete _positionMap;
 	}
 
+	if (_lightMap)
+	{
+		delete _lightMap;
+	}
+
 	if (_quad)
 	{
 		_quad->Release();
@@ -119,6 +124,7 @@ void DirectXGraphicsDevice::Clear(XMFLOAT4 color)
 	_context->ClearRenderTargetView(_specularMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
 	_context->ClearRenderTargetView(_normalMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
 	_context->ClearRenderTargetView(_positionMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
+	_context->ClearRenderTargetView(_lightMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
 	_context->ClearDepthStencilView(_depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	for (size_t i = 0; i < NUM_SHADOW_CASCADES; i++)
@@ -196,6 +202,11 @@ void DirectXGraphicsDevice::OnResize(UINT width, UINT height)
 	if (_positionMap)
 	{
 		delete _positionMap;
+	}
+
+	if (_lightMap)
+	{
+		delete _lightMap;
 	}
 
 	// Resize the underlying swap chain buffers
@@ -301,6 +312,8 @@ void DirectXGraphicsDevice::Init(ContentManager* content)
 	_shadowMapVS = content->Load<VertexShader>(L"/shaders/ShadowMapVS.cso");
 	_skyboxVS = content->Load<VertexShader>(L"/shaders/SkyboxVS.cso");
 	_skyboxPS = content->Load<PixelShader>(L"/shaders/SkyboxPS.cso");
+	_fxaaVS = content->Load<VertexShader>(L"/shaders/FXAA_VS.cso");
+	_fxaaPS = content->Load<PixelShader>(L"/shaders/FXAA_PS.cso");
 	_projectionPS = content->Load<PixelShader>(L"/shaders/ProjectorPS.cso");
 
 	//Set up g-buffer sampler
@@ -597,8 +610,8 @@ void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Ent
 		_context->DrawIndexed(static_cast<UINT>(renderable->_mesh->IndexCount()), 0, 0);
 	}
 
-	//Combine g-buffer and render to backbuffer
-	_context->OMSetRenderTargets(1, &_backBuffer, nullptr);
+	ID3D11RenderTargetView* lightMapTarget = _lightMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>();
+	_context->OMSetRenderTargets(1, &lightMapTarget, nullptr);
 	auto cPos = cam.Position();
 	//size_t padding = (16 - (sizeof(DirectionalLight) % 16))*(lights.size() - 1);
 
@@ -625,8 +638,20 @@ void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Ent
 	ID3D11ShaderResourceView* srvs[6] = { 0 };
 	_context->PSSetShaderResources(0, 6, srvs);
 
-	_context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
 	RenderSkybox(cam);
+
+	_context->OMSetRenderTargets(1, &_backBuffer, nullptr);
+
+	_fxaaVS->SetShader();
+	_fxaaPS->SetShader();
+	_fxaaPS->SetInt("width", _width);
+	_fxaaPS->SetInt("height", _height);
+	_fxaaPS->SetSamplerState("mainSampler", _gBufferSampler.get());
+	_fxaaPS->SetShaderResourceView("inputMap", _lightMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_fxaaPS->CopyAllBufferData();
+
+	_context->IASetVertexBuffers(0, 1, &_quad, &quadStride, &offset);
+	_context->Draw(6, 0);
 }
 
 void DirectXGraphicsDevice::RenderSkybox(const Camera& cam)
@@ -638,8 +663,11 @@ void DirectXGraphicsDevice::RenderSkybox(const Camera& cam)
 	ID3D11RasterizerState* lastRasterState;
 	_context->RSGetState(&lastRasterState);
 
+	ID3D11RenderTargetView* lightMapTarget = _lightMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>();
+
 	_context->RSSetState(_skyboxRS);
 	_context->OMSetDepthStencilState(_skyboxDS, lastStencilRef);
+	_context->OMSetRenderTargets(1, &lightMapTarget, _depthStencil);
 	_skyboxVS->SetShader();
 	_skyboxPS->SetShader();
 	_skyboxVS->SetFloat3("camPos", cam.Position());
@@ -792,10 +820,24 @@ void DirectXGraphicsDevice::InitBuffers()
 	shadowSRV.Texture2DArray.ArraySize = NUM_SHADOW_CASCADES;
 	shadowSRV.Texture2DArray.FirstArraySlice = 0;
 
+	D3D11_TEXTURE2D_DESC lightMapDesc;
+	lightMapDesc.ArraySize = 1;
+	lightMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	lightMapDesc.CPUAccessFlags = 0;
+	lightMapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	lightMapDesc.MipLevels = 1;
+	lightMapDesc.MiscFlags = 0;
+	lightMapDesc.SampleDesc.Count = 1;
+	lightMapDesc.SampleDesc.Quality = 0;
+	lightMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	lightMapDesc.Height = _height;
+	lightMapDesc.Width = _width;
+
 	_diffuseMap = createEmptyTexture(colorMapDesc);
 	_specularMap = createEmptyTexture(colorMapDesc);
 	_normalMap = createEmptyTexture(normalMapDesc);
 	_positionMap = createEmptyTexture(posMapDesc);
+	_lightMap = createEmptyTexture(lightMapDesc);
 
 	ID3D11Texture2D* depth;
 	_device->CreateTexture2D(&depthStencilDesc, nullptr, &depth);

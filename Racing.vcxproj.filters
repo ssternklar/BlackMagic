@@ -207,6 +207,12 @@
     <FxCompile Include="assets\shaders\ShadowMapVS.hlsl" />
     <FxCompile Include="assets\shaders\SkyboxPS.hlsl" />
     <FxCompile Include="assets\shaders\SkyboxVS.hlsl" />
+    <FxCompile Include="assets\shaders\FXAA_PS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\FXAA_VS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
     <FxCompile Include="assets\shaders\ProjectorPS.hlsl" />
   </ItemGroup>
 </Project>
