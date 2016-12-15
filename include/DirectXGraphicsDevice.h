@@ -45,8 +45,11 @@ namespace BlackMagic {
 		Texture* _specularMap;
 		Texture* _normalMap; 
 		Texture* _positionMap;
+		Texture* _lightMap;
 		std::shared_ptr<VertexShader> _lightPassVS;
 		std::shared_ptr<PixelShader> _lightPassPS;
+		std::shared_ptr<VertexShader> _fxaaVS;
+		std::shared_ptr<PixelShader> _fxaaPS;
 		std::shared_ptr<ID3D11SamplerState> _gBufferSampler;
 		ID3D11Buffer* _quad;
 
