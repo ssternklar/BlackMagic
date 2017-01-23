@@ -1,8 +1,10 @@
+#if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
 #include "WindowsPlatform.h"
-#include "FZERO.h"
 #include <d3d11.h>
+#endif
 
+#if defined(_WIN32) || defined(_WIN64)
 // --------------------------------------------------------
 // Entry point for a graphical (non-console) Windows application
 // --------------------------------------------------------
@@ -14,8 +16,7 @@ int WINAPI WinMain(
 {
 	BlackMagic::WindowsPlatform platform(hInstance);
 	platform.BlackMagicInit();
-	FZERO game(&platform);
-	game.RunGame();
 	platform.BlackMagicCleanup();
 	return 0;
 }
+#endif

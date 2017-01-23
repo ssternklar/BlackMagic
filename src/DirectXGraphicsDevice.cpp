@@ -15,13 +15,6 @@ DirectXGraphicsDevice::DirectXGraphicsDevice()
 
 DirectXGraphicsDevice::~DirectXGraphicsDevice()
 {
-#if defined(DEBUG) || defined(_DEBUG)
-	ID3D11Debug* debugDevice = nullptr;
-	auto r = _device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
-	r = debugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-	debugDevice->Release();
-#endif
-
 	if (_device)
 	{
 		_device->Release();
@@ -105,7 +98,12 @@ DirectXGraphicsDevice::~DirectXGraphicsDevice()
 	{
 		_projectionBlend->Release();
 	}
-
+#if defined(DEBUG) || defined(_DEBUG)
+	ID3D11Debug* debugDevice = nullptr;
+	auto r = _device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
+	r = debugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	debugDevice->Release();
+#endif
 
 }
 
@@ -542,6 +540,7 @@ void DirectXGraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vecto
 	}
 }
 
+/*
 void DirectXGraphicsDevice::RenderProjectors(const std::vector<Projector>& projectors)
 {
 	const UINT stride = sizeof(XMFLOAT2);
@@ -574,7 +573,7 @@ void DirectXGraphicsDevice::RenderProjectors(const std::vector<Projector>& proje
 	_context->OMSetBlendState(oldState, oldBlendColor, oldSampleMask);
 	_context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
 }
-
+*/
 
 void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight)
 {

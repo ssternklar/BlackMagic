@@ -28,7 +28,6 @@ namespace BlackMagic {
 		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) override;
 		virtual void CleanupBuffer(GraphicsBuffer buffer);
 		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) override;
-		virtual void RenderProjectors(const std::vector<Projector>& projectors) override;
 		virtual void RenderSkybox(const Camera& cam) override;
 		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
 		virtual GraphicsTexture CreateTexture(const char* texturePath, GraphicsRenderTarget* outOptionalRenderTarget = nullptr) override;

@@ -7,7 +7,6 @@
 
 #include "Texture.h"
 #include "Mesh.h"
-#include "Spline.h"
 #include "DirectXGraphicsDevice.h"
 #include "DDSTextureLoader.h"
 
@@ -73,6 +72,7 @@ std::shared_ptr<PixelShader> ContentManager::load_Internal(const std::wstring& n
 	return ptr;
 }
 
+/*
 template<>
 std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 {
@@ -108,6 +108,7 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	//_resources[name] = ret;
 	return ret;
 }
+*/
 
 template<typename T>
 std::shared_ptr<T> ContentManager::load_Internal(const std::wstring& name)
