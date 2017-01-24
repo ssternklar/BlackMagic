@@ -17,6 +17,7 @@ int WINAPI WinMain(
 	BlackMagic::WindowsPlatform platform(hInstance);
 	platform.BlackMagicInit();
 	platform.BlackMagicCleanup();
+
 	return 0;
 }
 #endif

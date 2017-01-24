@@ -16,8 +16,12 @@ using namespace DirectX;
 ContentManager::ContentManager(GraphicsDevice* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
 	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator))), graphicsDevice(device)
 {
-	_device = ((DirectXGraphicsDevice*)device)->Device();
-	_context = ((DirectXGraphicsDevice*)device)->Context();
+	_device = reinterpret_cast<DirectXGraphicsDevice*>(device)->Device();
+	_context = reinterpret_cast<DirectXGraphicsDevice*>(device)->Context();
+}
+
+ContentManager::~ContentManager()
+{
 }
 
 template<>
@@ -46,7 +50,7 @@ std::shared_ptr<Cubemap> ContentManager::load_Internal(const std::wstring& name)
 {
 	ID3D11ShaderResourceView* srv;
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto result = CreateDDSTextureFromFile(_device, _context, fullPath.c_str(), nullptr, &srv);
+	auto result = CreateDDSTextureFromFile(_device.Get(), _context.Get(), fullPath.c_str(), nullptr, &srv);
 	auto ptr = std::allocate_shared<Cubemap>(AllocatorSTLAdapter<Cubemap, BestFitAllocator>(_allocator), graphicsDevice, GraphicsTexture(srv), GraphicsRenderTarget(nullptr));;
 	_resources[name] = ptr;
 	return ptr;
@@ -56,7 +60,9 @@ template<>
 std::shared_ptr<VertexShader> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::allocate_shared<VertexShader>(ContentAllocatorAdapter(_allocator), _device, _context);
+	auto ptr = std::allocate_shared<VertexShader>(ContentAllocatorAdapter(_allocator), 
+		_device.Get(),
+		_context.Get());
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
@@ -66,7 +72,9 @@ template<>
 std::shared_ptr<PixelShader> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::allocate_shared<PixelShader>(ContentAllocatorAdapter(_allocator), _device, _context);
+	auto ptr = std::allocate_shared<PixelShader>(ContentAllocatorAdapter(_allocator), 
+		_device.Get(),
+		_context.Get());
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
