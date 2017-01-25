@@ -22,6 +22,7 @@ ContentManager::ContentManager(GraphicsDevice* device, const std::wstring& asset
 
 ContentManager::~ContentManager()
 {
+	_resources.clear();
 }
 
 template<>

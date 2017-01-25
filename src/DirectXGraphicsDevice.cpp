@@ -15,14 +15,6 @@ DirectXGraphicsDevice::DirectXGraphicsDevice()
 
 DirectXGraphicsDevice::~DirectXGraphicsDevice()
 {
-	ID3D11Debug* debugDevice = nullptr;
-	auto r = _device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
-
-	if (_swapChain)
-	{
-		_swapChain->Release();
-	}
-
 	if (_diffuseMap)
 	{
 		delete _diffuseMap;
@@ -48,7 +40,10 @@ DirectXGraphicsDevice::~DirectXGraphicsDevice()
 		delete _lightMap;
 	}
 
+
 #if defined(DEBUG) || defined(_DEBUG)
+	ID3D11Debug* debugDevice = nullptr;
+	auto r = _device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
 	r = debugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 	debugDevice->Release();
 #endif
@@ -206,11 +201,12 @@ HRESULT DirectXGraphicsDevice::InitDx(HWND window, UINT width, UINT height)
 		0, // The number of fallbacks in the above param
 		D3D11_SDK_VERSION, // Current version of the SDK
 		&swapDesc, // Address of swap chain options
-		&_swapChain, // Pointer to our Swap Chain pointer
+		_swapChain.ReleaseAndGetAddressOf(), // Pointer to our Swap Chain pointer
 		_device.ReleaseAndGetAddressOf(), // Pointer to our Device pointer
 		&_featureLevel, // This will hold the actual feature level the app will use
 		_context.ReleaseAndGetAddressOf()); // Pointer to our Device Context pointer
-	
+
+
 	if (!FAILED(hr))
 		_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -220,7 +216,7 @@ HRESULT DirectXGraphicsDevice::InitDx(HWND window, UINT width, UINT height)
 void DirectXGraphicsDevice::Init(ContentManager* content)
 {
 	contentManagerAllocator = content->GetAllocator();
-	//Initialize the GBuffer and depth buffer
+
 	//Initialize the GBuffer and depth buffer
 	InitBuffers();
 
@@ -242,7 +238,7 @@ void DirectXGraphicsDevice::Init(ContentManager* content)
 	D3D11_SUBRESOURCE_DATA vbData = { 0 };
 	vbData.pSysMem = quad;
 
-	_device->CreateBuffer(&vbDesc, &vbData, &_quad);
+	_device->CreateBuffer(&vbDesc, &vbData, _quad.ReleaseAndGetAddressOf());
 
 	_skybox = content->Load<Mesh>(L"/models/skybox.obj");
 	_skyboxTex = content->Load<Cubemap>(L"/textures/skybox_tex.dds");
@@ -664,7 +660,7 @@ void DirectXGraphicsDevice::InitBuffers()
 	_device->CreateRenderTargetView(
 		backBufferTexture,
 		0,
-		&_backBuffer);
+		_backBuffer.ReleaseAndGetAddressOf());
 	backBufferTexture->Release();
 
 	D3D11_TEXTURE2D_DESC colorMapDesc;
@@ -774,6 +770,12 @@ void DirectXGraphicsDevice::InitBuffers()
 	lightMapDesc.Height = _height;
 	lightMapDesc.Width = _width;
 
+	delete _diffuseMap;
+	delete _specularMap;
+	delete _normalMap;
+	delete _positionMap;
+	delete _lightMap;
+
 	_diffuseMap = createEmptyTexture(colorMapDesc);
 	_specularMap = createEmptyTexture(colorMapDesc);
 	_normalMap = createEmptyTexture(normalMapDesc);
@@ -782,7 +784,7 @@ void DirectXGraphicsDevice::InitBuffers()
 
 	ID3D11Texture2D* depth;
 	_device->CreateTexture2D(&depthStencilDesc, nullptr, &depth);
-	_device->CreateDepthStencilView(depth, &dsDesc, &_depthStencil);
+	_device->CreateDepthStencilView(depth, &dsDesc, _depthStencil.ReleaseAndGetAddressOf());
 	_device->CreateShaderResourceView(depth, &depthSRVDesc, _depthStencilTexture.ReleaseAndGetAddressOf());
 	depth->Release();
 

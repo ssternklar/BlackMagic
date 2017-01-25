@@ -36,7 +36,7 @@ namespace BlackMagic {
 	private:
 		ComPtr<ID3D11Device> _device;
 		ComPtr<ID3D11DeviceContext> _context;
-		IDXGISwapChain* _swapChain;
+		ComPtr<IDXGISwapChain> _swapChain;
 		ComPtr<ID3D11RenderTargetView> _backBuffer;
 		ComPtr<ID3D11DepthStencilView> _depthStencil;
 		BestFitAllocator* contentManagerAllocator;
