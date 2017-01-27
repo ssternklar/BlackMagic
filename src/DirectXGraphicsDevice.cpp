@@ -39,14 +39,6 @@ DirectXGraphicsDevice::~DirectXGraphicsDevice()
 	{
 		delete _lightMap;
 	}
-
-
-#if defined(DEBUG) || defined(_DEBUG)
-	ID3D11Debug* debugDevice = nullptr;
-	auto r = _device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
-	r = debugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-	debugDevice->Release();
-#endif
 }
 
 
@@ -87,6 +79,7 @@ ComPtr<ID3D11SamplerState> DirectXGraphicsDevice::CreateSamplerState(D3D11_SAMPL
 	ID3D11SamplerState* tempSampler;
 	_device->CreateSamplerState(&desc, &tempSampler);
 	ComPtr<ID3D11SamplerState> ptr(tempSampler);
+	tempSampler->Release();
 	return ptr;
 }
 
@@ -283,7 +276,7 @@ void DirectXGraphicsDevice::Init(ContentManager* content)
 	shadowRSDesc.DepthBias = 1000;
 	shadowRSDesc.DepthBiasClamp = 0.0f;
 	shadowRSDesc.SlopeScaledDepthBias = 1.0f;
-	_device->CreateRasterizerState(&shadowRSDesc, &_shadowRS);
+	_device->CreateRasterizerState(&shadowRSDesc, _shadowRS.ReleaseAndGetAddressOf());
 	//Just need a default sampler, nothing fancy
 	_skyboxSampler = CreateSamplerState(sampDesc);
 
@@ -297,12 +290,12 @@ void DirectXGraphicsDevice::Init(ContentManager* content)
 	skyboxDSDesc.StencilEnable = FALSE;
 	skyboxDSDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
 	skyboxDSDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-	_device->CreateDepthStencilState(&skyboxDSDesc, &_skyboxDS);
+	_device->CreateDepthStencilState(&skyboxDSDesc, _skyboxDS.ReleaseAndGetAddressOf());
 
 	D3D11_RASTERIZER_DESC skyboxRS = {};
 	skyboxRS.CullMode = D3D11_CULL_FRONT;
 	skyboxRS.FillMode = D3D11_FILL_SOLID;
-	_device->CreateRasterizerState(&skyboxRS, &_skyboxRS);
+	_device->CreateRasterizerState(&skyboxRS, _skyboxRS.ReleaseAndGetAddressOf());
 
 	D3D11_SAMPLER_DESC projectorDesc = {};
 	projectorDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -329,7 +322,7 @@ void DirectXGraphicsDevice::Init(ContentManager* content)
 	projectorBlend.RenderTarget->DestBlendAlpha = D3D11_BLEND_ONE;
 	projectorBlend.RenderTarget->BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	projectorBlend.RenderTarget->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	_device->CreateBlendState(&projectorBlend, &_projectionBlend);
+	_device->CreateBlendState(&projectorBlend, _projectionBlend.ReleaseAndGetAddressOf());
 
 
 }
