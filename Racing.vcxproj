@@ -156,6 +156,7 @@
     <ClCompile Include="src\Renderable.cpp" />
     <ClCompile Include="src\DirectXGraphicsDevice.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
+    <ClCompile Include="src\TestGame.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\TransformData.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="include\DirectXGraphicsDevice.h" />
     <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
+    <ClInclude Include="include\TestGame.h" />
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\Transform.h" />
     <ClInclude Include="include\TransformData.h" />

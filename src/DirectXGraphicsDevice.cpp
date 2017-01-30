@@ -799,7 +799,7 @@ void DirectXGraphicsDevice::InitBuffers()
 
 	// Bind the views to the pipeline, so rendering properly 
 	// uses their underlying textures
-	_context->OMSetRenderTargets(1, &_backBuffer, _depthStencil.Get());
+	_context->OMSetRenderTargets(1, _backBuffer.GetAddressOf(), _depthStencil.Get());
 
 	// Lastly, set up a viewport so we render into
 	// to correct portion of the window
