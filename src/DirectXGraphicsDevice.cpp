@@ -539,7 +539,7 @@ void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Ent
 		_context->IASetIndexBuffer(renderable->_mesh->IndexBuffer().GetAs<ID3D11Buffer*>(), DXGI_FORMAT_R32_UINT, 0);
 		_context->DrawIndexed(static_cast<UINT>(renderable->_mesh->IndexCount()), 0, 0);
 	}
-
+	
 	ID3D11RenderTargetView* lightMapTarget = _lightMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>();
 	_context->OMSetRenderTargets(1, &lightMapTarget, nullptr);
 	auto cPos = cam.Position();
@@ -563,14 +563,10 @@ void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Ent
 
 	_context->IASetVertexBuffers(0, 1, &_quad, &quadStride, &offset);
 	_context->Draw(6, 0);
+	
+	//RenderSkybox(cam);
 
-	//Can't have SRVs and RTVs that are pointing to the same texture bound at the same time, so unset them
-	ID3D11ShaderResourceView* srvs[6] = { 0 };
-	_context->PSSetShaderResources(0, 6, srvs);
-
-	RenderSkybox(cam);
-
-	_context->OMSetRenderTargets(1, &_backBuffer, nullptr);
+	_context->OMSetRenderTargets(1, _backBuffer.GetAddressOf(), nullptr);
 
 	_fxaaVS->SetShader();
 	_fxaaPS->SetShader();
@@ -582,6 +578,10 @@ void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Ent
 
 	_context->IASetVertexBuffers(0, 1, &_quad, &quadStride, &offset);
 	_context->Draw(6, 0);
+	
+	//Can't have SRVs and RTVs that are pointing to the same texture bound at the same time, so unset them
+	ID3D11ShaderResourceView* srvs[6] = { 0 };
+	_context->PSSetShaderResources(0, 6, srvs);
 }
 
 void DirectXGraphicsDevice::RenderSkybox(const Camera& cam)

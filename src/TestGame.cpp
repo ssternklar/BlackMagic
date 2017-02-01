@@ -16,7 +16,6 @@ void TestGame::Destroy()
 
 void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 {
-
 	allocator = BestFitAllocator(32, memorySize, gameMemory);
 	//auto adapter = AllocatorSTLAdapter<Entity, BestFitAllocator>(allocator);
 	//gameWorld = ECS::World::createWorld(ECS::Allocator(adapter));
@@ -34,7 +33,7 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 
 void TestGame::LoadContent()
 {
-	auto _content = platform->GetContentManager();
+	auto content = platform->GetContentManager();
 	unsigned int width, height;
 	Entity* cam = _gameWorld->create();
 	XMFLOAT4 quatIdentity;
@@ -55,20 +54,21 @@ void TestGame::Update(float deltaTime)
 	// World update
 	// this ticks all registered systems
 	_gameWorld->tick(deltaTime);
+	auto cam = _gameWorld->each<Transform, Camera>().begin().get();
+	_camera->Update(&cam->get<Transform>().get());
 
 	TransformData::GetSingleton()->UpdateTransforms();
 }
 
 void TestGame::Draw(float deltaTime)
 {
-	auto _renderer = platform->GetGraphicsDevice();
+	auto renderer = platform->GetGraphicsDevice();
 	const XMFLOAT4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
-	_renderer->Clear(color);
+	renderer->Clear(color);
 	std::vector<Entity*> renderables;
 
 	renderables.reserve(100);
-	_renderer->Cull(_camera.get(), _gameWorld, renderables);
-	_renderer->Render(_camera.get(), renderables, _globalLight);
-	_renderer->RenderSkybox(_camera.get());
-	_renderer->Present(0, 0);
+	renderer->Cull(_camera.get(), _gameWorld, renderables);
+	renderer->Render(_camera.get(), renderables, _globalLight);
+	renderer->Present(0, 0);
 }
