@@ -148,6 +148,7 @@
     <ClCompile Include="src\GraphicsDevice.cpp" />
     <ClCompile Include="src\InputData.cpp" />
     <ClCompile Include="src\IResource.cpp" />
+    <ClCompile Include="src\LinkedList.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
@@ -158,6 +159,7 @@
     <ClCompile Include="src\SimpleShader.cpp" />
     <ClCompile Include="src\TestGame.cpp" />
     <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\ThreadManager.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\TransformData.cpp" />
     <ClCompile Include="src\WindowsPlatform.cpp" />
@@ -177,6 +179,7 @@
     <ClInclude Include="include\GraphicsTypes.h" />
     <ClInclude Include="include\GraphicsDevice.h" />
     <ClInclude Include="include\InputData.h" />
+    <ClInclude Include="include\LinkedList.h" />
     <ClInclude Include="include\PlatformBase.h" />
     <ClInclude Include="include\Projector.h" />
     <ClInclude Include="include\Renderable.h" />
@@ -188,6 +191,7 @@
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\TestGame.h" />
     <ClInclude Include="include\Texture.h" />
+    <ClInclude Include="include\ThreadManager.h" />
     <ClInclude Include="include\Transform.h" />
     <ClInclude Include="include\TransformData.h" />
     <ClInclude Include="include\Vertex.h" />
