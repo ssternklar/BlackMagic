@@ -9,16 +9,13 @@
 
 #include "Camera.h"
 #include "DirectionalLight.h"
-#include "Spline.h"
-#include "Machine.h"
-#include "MachineSystem.h"
 #include "ECS.h"
-#include "Projector.h"
+#include "GameAbstraction.h"
 
-class FZERO : public BlackMagic::GameAbstraction
+class TestGame : public BlackMagic::GameAbstraction
 {
 public:
-	FZERO(BlackMagic::PlatformBase* platformBase) : BlackMagic::GameAbstraction(platformBase) {};
+	TestGame(BlackMagic::PlatformBase* platformBase);
 	virtual void Init(byte* gameMemory, size_t memorySize) override;
 	virtual void Update(float deltaTime) override;
 	virtual void Draw(float deltaTime) override;
@@ -32,15 +29,7 @@ private:
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
-
 	ECS::ComponentHandle<Camera> _camera;
-
 	DirectionalLight _globalLight;
-	std::vector<BlackMagic::Projector> _healthZoneProjectors;
-
-	std::shared_ptr<BlackMagic::Mesh> splineMesh;
-	std::shared_ptr<Spline> _spline;
-	MachineSystem* sys;
-	// ECS Stuff
-	ECS::World* gameWorld;
+	ECS::World* _gameWorld;
 };

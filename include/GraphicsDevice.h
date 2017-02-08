@@ -23,7 +23,6 @@ namespace BlackMagic
 		virtual void CleanupBuffer(GraphicsBuffer buffer) = 0;
 		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) = 0;
 		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) = 0;
-		virtual void RenderProjectors(const std::vector<Projector>& projectors) = 0;
 		virtual void RenderSkybox(const Camera& cam) = 0;
 		virtual GraphicsTexture CreateTexture(const char* texturePath, GraphicsRenderTarget* outOptionalRenderTarget = nullptr) = 0;
 		virtual void CleanupTexture(GraphicsTexture texture) = 0;

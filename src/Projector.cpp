@@ -1,3 +1,4 @@
+/*
 #include "Projector.h"
 
 using namespace DirectX;
@@ -32,3 +33,5 @@ BlackMagic::GraphicsTexture BlackMagic::Projector::Texture() const
 {
 	return _tex->GetGraphicsTexture();
 }
+
+*/

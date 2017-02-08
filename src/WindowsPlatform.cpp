@@ -105,7 +105,6 @@ void WindowsPlatform::InitPlatformGraphicsDevice()
 	graphicsDevice = static_cast<GraphicsDevice*>(allocatorAllocator->allocate<DirectXGraphicsDevice>(false));
 	auto dxGDevice = new (graphicsDevice) DirectXGraphicsDevice;
 	dxGDevice->InitDx(hWnd, windowWidth, windowHeight);
-
 	// The window exists but is not visible yet
 	// We need to tell Windows to show it, and how to show it
 	ShowWindow(hWnd, SW_SHOW);

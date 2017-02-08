@@ -21,6 +21,7 @@ namespace BlackMagic
 	{
 	public:
 		ContentManager(GraphicsDevice* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator);
+		~ContentManager();
 
 		template<typename T>
 		std::shared_ptr<T> Load(const std::wstring& name)
@@ -42,14 +43,9 @@ namespace BlackMagic
 			return _allocator;
 		}
 
-		void Cleanup()
-		{
-			_resources.clear();
-		}
-
 	private:
-		ID3D11Device* _device;
-		ID3D11DeviceContext* _context;
+		ComPtr<ID3D11Device> _device;
+		ComPtr<ID3D11DeviceContext> _context;
 		std::wstring _assetDirectory;
 		ContentMap _resources;
 		BlackMagic::BestFitAllocator* _allocator;
