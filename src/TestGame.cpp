@@ -32,6 +32,8 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 	platform->GetScreenDimensions(&width, &height);
 	_camera->UpdateProjectionMatrix(width, height);
 
+	
+
 	_globalLight = {
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
@@ -44,7 +46,19 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 void TestGame::LoadContent()
 {
 	auto content = platform->GetContentManager();
-	
+	auto sphere = content->Load<Mesh>(L"/models/sphere.obj");
+	XMFLOAT4 quatIdentity;
+	XMStoreFloat4(&quatIdentity, XMQuaternionIdentity());
+	XMFLOAT3 defaultScale = { 1, 1, 1 };
+
+	for(float y = 0; y < 11; y++)
+	{
+		for (float x = 0; x < 11; x++)
+		{
+			auto e = _gameWorld->create();
+			e->assign<Transform>(XMFLOAT3{ x, y, 0 }, quatIdentity, defaultScale);
+		}
+	}
 }
 
 void TestGame::Update(float deltaTime)
