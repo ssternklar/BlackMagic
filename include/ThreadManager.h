@@ -2,55 +2,44 @@
 
 #include "allocators\globals.h"
 #include "allocators\BadBestFitAllocator.h"
+#include "GenericJob.h"
+#include "ContentJob.h"
+#include "RenderJob.h"
 
 namespace BlackMagic {
 
-	//Runs some asynchronous code in a Generic thread
-	class GenericJob
-	{
-	public:
-		virtual void Run();
-	};
-
-
-	// Submits a draw call
-	class RenderJob
-	{
-	};
-
-	//Promise/Future style content load job
-	class ContentJob
-	{
-	public:
-		void WaitUntilJobIsComplete();
-	};
+	class PlatformBase;
 
 	class ThreadManager
 	{
-	private:
-
+	protected:
+		
 		void* managedSpace;
+		PlatformBase* base;
 		size_t managedSpaceSize;
 		BestFitAllocator allocator;
-		
-		typedef void(*InternalThreadWorker)();
-		virtual void PlatformCreateThread(InternalThreadWorker workerFunction) = 0;
-		void internal_GenericWorker();
-		void internal_RenderWorker();
-		void internal_ContentWorker();
+
+		typedef void(*InternalThreadWorker)(ThreadManager*);
+
+		virtual void PlatformCreateThread(InternalThreadWorker worker, ThreadManager* manager) = 0;
 	public:
-		typedef void(*GenericWorkerThreadFunc)(GenericJob*);
-		typedef void(*RenderWorkerThreadFunc)(RenderJob*);
-		typedef void(*ContentWorkerThreadFunc)(ContentJob*);
+		//These are public because lambdas
+		void RunGenericWorker();
+		void RunRenderWorker();
+		void RunContentWorker();
 
 		//There can be as many generic threads as you want there to be
-		void CreateGenericThread(GenericWorkerThreadFunc function);
+		void CreateGenericThread();
 
 		//There can only be one Render thread
-		void CreateRenderThread(RenderWorkerThreadFunc function);
+		void CreateRenderThread();
 
-		//There can only be one Content thread
-		void CreateContentLoaderThread(ContentWorkerThreadFunc function);
+		//There can only be one IO thread
+		void CreateContentThread();
+
+		template<class JobType, typename... Args>
+		JobType* CreateJob(Args&&... args);
+
 		ThreadManager(byte* spaceLocation, size_t spaceSize);
 		~ThreadManager();
 

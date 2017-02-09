@@ -40,6 +40,7 @@ namespace BlackMagic {
 		InputData* GetInputData();
 		GraphicsDevice* GetGraphicsDevice();
 		ContentManager* GetContentManager();
+		ThreadManager* GetThreadManager();
 		void GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage);
 	};
 }

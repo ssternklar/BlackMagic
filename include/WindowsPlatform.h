@@ -21,6 +21,7 @@ namespace BlackMagic
 	public:
 		virtual bool InitWindow() override;
 		virtual void InitPlatformGraphicsDevice() override;
+		virtual void InitPlatformThreadManager() override;
 		virtual bool GetSystemMemory(size_t size, byte** ptr) override;
 		virtual void InputUpdate() override;
 		virtual bool ShouldExit() override;

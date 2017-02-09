@@ -110,6 +110,10 @@ void WindowsPlatform::InitPlatformGraphicsDevice()
 	ShowWindow(hWnd, SW_SHOW);
 }
 
+void BlackMagic::WindowsPlatform::InitPlatformThreadManager()
+{
+}
+
 bool WindowsPlatform::InitWindow()
 {
 	// Start window creation by filling out the

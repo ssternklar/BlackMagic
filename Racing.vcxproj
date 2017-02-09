@@ -176,8 +176,10 @@
     <ClInclude Include="include\ECS.h" />
     <ClInclude Include="include\GameAbstraction.h" />
     <ClInclude Include="include\GameObject.h" />
+    <ClInclude Include="include\GenericJob.h" />
     <ClInclude Include="include\GraphicsTypes.h" />
     <ClInclude Include="include\GraphicsDevice.h" />
+    <ClInclude Include="include\ContentJob.h" />
     <ClInclude Include="include\InputData.h" />
     <ClInclude Include="include\LinkedList.h" />
     <ClInclude Include="include\PlatformBase.h" />
@@ -187,6 +189,7 @@
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\IResource.h" />
     <ClInclude Include="include\DirectXGraphicsDevice.h" />
+    <ClInclude Include="include\RenderJob.h" />
     <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\TestGame.h" />
