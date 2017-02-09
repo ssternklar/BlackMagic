@@ -155,7 +155,6 @@
     <ClCompile Include="src\Projector.cpp" />
     <ClCompile Include="src\Renderable.cpp" />
     <ClCompile Include="src\DirectXGraphicsDevice.cpp" />
-    <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
     <ClCompile Include="src\TestGame.cpp" />
     <ClCompile Include="src\Texture.cpp" />
@@ -193,7 +192,6 @@
     <ClInclude Include="include\TransformData.h" />
     <ClInclude Include="include\Vertex.h" />
     <ClInclude Include="include\WindowsPlatform.h" />
-    <ClInclude Include="include\Renderer.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="assets\shaders\FXAA_PS.hlsl">
