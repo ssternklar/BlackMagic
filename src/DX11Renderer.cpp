@@ -1,19 +1,20 @@
-#include "DirectXGraphicsDevice.h"
+#include "DX11Renderer.h"
 #include "Vertex.h"
 #include "GraphicsTypes.h"
 #include "WICTextureLoader.h"
 #include "DirectXMath.h"
 #include "DirectXCollision.h"
+#include "DDSTextureLoader.h"
 
 using namespace BlackMagic;
 using DirectX::XMFLOAT2;
 using DirectX::XMFLOAT4;
 using DirectX::XMFLOAT4X4;
 
-DirectXGraphicsDevice::DirectXGraphicsDevice()
+DX11Renderer::DX11Renderer()
 {}
 
-DirectXGraphicsDevice::~DirectXGraphicsDevice()
+DX11Renderer::~DX11Renderer()
 {
 	if (_diffuseMap)
 	{
@@ -42,22 +43,22 @@ DirectXGraphicsDevice::~DirectXGraphicsDevice()
 }
 
 
-ComPtr<ID3D11Device> DirectXGraphicsDevice::Device() const
+ComPtr<ID3D11Device> DX11Renderer::Device() const
 {
 	return _device;
 }
 
-ComPtr<ID3D11DeviceContext> DirectXGraphicsDevice::Context() const
+ComPtr<ID3D11DeviceContext> DX11Renderer::Context() const
 {
 	return _context;
 }
 
-D3D_FEATURE_LEVEL DirectXGraphicsDevice::FeatureLevel() const
+D3D_FEATURE_LEVEL DX11Renderer::FeatureLevel() const
 {
 	return _featureLevel;
 }
 
-void DirectXGraphicsDevice::Clear(XMFLOAT4 color)
+void DX11Renderer::Clear(XMFLOAT4 color)
 {
 	FLOAT black[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_context->ClearRenderTargetView(_backBuffer.Get(), reinterpret_cast<const FLOAT*>(&color));
@@ -74,7 +75,7 @@ void DirectXGraphicsDevice::Clear(XMFLOAT4 color)
 	}
 }
 
-ComPtr<ID3D11SamplerState> DirectXGraphicsDevice::CreateSamplerState(D3D11_SAMPLER_DESC& desc)
+ComPtr<ID3D11SamplerState> DX11Renderer::CreateSamplerState(D3D11_SAMPLER_DESC& desc)
 {
 	ID3D11SamplerState* tempSampler;
 	_device->CreateSamplerState(&desc, &tempSampler);
@@ -83,7 +84,7 @@ ComPtr<ID3D11SamplerState> DirectXGraphicsDevice::CreateSamplerState(D3D11_SAMPL
 	return ptr;
 }
 
-GraphicsBuffer DirectXGraphicsDevice::CreateBuffer(GraphicsBuffer::BufferType bufferType, void* data, size_t bufferSize)
+GraphicsBuffer DX11Renderer::CreateBuffer(GraphicsBuffer::BufferType bufferType, void* data, size_t bufferSize)
 {
 	D3D11_BUFFER_DESC desc = {};
 	desc.BindFlags = bufferType == GraphicsBuffer::BufferType::VERTEX_BUFFER ? D3D11_BIND_VERTEX_BUFFER : D3D11_BIND_INDEX_BUFFER;
@@ -100,18 +101,18 @@ GraphicsBuffer DirectXGraphicsDevice::CreateBuffer(GraphicsBuffer::BufferType bu
 	return buffer;
 }
 
-void DirectXGraphicsDevice::ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize)
+void DX11Renderer::ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize)
 {
 	buffer.GetAs<ID3D11Buffer*>()->Release();
 	buffer = CreateBuffer(bufferType, newData, newBufferSize);
 }
 
-void BlackMagic::DirectXGraphicsDevice::CleanupBuffer(GraphicsBuffer buffer)
+void BlackMagic::DX11Renderer::CleanupBuffer(GraphicsBuffer buffer)
 {
 	if(buffer.buffer) buffer.GetAs<ID3D11Buffer*>()->Release();
 }
 
-void DirectXGraphicsDevice::OnResize(UINT width, UINT height)
+void DX11Renderer::OnResize(UINT width, UINT height)
 {
 	_width = width;
 	_height = height;
@@ -149,12 +150,12 @@ void DirectXGraphicsDevice::OnResize(UINT width, UINT height)
 	InitBuffers();
 }
 
-void DirectXGraphicsDevice::Present(UINT interval, UINT flags)
+void DX11Renderer::Present(UINT interval, UINT flags)
 {
 	_swapChain->Present(interval, flags);
 }
 
-HRESULT DirectXGraphicsDevice::InitDx(HWND window, UINT width, UINT height)
+HRESULT DX11Renderer::InitDx(HWND window, UINT width, UINT height)
 {
 	unsigned int deviceFlags = 0;
 	_width = width;
@@ -206,7 +207,7 @@ HRESULT DirectXGraphicsDevice::InitDx(HWND window, UINT width, UINT height)
 	return hr;
 }
 
-void DirectXGraphicsDevice::Init(ContentManager* content)
+void DX11Renderer::Init(ContentManager* content)
 {
 	contentManagerAllocator = content->GetAllocator();
 
@@ -332,7 +333,7 @@ void DirectXGraphicsDevice::Init(ContentManager* content)
 #endif
 
 //TODO: Fix BoundingFrustum generation issues (near&far planes are too close)
-void DirectXGraphicsDevice::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything)
+void DX11Renderer::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything)
 {
 #ifndef DRAW_EVERYTHING
 	//Collect objects with sphere colliders
@@ -360,7 +361,7 @@ void DirectXGraphicsDevice::Cull(const Camera& cam, ECS::World* gameWorld, std::
 #endif
 }
 
-void DirectXGraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight)
+void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight)
 {
 	using namespace DirectX;
 
@@ -463,7 +464,7 @@ void DirectXGraphicsDevice::RenderShadowMaps(const Camera& cam, const std::vecto
 }
 
 /*
-void DirectXGraphicsDevice::RenderProjectors(const std::vector<Projector>& projectors)
+void DX11Renderer::RenderProjectors(const std::vector<Projector>& projectors)
 {
 	const UINT stride = sizeof(XMFLOAT2);
 	const UINT offset = 0;
@@ -497,7 +498,7 @@ void DirectXGraphicsDevice::RenderProjectors(const std::vector<Projector>& proje
 }
 */
 
-void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight)
+void DX11Renderer::Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight)
 {
 	static UINT stride = sizeof(Vertex);
 	static UINT quadStride = sizeof(XMFLOAT2);
@@ -584,7 +585,7 @@ void DirectXGraphicsDevice::Render(const Camera& cam, const std::vector<ECS::Ent
 	_context->PSSetShaderResources(0, 6, srvs);
 }
 
-void DirectXGraphicsDevice::RenderSkybox(const Camera& cam)
+void DX11Renderer::RenderSkybox(const Camera& cam)
 {
 	ID3D11DepthStencilState* lastDepthState;
 	UINT lastStencilRef;
@@ -620,24 +621,35 @@ void DirectXGraphicsDevice::RenderSkybox(const Camera& cam)
 	_context->RSSetState(lastRasterState);
 }
 
-GraphicsTexture DirectXGraphicsDevice::CreateTexture(const char * texturePath, GraphicsRenderTarget * outOptionalRenderTarget)
+GraphicsTexture DX11Renderer::CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type)
 {
-	ID3D11ShaderResourceView* srv;
-	auto result = DirectX::CreateWICTextureFromFile(_device.Get(), (wchar_t*)texturePath, nullptr, &srv);
+	ID3D11ShaderResourceView* srv = nullptr;
+	HRESULT result;
+	switch(type)
+	{
+		case GraphicsTexture::TextureType::FLAT:
+			result = DirectX::CreateWICTextureFromFile(_device.Get(), texturePath, nullptr, &srv);
+			break;
+	
+		case GraphicsTexture::TextureType::CUBEMAP:
+			result = DirectX::CreateDDSTextureFromFile(_device.Get(), _context.Get(), texturePath, nullptr, &srv);
+			break;
+	}
+	
 	return GraphicsTexture(srv);
 }
 
-void BlackMagic::DirectXGraphicsDevice::CleanupTexture(GraphicsTexture texture)
+void BlackMagic::DX11Renderer::ReleaseTexture(GraphicsTexture texture)
 {
 	if(texture.buffer) texture.GetAs<ID3D11ShaderResourceView*>()->Release();
 }
 
-void BlackMagic::DirectXGraphicsDevice::CleanupRenderTarget(GraphicsRenderTarget renderTarget)
+void BlackMagic::DX11Renderer::ReleaseRenderTarget(GraphicsRenderTarget renderTarget)
 {
 	if(renderTarget.buffer) renderTarget.GetAs<ID3D11RenderTargetView*>()->Release();
 }
 
-void DirectXGraphicsDevice::InitBuffers()
+void DX11Renderer::InitBuffers()
 {
 	// The above function created the back buffer render target
 	// for us, but we need a reference to it
@@ -814,7 +826,7 @@ void DirectXGraphicsDevice::InitBuffers()
 
 }
 
-Texture* DirectXGraphicsDevice::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
+Texture* DX11Renderer::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
 {
 	ID3D11Texture2D* tex;
 	ID3D11RenderTargetView* rtv;

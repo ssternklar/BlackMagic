@@ -7,17 +7,17 @@
 
 #include "Texture.h"
 #include "Mesh.h"
-#include "DirectXGraphicsDevice.h"
+#include "DX11Renderer.h"
 #include "DDSTextureLoader.h"
 
 using namespace BlackMagic;
+
+#if defined(_WIN32) || defined(_WIN64)
 using namespace DirectX;
 
-ContentManager::ContentManager(GraphicsDevice* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
-	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator))), graphicsDevice(device)
+ContentManager::ContentManager(Renderer* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
+	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator))), renderer(device)
 {
-	_device = reinterpret_cast<DirectXGraphicsDevice*>(device)->Device();
-	_context = reinterpret_cast<DirectXGraphicsDevice*>(device)->Context();
 }
 
 ContentManager::~ContentManager()
@@ -29,7 +29,7 @@ template<>
 std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::allocate_shared<Mesh>(ContentAllocatorAdapter(_allocator), fullPath, graphicsDevice);
+	auto ptr = std::allocate_shared<Mesh>(ContentAllocatorAdapter(_allocator), fullPath, renderer);
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -38,10 +38,8 @@ template<>
 std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-
-	GraphicsTexture tex = graphicsDevice->CreateTexture((const char*)fullPath.c_str());
-
-	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator), graphicsDevice, tex, GraphicsRenderTarget(nullptr));
+	GraphicsTexture tex = renderer->CreateTexture(fullPath.c_str(), GraphicsTexture::TextureType::FLAT);
+	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator), renderer, tex, GraphicsRenderTarget(nullptr));
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -49,10 +47,9 @@ std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 template<>
 std::shared_ptr<Cubemap> ContentManager::load_Internal(const std::wstring& name)
 {
-	ID3D11ShaderResourceView* srv;
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto result = CreateDDSTextureFromFile(_device.Get(), _context.Get(), fullPath.c_str(), nullptr, &srv);
-	auto ptr = std::allocate_shared<Cubemap>(AllocatorSTLAdapter<Cubemap, BestFitAllocator>(_allocator), graphicsDevice, GraphicsTexture(srv), GraphicsRenderTarget(nullptr));;
+	auto tex = renderer->CreateTexture(fullPath.c_str(), GraphicsTexture::TextureType::CUBEMAP);
+	auto ptr = std::allocate_shared<Cubemap>(AllocatorSTLAdapter<Cubemap, BestFitAllocator>(_allocator), renderer, tex, GraphicsRenderTarget(nullptr));;
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -61,9 +58,11 @@ template<>
 std::shared_ptr<VertexShader> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
+	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
+	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
 	auto ptr = std::allocate_shared<VertexShader>(ContentAllocatorAdapter(_allocator), 
-		_device.Get(),
-		_context.Get());
+		device.Get(),
+		context.Get());
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
@@ -73,9 +72,11 @@ template<>
 std::shared_ptr<PixelShader> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
+	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
+	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
 	auto ptr = std::allocate_shared<PixelShader>(ContentAllocatorAdapter(_allocator), 
-		_device.Get(),
-		_context.Get());
+		device.Get(),
+		context.Get());
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
@@ -118,6 +119,8 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	return ret;
 }
 */
+
+#endif
 
 template<typename T>
 std::shared_ptr<T> ContentManager::load_Internal(const std::wstring& name)

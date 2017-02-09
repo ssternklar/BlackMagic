@@ -9,18 +9,21 @@
 #include <allocators/AllocatorSTLAdapter.h>
 #include <allocators/BadBestFitAllocator.h>
 
+#if defined(_WIN32) || defined(_WIN64)
 using VertexShader = SimpleVertexShader;
 using PixelShader = SimplePixelShader;
+#endif
+
 using BlackMagic::IResource;
 using ContentAllocatorAdapter = BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::weak_ptr<IResource>>, BlackMagic::BestFitAllocator>;
 using ContentMap = std::unordered_map<std::wstring, std::weak_ptr<IResource>, std::hash<std::wstring>, std::equal_to<std::wstring>, ContentAllocatorAdapter>;
 namespace BlackMagic
 {
-	class GraphicsDevice;
+	class Renderer;
 	class ContentManager
 	{
 	public:
-		ContentManager(GraphicsDevice* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator);
+		ContentManager(Renderer* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator);
 		~ContentManager();
 
 		template<typename T>
@@ -44,12 +47,10 @@ namespace BlackMagic
 		}
 
 	private:
-		ComPtr<ID3D11Device> _device;
-		ComPtr<ID3D11DeviceContext> _context;
 		std::wstring _assetDirectory;
 		ContentMap _resources;
 		BlackMagic::BestFitAllocator* _allocator;
-		GraphicsDevice* graphicsDevice;
+		Renderer* renderer;
 
 		template<typename T>
 		std::shared_ptr<T> load_Internal(const std::wstring& name);

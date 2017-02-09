@@ -3,15 +3,15 @@
 #include <d3d11.h>
 #include <memory>
 #include <vector>
-#include "GraphicsDevice.h"
+#include "Renderer.h"
 #include "Projector.h"
 
 namespace BlackMagic {
-	class DirectXGraphicsDevice : public GraphicsDevice
+	class DX11Renderer : public Renderer
 	{
 	public:
-		DirectXGraphicsDevice();
-		~DirectXGraphicsDevice();
+		DX11Renderer();
+		~DX11Renderer();
 
 		ComPtr<ID3D11Device> Device() const;
 		ComPtr<ID3D11DeviceContext> Context() const;
@@ -30,9 +30,9 @@ namespace BlackMagic {
 		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) override;
 		virtual void RenderSkybox(const Camera& cam) override;
 		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
-		virtual GraphicsTexture CreateTexture(const char* texturePath, GraphicsRenderTarget* outOptionalRenderTarget = nullptr) override;
-		virtual void CleanupTexture(GraphicsTexture texture) override;
-		virtual void CleanupRenderTarget(GraphicsRenderTarget renderTarget) override;
+		virtual GraphicsTexture CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type) override;
+		virtual void ReleaseTexture(GraphicsTexture texture) override;
+		virtual void ReleaseRenderTarget(GraphicsRenderTarget renderTarget) override;
 	private:
 		ComPtr<ID3D11Device> _device;
 		ComPtr<ID3D11DeviceContext> _context;

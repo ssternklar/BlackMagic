@@ -4,7 +4,7 @@
 #include <fstream>
 #include <vector>
 #include "Vertex.h"
-#include "GraphicsDevice.h"
+#include "Renderer.h"
 #include "GraphicsTypes.h"
 
 using namespace BlackMagic;
@@ -53,7 +53,7 @@ Mesh::Mesh() :
 {}
 
 
-Mesh::Mesh(const std::wstring& file, GraphicsDevice* device) : IResource(device)
+Mesh::Mesh(const std::wstring& file, Renderer* device) : IResource(device)
 {
 	// File input object
 	std::ifstream obj(file);

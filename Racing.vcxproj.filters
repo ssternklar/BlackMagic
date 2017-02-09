@@ -60,12 +60,6 @@
     <ClCompile Include="src\GameAbstraction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\DirectXGraphicsDevice.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GraphicsDevice.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\IResource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -73,6 +67,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\TestGame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DX11Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -149,12 +146,6 @@
     <ClInclude Include="include\GameAbstraction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\DirectXGraphicsDevice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GraphicsDevice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\GraphicsTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -162,6 +153,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\TestGame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DX11Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

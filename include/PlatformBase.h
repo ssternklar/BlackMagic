@@ -2,7 +2,7 @@
 #include "allocators\globals.h"
 #include "allocators\StackAllocator.h"
 #include "allocators\BadBestFitAllocator.h"
-#include "GraphicsDevice.h"
+#include "Renderer.h"
 #include "ContentManager.h"
 #include "InputData.h"
 #include "TransformData.h"
@@ -18,14 +18,14 @@ namespace BlackMagic {
 		byte* gameMemory;
 		size_t gameMemorySize;
 		byte* TheCPUMemory;
-		GraphicsDevice* graphicsDevice;
+		Renderer* renderer;
 		ContentManager* contentManager;
 		TransformData* transformData;
 		int windowWidth = 1280;
 		int windowHeight = 720;
 	public:
 		virtual bool InitWindow() = 0;
-		virtual void InitPlatformGraphicsDevice() = 0;
+		virtual void InitPlatformRenderer() = 0;
 		virtual bool GetSystemMemory(size_t memSize, byte** ptrToRetrievedMemory) = 0;
 		virtual void InputUpdate() = 0;
 		virtual bool ShouldExit() = 0;
@@ -35,7 +35,7 @@ namespace BlackMagic {
 		bool BlackMagicInit();
 		void BlackMagicCleanup();
 		InputData* GetInputData();
-		GraphicsDevice* GetGraphicsDevice();
+		Renderer* GetRenderer();
 		ContentManager* GetContentManager();
 		void GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage);
 	};

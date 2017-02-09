@@ -145,7 +145,6 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
     <ClCompile Include="src\GameAbstraction.cpp" />
-    <ClCompile Include="src\GraphicsDevice.cpp" />
     <ClCompile Include="src\InputData.cpp" />
     <ClCompile Include="src\IResource.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -154,7 +153,7 @@
     <ClCompile Include="src\PlatformBase.cpp" />
     <ClCompile Include="src\Projector.cpp" />
     <ClCompile Include="src\Renderable.cpp" />
-    <ClCompile Include="src\DirectXGraphicsDevice.cpp" />
+    <ClCompile Include="src\DX11Renderer.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
     <ClCompile Include="src\TestGame.cpp" />
     <ClCompile Include="src\Texture.cpp" />
@@ -175,7 +174,7 @@
     <ClInclude Include="include\GameAbstraction.h" />
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\GraphicsTypes.h" />
-    <ClInclude Include="include\GraphicsDevice.h" />
+    <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\InputData.h" />
     <ClInclude Include="include\PlatformBase.h" />
     <ClInclude Include="include\Projector.h" />
@@ -183,7 +182,7 @@
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\IResource.h" />
-    <ClInclude Include="include\DirectXGraphicsDevice.h" />
+    <ClInclude Include="include\DX11Renderer.h" />
     <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\TestGame.h" />

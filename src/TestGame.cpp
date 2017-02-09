@@ -1,5 +1,5 @@
 #include "TestGame.h"
-#include "DirectXGraphicsDevice.h"
+#include "DX11Renderer.h"
 
 using namespace BlackMagic;
 using namespace ECS;
@@ -22,6 +22,16 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 	_gameWorld = ECS::World::createWorld(AllocatorSTLAdapter<ECS::Entity, BestFitAllocator>(&allocator));
 	LoadContent();
 
+	unsigned int width, height;
+	Entity* cam = _gameWorld->create();
+	XMFLOAT4 quatIdentity;
+	XMStoreFloat4(&quatIdentity, XMQuaternionIdentity());
+
+	cam->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, XMFLOAT3{ 1,1,1 });
+	_camera = cam->assign<Camera>(XMFLOAT3{ 0,0,0 });
+	platform->GetScreenDimensions(&width, &height);
+	_camera->UpdateProjectionMatrix(width, height);
+
 	_globalLight = {
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
@@ -34,15 +44,7 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 void TestGame::LoadContent()
 {
 	auto content = platform->GetContentManager();
-	unsigned int width, height;
-	Entity* cam = _gameWorld->create();
-	XMFLOAT4 quatIdentity;
-	XMStoreFloat4(&quatIdentity, XMQuaternionIdentity());
-
-	cam->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, XMFLOAT3{ 1,1,1 });
-	_camera = cam->assign<Camera>(XMFLOAT3{ 0,0,0 });
-	platform->GetScreenDimensions(&width, &height);
-	_camera->UpdateProjectionMatrix(width, height);
+	
 }
 
 void TestGame::Update(float deltaTime)
@@ -62,7 +64,7 @@ void TestGame::Update(float deltaTime)
 
 void TestGame::Draw(float deltaTime)
 {
-	auto renderer = platform->GetGraphicsDevice();
+	auto renderer = platform->GetRenderer();
 	const XMFLOAT4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
 	renderer->Clear(color);
 	std::vector<Entity*> renderables;

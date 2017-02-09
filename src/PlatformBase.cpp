@@ -26,15 +26,15 @@ bool PlatformBase::BlackMagicInit()
 
 	contentManager = allocatorAllocator->allocate<ContentManager>(false);
 	InitWindow();
-	InitPlatformGraphicsDevice();
+	InitPlatformRenderer();
 
 	contentManager = new (contentManager) ContentManager(
-		graphicsDevice,
+		renderer,
 		L"./assets/",
 		contentAllocator
 	);
 	
-	graphicsDevice->Init(contentManager);
+	renderer->Init(contentManager);
 
 	transformData = allocatorAllocator->allocate<TransformData>();
 	new (transformData) TransformData;
@@ -49,8 +49,8 @@ void PlatformBase::BlackMagicCleanup()
 	if (contentManager)
 		contentManager->~ContentManager();
 	
-	if (graphicsDevice)
-		graphicsDevice->~GraphicsDevice();
+	if (renderer)
+		renderer->~Renderer();
 	
 	ReturnSystemMemory(TheCPUMemory);
 }
@@ -60,9 +60,9 @@ InputData* PlatformBase::GetInputData()
 	return &inputData;
 }
 
-BlackMagic::GraphicsDevice* BlackMagic::PlatformBase::GetGraphicsDevice()
+BlackMagic::Renderer* BlackMagic::PlatformBase::GetRenderer()
 {
-	return graphicsDevice;
+	return renderer;
 }
 
 ContentManager* BlackMagic::PlatformBase::GetContentManager()
