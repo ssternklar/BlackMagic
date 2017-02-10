@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DX11Starter", "DX11Starter.vcxproj", "{2970F509-783A-4EB6-BF2B-7D5612205186}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tool", "tool.vcxproj", "{2970F509-783A-4EB6-BF2B-7D5612205186}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
