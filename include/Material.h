@@ -17,7 +17,7 @@ public:
 		const std::shared_ptr<SimpleVertexShader>& vs, 
 		const std::shared_ptr<SimplePixelShader>& ps,
 		const std::shared_ptr<Texture>& tex,
-		const std::shared_ptr<ID3D11SamplerState>& sampler,
+		const ComPtr<ID3D11SamplerState>& sampler,
 		const std::shared_ptr<Texture>& normalMap
 	);
 
@@ -37,5 +37,5 @@ private:
 	std::shared_ptr<SimpleVertexShader> _vertShader;
 	std::shared_ptr<SimplePixelShader> _pixelShader;
 	std::shared_ptr<Texture> _texture, _normalMap;
-	std::shared_ptr<ID3D11SamplerState> _mainSampler;
+	ComPtr<ID3D11SamplerState> _mainSampler;
 };
