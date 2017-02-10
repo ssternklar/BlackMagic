@@ -4,7 +4,7 @@ Material::Material(
 	const std::shared_ptr<SimpleVertexShader>& vs,
 	const std::shared_ptr<SimplePixelShader>& ps,
 	const std::shared_ptr<Texture>& tex,
-	const std::shared_ptr<ID3D11SamplerState>& sampler,
+	const ComPtr<ID3D11SamplerState>& sampler,
 	const std::shared_ptr<Texture>& normalMap
 )
 	: _vertShader(vs),
@@ -37,7 +37,7 @@ Texture* Material::NormalMap() const
 
 ID3D11SamplerState* Material::MainSampler() const
 {
-	return _mainSampler.get();
+	return _mainSampler.Get();
 }
 
 void Material::Apply(
@@ -53,7 +53,7 @@ void Material::Apply(
 	_vertShader->SetMatrix4x4("projection", proj);
 
 	_pixelShader->SetShaderResourceView("mainTex", _texture->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
-	_pixelShader->SetSamplerState("mainSampler", _mainSampler.get());
+	_pixelShader->SetSamplerState("mainSampler", _mainSampler.Get());
 	_pixelShader->SetShaderResourceView("normalMap", _normalMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
 	//_pixelShader->SetData("directionalLights", &lights[0], sizeof(DirectionalLight)*lights.size() + padding);
 

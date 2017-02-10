@@ -24,15 +24,13 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 
 	unsigned int width, height;
 	Entity* cam = _gameWorld->create();
-	XMFLOAT4 quatIdentity;
-	XMStoreFloat4(&quatIdentity, XMQuaternionIdentity());
+	XMFLOAT4 camDir;
+	XMStoreFloat4(&camDir, XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), XM_PIDIV2));
 
-	cam->assign<Transform>(XMFLOAT3{ 0,0,0 }, quatIdentity, XMFLOAT3{ 1,1,1 });
+	cam->assign<Transform>(XMFLOAT3{ 0,0,-10 }, camDir, XMFLOAT3{ 1,1,1 });
 	_camera = cam->assign<Camera>(XMFLOAT3{ 0,0,0 });
 	platform->GetScreenDimensions(&width, &height);
 	_camera->UpdateProjectionMatrix(width, height);
-
-	
 
 	_globalLight = {
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
@@ -51,12 +49,32 @@ void TestGame::LoadContent()
 	XMStoreFloat4(&quatIdentity, XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
+	auto gPassVS = content->Load<VertexShader>(L"/shaders/GBufferVS.cso");
+	auto gPassPS = content->Load<PixelShader>(L"/shaders/GBufferPS.cso");
+	auto sphereTex = content->Load<Texture>(L"/textures/test_texture.png");
+	auto sphereNormals = content->Load<Texture>(L"/textures/test_normals.png");
+
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.AddressU = samplerDesc.AddressV = samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	auto sampler = reinterpret_cast<DX11Renderer*>(platform->GetRenderer())->CreateSamplerState(samplerDesc);
+	auto mat = std::make_shared<Material> (
+		gPassVS, gPassPS,
+		sphereTex, sampler,
+		sphereNormals
+	);
+
 	for(float y = 0; y < 11; y++)
 	{
 		for (float x = 0; x < 11; x++)
 		{
 			auto e = _gameWorld->create();
 			e->assign<Transform>(XMFLOAT3{ x, y, 0 }, quatIdentity, defaultScale);
+			e->assign<Renderable>(sphere, mat);
 		}
 	}
 }

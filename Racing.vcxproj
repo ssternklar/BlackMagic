@@ -143,6 +143,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\CameraSystem.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
     <ClCompile Include="src\GameAbstraction.cpp" />
     <ClCompile Include="src\InputData.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />
     <ClInclude Include="include\ECS.h" />
+    <ClInclude Include="include\CameraSystem.h" />
     <ClInclude Include="include\GameAbstraction.h" />
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\GraphicsTypes.h" />
