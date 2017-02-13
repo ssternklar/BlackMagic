@@ -40,5 +40,8 @@ private:
 	void UpdateTitleBarStats();
 
 	POINT prevMousePos;
+
+	// temp
+	size_t d = 0;
 };
 

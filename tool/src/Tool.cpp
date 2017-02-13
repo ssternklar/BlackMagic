@@ -3,6 +3,7 @@
 
 #include "Tool.h"
 #include "Input.h"
+#include "Transform.h"
 
 using namespace DirectX;
 
@@ -31,13 +32,14 @@ Tool::Tool(char* titleBarText, bool debugTitleBarStats)
 
 #if defined(DEBUG) || defined(_DEBUG)
 	CreateConsoleWindow(500, 120, 32, 120);
-	printf("Console window created successfully.  Feel free to printf() here.");
+	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
 }
 
 Tool::~Tool()
 {
 	delete graphics;
+	TransformData::ptr->ShutDown();
 }
 
 HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
@@ -55,6 +57,11 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 
 	Input::bindToControl("Quit", VK_ESCAPE);
 
+	TransformData::Init(400);
+	Input::bindToControl("new", 'N');
+	Input::bindToControl("count", 'C');
+	Input::bindToControl("delete", 'D');
+
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
 	{
@@ -71,6 +78,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 
 			Update(deltaTime, totalTime);
 			graphics->Draw(deltaTime, totalTime);
+			Input::updateControlStates();
 		}
 	}
 
@@ -81,6 +89,18 @@ void Tool::Update(float deltaTime, float totalTime)
 {
 	if (Input::wasControlPressed("Quit"))
 		Quit();
+
+	if (Input::wasControlPressed("new"))
+		TransformData::ptr->newTransform();
+
+	if (Input::wasControlPressed("count"))
+		++d;
+
+	if (Input::wasControlPressed("delete"))
+	{
+		TransformData::ptr->deleteTransform(d);
+		d = 0;
+	}
 }
 
 void Tool::Quit()

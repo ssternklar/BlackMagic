@@ -123,12 +123,14 @@
     <ClCompile Include="src\Graphics.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
+    <ClCompile Include="src\Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\Tool.h" />
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="src\SimpleShader.h" />
+    <ClInclude Include="src\Transform.h" />
     <ClInclude Include="src\Vertex.h" />
   </ItemGroup>
   <ItemGroup>
