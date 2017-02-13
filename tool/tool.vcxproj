@@ -118,14 +118,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\DXCore.cpp" />
-    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\Input.cpp" />
+    <ClCompile Include="src\Tool.cpp" />
+    <ClCompile Include="src\Graphics.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\DXCore.h" />
-    <ClInclude Include="src\Game.h" />
+    <ClInclude Include="src\Input.h" />
+    <ClInclude Include="src\Tool.h" />
+    <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="src\SimpleShader.h" />
     <ClInclude Include="src\Vertex.h" />
   </ItemGroup>
