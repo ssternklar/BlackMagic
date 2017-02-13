@@ -6,6 +6,7 @@
 #include <DirectXMath.h>
 
 #include "SimpleShader.h"
+#include "Camera.h"
 
 class Graphics
 {
@@ -15,7 +16,7 @@ public:
 
 	HRESULT Init(HINSTANCE hInstance, const char* windowTitle);
 	void Resize(unsigned int width, unsigned int height);
-	void Draw(float deltaTime, float totalTime);
+	void Draw(Camera* camera, float deltaTime, float totalTime);
 
 	HWND getHandle();
 	D3D_FEATURE_LEVEL getFeatureLevel();
@@ -41,8 +42,6 @@ private:
 
 	// temp
 	DirectX::XMFLOAT4X4 worldMatrix;
-	DirectX::XMFLOAT4X4 viewMatrix;
-	DirectX::XMFLOAT4X4 projectionMatrix;
 
 	void LoadShaders();
 	void CreateMatrices();

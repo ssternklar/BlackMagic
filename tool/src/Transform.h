@@ -28,6 +28,9 @@ public:
 	DirectX::XMFLOAT3 GetScale(TransformID id);
 	DirectX::XMFLOAT4 GetRotation(TransformID id);
 	DirectX::XMFLOAT3 GetForward(TransformID id);
+	DirectX::XMFLOAT3 GetUp(TransformID id);
+	DirectX::XMFLOAT3 GetRight(TransformID id);
+	Transform GetTransform(TransformID id);
 
 	void Move(TransformID id, DirectX::XMFLOAT3 dp);
 	void MoveTo(TransformID id, DirectX::XMFLOAT3 pos);

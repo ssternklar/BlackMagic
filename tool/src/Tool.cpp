@@ -39,6 +39,7 @@ Tool::Tool(char* titleBarText, bool debugTitleBarStats)
 Tool::~Tool()
 {
 	delete graphics;
+	delete camera;
 	TransformData::ptr->ShutDown();
 }
 
@@ -50,17 +51,15 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 	currentTime = now;
 	previousTime = now;
 
+	TransformData::Init(400);
+
 	graphics = new Graphics(windowWidth, windowHeight);
+	camera = new Camera();
 
 	HRESULT hr = graphics->Init(hInstance, windowTitle.c_str());
 	if (FAILED(hr)) return hr;
 
 	Input::bindToControl("Quit", VK_ESCAPE);
-
-	TransformData::Init(400);
-	Input::bindToControl("new", 'N');
-	Input::bindToControl("count", 'C');
-	Input::bindToControl("delete", 'D');
 
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
@@ -76,8 +75,9 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 			if(titleBarStats)
 				UpdateTitleBarStats();
 
+			camera->Update(deltaTime);
 			Update(deltaTime, totalTime);
-			graphics->Draw(deltaTime, totalTime);
+			graphics->Draw(camera, deltaTime, totalTime);
 			Input::updateControlStates();
 		}
 	}
@@ -89,18 +89,6 @@ void Tool::Update(float deltaTime, float totalTime)
 {
 	if (Input::wasControlPressed("Quit"))
 		Quit();
-
-	if (Input::wasControlPressed("new"))
-		TransformData::ptr->newTransform();
-
-	if (Input::wasControlPressed("count"))
-		++d;
-
-	if (Input::wasControlPressed("delete"))
-	{
-		TransformData::ptr->deleteTransform(d);
-		d = 0;
-	}
 }
 
 void Tool::Quit()
@@ -186,6 +174,8 @@ void Tool::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLin
 LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	DWORD mouseButton = 0;
+	unsigned int width;
+	unsigned int height;
 
 	switch (uMsg)
 	{
@@ -202,8 +192,10 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_SIZE:
-		graphics->Resize(LOWORD(lParam), HIWORD(lParam));
-
+		width = LOWORD(lParam);
+		height = HIWORD(lParam);
+		camera->Resize(width, height);
+		graphics->Resize(width, height);
 		return 0;
 
 	case WM_LBUTTONDOWN:

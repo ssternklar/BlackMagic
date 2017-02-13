@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Graphics.h"
+#include "Camera.h"
 
 class Tool
 {
@@ -18,6 +19,7 @@ public:
 	
 private:
 	Graphics* graphics;
+	Camera* camera;
 
 	void Update(float deltaTime, float totalTime);
 
@@ -40,8 +42,5 @@ private:
 	void UpdateTitleBarStats();
 
 	POINT prevMousePos;
-
-	// temp
-	size_t d = 0;
 };
 

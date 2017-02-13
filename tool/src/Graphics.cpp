@@ -245,19 +245,16 @@ void Graphics::Resize(unsigned int width, unsigned int height)
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	context->RSSetViewports(1, &viewport);
-
-	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f * 3.1415926535f, (float)width / height, 0.1f, 100.0f);
-	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P));
 }
 
-void Graphics::Draw(float deltaTime, float totalTime)
+void Graphics::Draw(Camera* camera, float deltaTime, float totalTime)
 {
 	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	context->ClearRenderTargetView(backBufferRTV, color);
 	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	vertexShader->SetMatrix4x4("world", worldMatrix);
-	vertexShader->SetMatrix4x4("view", viewMatrix);
-	vertexShader->SetMatrix4x4("projection", projectionMatrix);
+	vertexShader->SetMatrix4x4("view", camera->ViewMatrix());
+	vertexShader->SetMatrix4x4("projection", camera->ProjectionMatrix());
 	vertexShader->CopyAllBufferData();
 	vertexShader->SetShader();
 	pixelShader->SetShader();
@@ -315,13 +312,6 @@ void Graphics::CreateMatrices()
 {
 	XMMATRIX W = XMMatrixIdentity();
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(W));
-	XMVECTOR pos = XMVectorSet(0, 0, -5, 0);
-	XMVECTOR dir = XMVectorSet(0, 0, 1, 0);
-	XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-	XMMATRIX V = XMMatrixLookToLH(pos, dir, up);
-	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(V));
-	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f * 3.1415926535f, (float)width / height, 0.1f, 100.0f);
-	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P));
 }
 
 void Graphics::CreateBasicGeometry()

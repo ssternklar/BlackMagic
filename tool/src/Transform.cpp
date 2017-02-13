@@ -57,7 +57,7 @@ TransformID TransformData::newTransform()
 			++nextFreeID;
 		} while (nextFreeID < numTransforms && metaData[nextFreeID] & 0x1);
 	}
-	printf("%zu given\n", ret);
+	
 	return ret;
 }
 
@@ -67,7 +67,7 @@ void TransformData::deleteTransform(TransformID id)
 		return;
 
 	metaData[id] &= ~0x1;
-	printf("%zu taken\n", id);
+	
 	if (id < nextFreeID)
 		nextFreeID = id;
 	if (id == highestID)
@@ -161,4 +161,23 @@ XMFLOAT3 TransformData::GetForward(TransformID id)
 	XMFLOAT3 ret;
 	XMStoreFloat3(&ret, XMVector3Rotate(XMVectorSet(0, 0, 1, 0), XMLoadFloat4(&transforms[id].rot)));
 	return ret;
+}
+
+XMFLOAT3 TransformData::GetUp(TransformID id)
+{
+	XMFLOAT3 ret;
+	XMStoreFloat3(&ret, XMVector3Rotate(XMVectorSet(0, 1, 0, 0), XMLoadFloat4(&transforms[id].rot)));
+	return ret;
+}
+
+XMFLOAT3 TransformData::GetRight(TransformID id)
+{
+	XMFLOAT3 ret;
+	XMStoreFloat3(&ret, XMVector3Rotate(XMVectorSet(1, 0, 0, 0), XMLoadFloat4(&transforms[id].rot)));
+	return ret;
+}
+
+Transform TransformData::GetTransform(TransformID id)
+{
+	return transforms[id];
 }
