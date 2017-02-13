@@ -79,6 +79,14 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 			Update(deltaTime, totalTime);
 			graphics->Draw(camera, deltaTime, totalTime);
 			Input::updateControlStates();
+			if (Input::isControlDown("camLook"))
+			{
+				POINT pos;
+				pos.x = graphics->GetWidth() / 2;
+				pos.y = graphics->GetHeight() / 2;
+				ClientToScreen(graphics->getHandle(), &pos);
+				SetCursorPos(pos.x, pos.y);
+			}
 		}
 	}
 
@@ -220,7 +228,7 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		Input::OnMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
-	case WM_MOUSEWHEEL: // add to input
+	case WM_MOUSEWHEEL:
 		Input::OnMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA);
 		return 0;
 

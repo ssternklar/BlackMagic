@@ -116,6 +116,7 @@ namespace Input
 
 	void OnMouseMove(int x, int y)
 	{
+		printf("%d %d\n", x, y);
 		mousePos.x = (float)x;
 		mousePos.y = (float)y;
 		if (prevMousePos.x == -1)

@@ -16,8 +16,8 @@ Camera::Camera()
 	Input::bindToControl("camBack", 'S');
 	Input::bindToControl("camRight", 'D');
 	Input::bindToControl("camUp", VK_SPACE);
-	Input::bindToControl("camDown", VK_LCONTROL); // not working?
-	Input::bindToControl("camSprint", VK_LSHIFT); // not working?
+	Input::bindToControl("camDown", VK_CONTROL);
+	Input::bindToControl("camSprint", VK_SHIFT);
 	Input::bindToControl("camLook", VK_RBUTTON);
 }
 
@@ -52,6 +52,9 @@ void Camera::Update(float deltaTime)
 
 	XMVECTOR offsetVec = offsetForward + offsetUp + offsetRight;
 
+	if (Input::isControlDown("camDown"))
+		printf("test\n");
+
 	float speed = 15;
 	if (Input::isControlDown("camSprint"))
 		speed = 50;
@@ -63,8 +66,8 @@ void Camera::Update(float deltaTime)
 
 	if (Input::isControlDown("camLook"))
 	{
-		TransformData::ptr->Rotate(transform, TransformData::ptr->GetRight(transform), Input::mouseOffset().y * -0.001f);
-		TransformData::ptr->Rotate(transform, TransformData::ptr->GetUp(transform), Input::mouseOffset().x * -0.001f);
+		TransformData::ptr->Rotate(transform, TransformData::ptr->GetRight(transform), Input::mouseOffset().y * 15 * deltaTime);
+		TransformData::ptr->Rotate(transform, { 0,1,0 }, Input::mouseOffset().x * 15 * deltaTime);
 	}
 
 	XMVECTOR forward = XMLoadFloat3(&TransformData::ptr->GetForward(transform));
