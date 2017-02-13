@@ -5,12 +5,12 @@
 #include "GraphicsTypes.h"
 namespace BlackMagic
 {
-	class GraphicsDevice;
+	class Renderer;
 	class Mesh : public IResource
 	{
 	public:
 		Mesh();
-		Mesh(const std::wstring& file, GraphicsDevice* device);
+		Mesh(const std::wstring& file, Renderer* device);
 		~Mesh();
 
 		GraphicsBuffer VertexBuffer() const;

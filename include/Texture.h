@@ -9,7 +9,7 @@ namespace BlackMagic
 	class Texture : public IResource
 	{
 	public:
-		explicit Texture(BlackMagic::GraphicsDevice* device, BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView);
+		explicit Texture(BlackMagic::Renderer* device, BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView);
 		~Texture();
 
 		BlackMagic::GraphicsTexture GetGraphicsTexture() const;
@@ -23,7 +23,7 @@ namespace BlackMagic
 	class Cubemap : public Texture
 	{
 	public:
-		explicit Cubemap(BlackMagic::GraphicsDevice* device, BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView)
+		explicit Cubemap(BlackMagic::Renderer* device, BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView)
 			: Texture(device, srView, rtView) {}
 	};
 }

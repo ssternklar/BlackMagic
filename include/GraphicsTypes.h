@@ -35,6 +35,12 @@ namespace BlackMagic
 
 	struct GraphicsTexture
 	{
+		enum class TextureType
+		{
+			FLAT,
+			CUBEMAP
+		};
+
 		_BM_GRAPHICS_TYPE_INFO(GraphicsTexture)
 	};
 

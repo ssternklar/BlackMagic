@@ -1,6 +1,6 @@
 #pragma once
 #include "PlatformBase.h"
-#include "DirectXGraphicsDevice.h"
+#include "DX11Renderer.h"
 #ifdef _WIN32
 #include <Windows.h>
 #include <windowsx.h>
@@ -20,7 +20,7 @@ namespace BlackMagic
 		void HandleMouseMovement(WPARAM param, int x, int y);
 	public:
 		virtual bool InitWindow() override;
-		virtual void InitPlatformGraphicsDevice() override;
+		virtual void InitPlatformRenderer() override;
 		virtual bool GetSystemMemory(size_t size, byte** ptr) override;
 		virtual void InputUpdate() override;
 		virtual bool ShouldExit() override;
