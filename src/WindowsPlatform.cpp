@@ -21,8 +21,8 @@ void WindowsPlatform::HandleMouseMovement(WPARAM param, int x, int y)
 	static float lastMousePositionY = 0;
 	float currentPositionX = ((float)x / windowWidth) * 2 - 1;
 	float currentPositionY = ((float)y / windowHeight) * 2 - 1;
-	inputData.SetAxis(0, currentPositionX - lastMousePositionX);
-	inputData.SetAxis(1, currentPositionY - lastMousePositionY);
+	inputData.SetAxis(InputData::Axis::X, currentPositionX - lastMousePositionX);
+	inputData.SetAxis(InputData::Axis::Y, currentPositionY - lastMousePositionY);
 	lastMousePositionX = currentPositionX;
 	lastMousePositionY = currentPositionY;
 }
