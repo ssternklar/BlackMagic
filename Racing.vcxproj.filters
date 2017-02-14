@@ -185,6 +185,9 @@
     <ClInclude Include="include\RenderJob.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Handles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="assets\shaders\GBufferPS.hlsl" />

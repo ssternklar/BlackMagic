@@ -7,9 +7,13 @@ namespace BlackMagic
 	{
 		friend class ThreadManager;
 	protected:
+		bool inProgress = false;
 		virtual void Run() = 0;
+		bool done = false;
 	public:
-		bool done;
-		void WaitUntilJobIsComplete();
+		void WaitUntilJobIsComplete()
+		{
+			while (!done) {}
+		};
 	};
 }

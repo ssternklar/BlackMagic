@@ -43,3 +43,5 @@ namespace BlackMagic
 		_BM_GRAPHICS_TYPE_INFO(GraphicsRenderTarget)
 	};
 }
+
+#undef _BM_GRAPHICS_TYPE_INFO(X)

@@ -112,13 +112,9 @@ namespace BlackMagic
 		}
 
 		template<typename T>
-		T* allocate(bool callConstructor = false, size_t n = 1)
+		T* allocate(size_t n = 1)
 		{
 			void* memory = allocate(sizeof(T), n);
-			if (callConstructor)
-			{
-				return new (memory) T[n];
-			}
 			return (T*)memory;
 		}
 
@@ -169,15 +165,8 @@ namespace BlackMagic
 		}
 
 		template<typename T>
-		void deallocate(T* dealloc, bool callDestructor = false, size_t n = 1)
+		void deallocate(T* dealloc, size_t n = 1)
 		{
-			if (callDestructor)
-			{
-				for (int i = 0; i < n; i++)
-				{
-					dealloc[i]->~T();
-				}
-			}
 			deallocate((void*)dealloc, sizeof(T), n);
 		}
 		

@@ -7,6 +7,7 @@ namespace BlackMagic
 	{
 		friend class ThreadManager;
 	protected:
+		bool inProgress;
 		void* resourceLocation;
 		bool done;
 	public:
