@@ -2,6 +2,7 @@
 
 #define _BM_HANDLE_TYPE_INFO(X)\
 void* handleInternal; \
+public:\
 X##() : handleInternal(nullptr) {} \
 X##(void* ptr) : handleInternal(ptr) {} \
 \
@@ -12,6 +13,7 @@ namespace BlackMagic
 {
 	class Mutex
 	{
+		
 		_BM_HANDLE_TYPE_INFO(Mutex)
 	};
 }
