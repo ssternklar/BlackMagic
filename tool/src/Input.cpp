@@ -12,9 +12,7 @@ struct control
 };
 
 static std::map<std::string, control> controls;
-static DirectX::XMFLOAT2 prevMousePos = DirectX::XMFLOAT2(-1, -1);
-static DirectX::XMFLOAT2 mousePos;
-static float mouseScroll = 0;
+static DirectX::XMFLOAT2 mouseDelta;
 
 namespace Input
 {
@@ -42,8 +40,8 @@ namespace Input
 			controlBucket->second.wasDown = controlBucket->second.isDown;
 			controlBucket++;
 		}
-		prevMousePos = mousePos;
-		mouseScroll = 0;
+		mouseDelta.x = 0;
+		mouseDelta.y = 0;
 	}
 
 	bool isControlDown(std::string name)
@@ -78,55 +76,6 @@ namespace Input
 		return false;
 	}
 
-	void OnMouseDown(DWORD btn, int x, int y, HWND hMainWnd)
-	{
-		mousePos.x = (float)x;
-		mousePos.y = (float)y;
-		SetCapture(hMainWnd);
-
-		auto controlBucket = controls.begin();
-		while (controlBucket != controls.end())
-		{
-			for (size_t i = 0; i < controlBucket->second.bindings.size(); ++i)
-				if (btn == controlBucket->second.bindings[i])
-				{
-					controlBucket->second.isDown = true;
-					break;
-				}
-			controlBucket++;
-		}
-	}
-
-	void OnMouseUp(DWORD btn, int x, int y)
-	{
-		auto controlBucket = controls.begin();
-		while (controlBucket != controls.end())
-		{
-			for (size_t i = 0; i < controlBucket->second.bindings.size(); ++i)
-				if (btn == controlBucket->second.bindings[i])
-				{
-					controlBucket->second.isDown = false;
-					break;
-				}
-			controlBucket++;
-		}
-
-		ReleaseCapture();
-	}
-
-	void OnMouseMove(int x, int y)
-	{
-		mousePos.x = (float)x;
-		mousePos.y = (float)y;
-		if (prevMousePos.x == -1)
-			prevMousePos = mousePos;
-	}
-
-	void OnMouseWheel(float scrollAmount)
-	{
-		mouseScroll = scrollAmount;
-	}
-
 	void OnKeyDown(WPARAM btn)
 	{
 		auto controlBucket = controls.begin();
@@ -157,19 +106,14 @@ namespace Input
 		}
 	}
 
-	DirectX::XMFLOAT2 mouseOffset()
+	DirectX::XMFLOAT2 getMouseDelta()
 	{
-		DirectX::XMVECTOR pos = XMLoadFloat2(&mousePos);
-		DirectX::XMVECTOR ppos = XMLoadFloat2(&prevMousePos);
-		DirectX::XMVECTOR offsetVec = DirectX::XMVectorSubtract(pos, ppos);
-		DirectX::XMFLOAT2 offset;
-		DirectX::XMStoreFloat2(&offset, offsetVec);
-
-		return offset;
+		return mouseDelta;
 	}
 
-	float mouseWheel()
+	void OnMouseMove(int x, int y)
 	{
-		return mouseScroll;
+		mouseDelta.x = x;
+		mouseDelta.y = y;
 	}
 }

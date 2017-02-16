@@ -47,6 +47,20 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 	HRESULT hr = graphics->Init(hInstance);
 	if (FAILED(hr)) return hr;
 
+#ifndef HID_USAGE_PAGE_GENERIC
+#define HID_USAGE_PAGE_GENERIC         ((USHORT) 0x01)
+#endif
+#ifndef HID_USAGE_GENERIC_MOUSE
+#define HID_USAGE_GENERIC_MOUSE        ((USHORT) 0x02)
+#endif
+
+	RAWINPUTDEVICE Rid[1];
+	Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+	Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
+	Rid[0].dwFlags = RIDEV_INPUTSINK;
+	Rid[0].hwndTarget = graphics->getHandle();
+	RegisterRawInputDevices(Rid, 1, sizeof(Rid[0]));
+
 	ImGui_ImplDX11_Init(graphics->getHandle(), graphics->getDevice(), graphics->getContext());
 
 	Input::bindToControl("Quit", VK_ESCAPE);
@@ -83,14 +97,6 @@ void Tool::Update(float deltaTime)
 	if (Input::wasControlPressed("Quit"))
 		Quit();
 
-	//if (Input::isControlDown("camLook"))
-	//{
-	//	POINT pos;
-	//	pos.x = graphics->GetWidth() / 2;
-	//	pos.y = graphics->GetHeight() / 2;
-	//	ClientToScreen(graphics->getHandle(), &pos);
-	//	SetCursorPos(pos.x, pos.y);
-	//}
 	bool t;
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	if (!ImGui::Begin("Stats Bar", &t, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs))
@@ -146,7 +152,6 @@ void Tool::OnResize(unsigned int width, unsigned int height)
 extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	DWORD mouseButton = 0;
 	static unsigned int width = 1280;
 	static unsigned int height = 720;
 
@@ -182,32 +187,6 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		OnResize(width, height);
 		return 0;
 
-	case WM_LBUTTONDOWN:
-		if (mouseButton == 0) mouseButton = VK_LBUTTON;
-	case WM_MBUTTONDOWN:
-		if (mouseButton == 0) mouseButton = VK_MBUTTON;
-	case WM_RBUTTONDOWN:
-		if (mouseButton == 0) mouseButton = VK_RBUTTON;
-		Input::OnMouseDown(mouseButton, (int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), graphics->getHandle());
-		return 0;
-
-	case WM_LBUTTONUP:
-		if (mouseButton == 0) mouseButton = VK_LBUTTON;
-	case WM_MBUTTONUP:
-		if (mouseButton == 0) mouseButton = VK_MBUTTON;
-	case WM_RBUTTONUP:
-		if (mouseButton == 0) mouseButton = VK_RBUTTON;
-		Input::OnMouseUp(mouseButton, (int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam));
-		return 0;
-
-	case WM_MOUSEMOVE:
-		Input::OnMouseMove((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam));
-		return 0;
-
-	case WM_MOUSEWHEEL:
-		Input::OnMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA);
-		return 0;
-
 	case WM_KEYDOWN:
 		Input::OnKeyDown(wParam);
 		return 0;
@@ -217,9 +196,27 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_SYSCOMMAND:
-		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu (dear Imgui)
 			return 0;
 		break;
+
+	case WM_INPUT:
+	{
+		UINT dwSize = 40;
+		static BYTE lpb[40];
+
+		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+		RAWINPUT* raw = (RAWINPUT*)lpb;
+
+		if (raw->header.dwType == RIM_TYPEMOUSE)
+		{
+			int x = raw->data.mouse.lLastX;
+			int y = raw->data.mouse.lLastY;
+			Input::OnMouseMove(x, y);
+		}
+		break;
+	}
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);

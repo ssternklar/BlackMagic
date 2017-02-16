@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include "Input.h"
+#include "dear imgui\imgui.h"
 
 using namespace DirectX;
 
@@ -8,6 +9,9 @@ Camera::Camera()
 	fov = 0.4f * XM_PI;
 	nearPlane = 0.1f;
 	farPlane = 100.0f;
+
+	fpsEnabled = false;
+	fpsPos = { 0, 0 };
 
 	transform = TransformData::ptr->newTransform();
 	TransformData::ptr->Move(transform, {0, 0, -3});
@@ -19,7 +23,6 @@ Camera::Camera()
 	Input::bindToControl("camUp", VK_SPACE);
 	Input::bindToControl("camDown", VK_CONTROL);
 	Input::bindToControl("camSprint", VK_SHIFT);
-	Input::bindToControl("camLook", VK_RBUTTON);
 }
 
 Camera::~Camera()
@@ -65,10 +68,27 @@ void Camera::Update(float deltaTime)
 	XMStoreFloat3(&offset, offsetVec);
 	TransformData::ptr->Move(transform, offset);
 
-	if (Input::isControlDown("camLook"))
+	ImGuiIO& io = ImGui::GetIO();
+	XMFLOAT2 delta = Input::getMouseDelta();
+	if (io.MouseDown[1] && (delta.x != 0 || delta.y != 0))
 	{
-		TransformData::ptr->Rotate(transform, TransformData::ptr->GetRight(transform), Input::mouseOffset().y * 15 * deltaTime);
-		TransformData::ptr->Rotate(transform, { 0,1,0 }, Input::mouseOffset().x * 15 * deltaTime);
+		TransformData::ptr->Rotate(transform, TransformData::ptr->GetRight(transform), delta.y * 5 * deltaTime);
+		TransformData::ptr->Rotate(transform, { 0,1,0 }, delta.x * 5 * deltaTime);
+
+		if (!fpsEnabled)
+		{
+			ShowCursor(false);
+			fpsEnabled = true;
+			GetCursorPos(&fpsPos);
+		}
+
+		SetCursorPos(fpsPos.x, fpsPos.y);
+	}
+
+	if (io.MouseReleased[1] && fpsEnabled)
+	{
+		ShowCursor(true);
+		fpsEnabled = false;
 	}
 
 	XMVECTOR forward = XMLoadFloat3(&TransformData::ptr->GetForward(transform));

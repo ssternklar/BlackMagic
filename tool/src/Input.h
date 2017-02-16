@@ -12,12 +12,8 @@ namespace Input
 	bool wasControlPressed(std::string name);
 	bool wasControlReleased(std::string name);
 	void updateControlStates();
-	void OnMouseDown(DWORD btn, int x, int y, HWND hMainWnd);
-	void OnMouseUp(DWORD btn, int x, int y);
-	void OnMouseMove(int x, int y);
-	void OnMouseWheel(float scrollAmount);
 	void OnKeyDown(WPARAM btn);
 	void OnKeyUp(WPARAM btn);
-	DirectX::XMFLOAT2 mouseOffset();
-	float mouseWheel();
+	void OnMouseMove(int x, int y);
+	DirectX::XMFLOAT2 getMouseDelta();
 }
