@@ -21,20 +21,22 @@ bool PlatformBase::BlackMagicInit()
 	allocatorAllocator = new (ptr) StackAllocator(32, CPU_MEMORY_SIZE);
 	TheCPUMemory = ptr;
 
-	byte* contentMemory = (byte*)allocatorAllocator->allocate(1024 * 1024 * 512);
-	BestFitAllocator* contentAllocator = new (contentMemory) BestFitAllocator(32, 1024 * 1024 * 512);
+	byte* contentMemory = (byte*)allocatorAllocator->allocate(1024 * 1024 * 256);
+	BestFitAllocator* contentAllocator = new (contentMemory) BestFitAllocator(32, 1024 * 1024 * 256);
 
-	contentManager = allocatorAllocator->allocate<ContentManager>(false);
+	contentManager = allocatorAllocator->allocate<ContentManager>();
 	InitWindow();
-	InitPlatformGraphicsDevice();
+	InitPlatformRenderer();
 
 	contentManager = new (contentManager) ContentManager(
-		graphicsDevice,
+		renderer,
 		L"./assets/",
 		contentAllocator
 	);
 	
-	graphicsDevice->Init(contentManager);
+	renderer->Init(contentManager);
+
+	InitPlatformThreadManager();
 
 	transformData = allocatorAllocator->allocate<TransformData>();
 	new (transformData) TransformData;
@@ -49,8 +51,8 @@ void PlatformBase::BlackMagicCleanup()
 	if (contentManager)
 		contentManager->~ContentManager();
 	
-	if (graphicsDevice)
-		graphicsDevice->~GraphicsDevice();
+	if (renderer)
+		renderer->~Renderer();
 	
 	ReturnSystemMemory(TheCPUMemory);
 }
@@ -60,14 +62,19 @@ InputData* PlatformBase::GetInputData()
 	return &inputData;
 }
 
-BlackMagic::GraphicsDevice* BlackMagic::PlatformBase::GetGraphicsDevice()
+BlackMagic::Renderer* BlackMagic::PlatformBase::GetRenderer()
 {
-	return graphicsDevice;
+	return renderer;
 }
 
 ContentManager* BlackMagic::PlatformBase::GetContentManager()
 {
 	return contentManager;
+}
+
+ThreadManager * BlackMagic::PlatformBase::GetThreadManager()
+{
+	return threadManager;
 }
 
 void BlackMagic::PlatformBase::GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage)

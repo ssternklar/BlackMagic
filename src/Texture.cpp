@@ -1,20 +1,19 @@
 #include "Texture.h"
-#include "GraphicsDevice.h"
+#include "Renderer.h"
 
 using namespace BlackMagic;
 
-Texture::Texture(GraphicsDevice* device, GraphicsTexture srView, GraphicsRenderTarget rtView)
-	:
-	IResource(device),
-	_rtView(rtView),
-	_srView(srView)
+Texture::Texture(Renderer* device, GraphicsTexture srView, GraphicsRenderTarget rtView)
+	: _rtView(rtView),
+	_srView(srView),
+	IResource(device)
 {
 }
 
 Texture::~Texture()
 {
-	device->CleanupTexture(_srView);
-	device->CleanupRenderTarget(_rtView);
+	device->ReleaseTexture(_srView);
+	device->ReleaseRenderTarget(_rtView);
 }
 
 GraphicsTexture Texture::GetGraphicsTexture() const

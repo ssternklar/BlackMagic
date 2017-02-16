@@ -23,7 +23,7 @@ TransformData* TransformData::GetSingleton()
 
 TransformID TransformData::AllocateTransform()
 {
-	XMFLOAT4X4* alloc = matrixAllocator.allocate<XMFLOAT4X4>(false);
+	XMFLOAT4X4* alloc = matrixAllocator.allocate<XMFLOAT4X4>();
 	TransformID res = alloc - _matrices;
 	_matrices[res]._44 = 1;
 	if (res > highestAllocated)

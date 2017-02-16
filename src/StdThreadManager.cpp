@@ -9,7 +9,7 @@ void BlackMagic::StdThreadManager::PlatformCreateThread(InternalThreadWorker wor
 	{
 		threads[currentThreadCount] = thread(worker, manager);
 		currentThreadCount++;
-		threads[currentThreadCount].detach();
+		//threads[currentThreadCount].detach();
 	}
 }
 

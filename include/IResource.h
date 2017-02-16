@@ -5,12 +5,12 @@ using Microsoft::WRL::ComPtr;
 
 namespace BlackMagic
 {
-	class GraphicsDevice;
+	class Renderer;
 	class IResource
 	{
 	public:
-		BlackMagic::GraphicsDevice* device;
+		BlackMagic::Renderer* device;
 		IResource();
-		IResource(BlackMagic::GraphicsDevice* device);
+		IResource(BlackMagic::Renderer* device);
 	};
 }

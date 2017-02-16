@@ -55,7 +55,7 @@ LRESULT BlackMagic::WindowsPlatform::WindowProc(HWND hWnd, UINT uMsg, WPARAM wPa
 
 		// If DX is initialized, resize 
 		// our required buffers
-		singletonRef->graphicsDevice->OnResize(singletonRef->windowWidth, singletonRef->windowHeight);
+		singletonRef->renderer->OnResize(singletonRef->windowWidth, singletonRef->windowHeight);
 
 		return 0;
 
@@ -100,10 +100,10 @@ LRESULT BlackMagic::WindowsPlatform::WindowProc(HWND hWnd, UINT uMsg, WPARAM wPa
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-void WindowsPlatform::InitPlatformGraphicsDevice()
+void WindowsPlatform::InitPlatformRenderer()
 {
-	graphicsDevice = static_cast<GraphicsDevice*>(allocatorAllocator->allocate<DirectXGraphicsDevice>());
-	auto dxGDevice = new (graphicsDevice) DirectXGraphicsDevice;
+	renderer = static_cast<Renderer*>(allocatorAllocator->allocate<DX11Renderer>());
+	auto dxGDevice = new (renderer) DX11Renderer;
 	dxGDevice->InitDx(hWnd, windowWidth, windowHeight);
 	// The window exists but is not visible yet
 	// We need to tell Windows to show it, and how to show it
@@ -112,7 +112,13 @@ void WindowsPlatform::InitPlatformGraphicsDevice()
 
 void BlackMagic::WindowsPlatform::InitPlatformThreadManager()
 {
+	const size_t threadManagerWorkAreaSize = 1024 * 1024 * 64;
+	byte* workArea = (byte*)allocatorAllocator->allocate(threadManagerWorkAreaSize);
 	threadManager = static_cast<ThreadManager*>(allocatorAllocator->allocate<StdThreadManager>());
+	threadManager = new (threadManager) StdThreadManager(workArea, threadManagerWorkAreaSize);
+	threadManager->CreateGenericThread();
+	threadManager->CreateContentThread();
+	threadManager->CreateRenderThread();
 }
 
 bool WindowsPlatform::InitWindow()
