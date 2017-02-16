@@ -1,9 +1,9 @@
 #pragma once
 #include "Camera.h"
-#include "ECS.h"
-#include "Renderable.h"
 #include "ContentManager.h"
+#include "Entity.h"
 #include "GraphicsTypes.h"
+#include "Renderable.h"
 #include "Projector.h"
 #define NUM_SHADOW_CASCADES 5
 #define SHADOWMAP_DIM 1025
@@ -21,8 +21,8 @@ namespace BlackMagic
 		virtual GraphicsBuffer CreateBuffer(GraphicsBuffer::BufferType bufferType, void* data, size_t bufferSize) = 0;
 		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) = 0;
 		virtual void CleanupBuffer(GraphicsBuffer buffer) = 0;
-		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) = 0;
-		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) = 0;
+		virtual void Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything = false) = 0;
+		virtual void Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight) = 0;
 		virtual void RenderSkybox(const Camera& cam) = 0;
 		virtual GraphicsTexture CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type) = 0;
 		virtual void ReleaseTexture(GraphicsTexture texture) = 0;

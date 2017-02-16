@@ -17,14 +17,10 @@ bool WindowsPlatform::GetSystemMemory(size_t size, BlackMagic::byte** ptr)
 
 void WindowsPlatform::HandleMouseMovement(WPARAM param, int x, int y)
 {
-	static float lastMousePositionX = 0;
-	static float lastMousePositionY = 0;
-	float currentPositionX = ((float)x / windowWidth) * 2 - 1;
-	float currentPositionY = ((float)y / windowHeight) * 2 - 1;
-	inputData.SetAxis(InputData::Axis::X, currentPositionX - lastMousePositionX);
-	inputData.SetAxis(InputData::Axis::Y, currentPositionY - lastMousePositionY);
-	lastMousePositionX = currentPositionX;
-	lastMousePositionY = currentPositionY;
+	currentMousePos.x = ((float)x / windowWidth) * 2 - 1;
+	currentMousePos.y = ((float)y / windowHeight) * 2 - 1;
+	
+
 }
 
 LRESULT BlackMagic::WindowsPlatform::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -62,6 +58,7 @@ LRESULT BlackMagic::WindowsPlatform::WindowProc(HWND hWnd, UINT uMsg, WPARAM wPa
 		// Mouse button being pressed (while the cursor is currently over our window)
 	case WM_LBUTTONDOWN:
 		singletonRef->inputData.SetButton(0, true);
+		SetCapture(hWnd);
 		return 0;
 	case WM_MBUTTONDOWN:
 		singletonRef->inputData.SetButton(1, true);
@@ -74,6 +71,7 @@ LRESULT BlackMagic::WindowsPlatform::WindowProc(HWND hWnd, UINT uMsg, WPARAM wPa
 		// Mouse button being released (while the cursor is currently over our window)
 	case WM_LBUTTONUP:
 		singletonRef->inputData.SetButton(0, false);
+		ReleaseCapture();
 		return 0;
 	case WM_MBUTTONUP:
 		singletonRef->inputData.SetButton(1, false);
@@ -201,6 +199,12 @@ void WindowsPlatform::InputUpdate()
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+	//Needs to happen even if there's no mousemove message
+	inputData.SetAxis(InputData::Axis::X, currentMousePos.x - lastMousePos.x);
+	inputData.SetAxis(InputData::Axis::Y, currentMousePos.y - lastMousePos.y);
+	lastMousePos.x = currentMousePos.x;
+	lastMousePos.y = currentMousePos.y;
+
 	//Some of this occurs in windowproc
 	inputData.SetButton(3, KEYPRESSED('W'));
 	inputData.SetButton(4, KEYPRESSED('A'));
@@ -241,6 +245,30 @@ WindowsPlatform::WindowsPlatform(HINSTANCE instance)
 	// way of determining if we forgot to clean something up
 	//  - You may want to use something more advanced, like Visual Leak Detector
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	
+	//Open a console window
+	CONSOLE_SCREEN_BUFFER_INFO info;
+
+	AllocConsole();
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
+	info.dwSize.X = 500;
+	info.dwSize.Y = 120;
+	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), info.dwSize);
+
+	SMALL_RECT rect;
+	rect.Left = 0;
+	rect.Top = 0;
+	rect.Right = 120;
+	rect.Bottom = 32;
+
+	FILE* f;
+	freopen_s(&f, "CONIN$", "r", stdin);
+	freopen_s(&f, "CONOUT$", "w", stdout);
+	freopen_s(&f, "CONOUT$", "w", stderr);
+
+	auto handle = GetConsoleWindow();
+	auto menu = GetSystemMenu(handle, FALSE);
+	EnableMenuItem(menu, SC_CLOSE, MF_GRAYED);
 #endif
 
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
@@ -274,3 +302,9 @@ MSG BlackMagic::WindowsPlatform::GetMSG()
 {
 	return msg;
 }
+
+WindowsPlatform* WindowsPlatform::GetInstance()
+{
+	return singletonRef;
+}
+

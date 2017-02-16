@@ -3,16 +3,11 @@
 using namespace BlackMagic;
 using namespace DirectX;
 
-Renderable::Renderable(const std::shared_ptr<Mesh> mesh, const std::shared_ptr<Material> mat)
+Renderable::Renderable(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Material>& mat)
 	: _mesh(mesh),
 	_material(mat)
 {
 	
-}
-
-Renderable::Renderable()
-{
-
 }
 
 void Renderable::PrepareMaterial(Transform& transform, XMFLOAT4X4 view, XMFLOAT4X4 proj)

@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <iostream>
-#include <Windows.h>
 
 #define KEYPRESSED(char) (GetAsyncKeyState(char) & 0x8000)
 
@@ -36,13 +35,13 @@ BoundingFrustum Camera::Frustum() const
 	return _frustum;
 }
 
-void Camera::Update(Transform* transform)
+void Camera::Update(Transform& transform)
 {
-	auto quaternion = XMLoadFloat4(&transform->GetRotation());
+	auto quaternion = XMLoadFloat4(&transform.GetRotation());
 	auto offsetV = XMVector3Rotate(XMLoadFloat3(&offset), quaternion);
 	auto up = XMVector3Rotate(XMVectorSet(0, 1, 0, 0), quaternion);
-	auto position = XMLoadFloat3(&transform->GetPosition());
-	auto view = XMMatrixLookToLH(position + offsetV, XMLoadFloat3(&transform->GetForward()), up);
+	auto position = XMLoadFloat3(&transform.GetPosition());
+	auto view = XMMatrixLookToLH(position + offsetV, XMLoadFloat3(&transform.GetForward()), up);
 	XMStoreFloat4x4(&_viewMat, XMMatrixTranspose(view));
 	XMStoreFloat3(&pos, position + offsetV);
 
@@ -51,7 +50,7 @@ void Camera::Update(Transform* transform)
 	frustum.Transform(frustum, XMMatrixInverse(nullptr, view));
 }
 
-void Camera::UpdateProjectionMatrix(int width, int height)
+void Camera::UpdateProjectionMatrix(UINT width, UINT height)
 {
 	float aspect = static_cast<float>(width) / height;
 

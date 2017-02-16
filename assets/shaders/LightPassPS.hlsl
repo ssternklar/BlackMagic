@@ -3,6 +3,7 @@
 #define ZNEAR 0.1f
 #define ZFAR 100.0f
 #define SPLIT_SIZE ((ZFAR - ZNEAR)/NUM_SHADOW_CASCADES)
+#define GEN_SHADOW_MAPS 0
 
 struct DirectionalLight
 {
@@ -113,6 +114,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float linearDepth = linearizeDepth((depth.Sample(mainSampler, input.uv).r), ZNEAR, ZFAR);
 	float depthID = floor(linearDepth * NUM_SHADOW_CASCADES);
 
+#if GEN_SHADOW_MAPS == 1
 	//Based on MJP's CSM blending implementation
 	float distToNextCascade = (ZNEAR + (depthID+1) * SPLIT_SIZE)/ZFAR-linearDepth;
 	float shadow = sampleShadowMap(buffer.position, depthID);
@@ -123,6 +125,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 		float t = smoothstep(0.0f, 0.1f, distToNextCascade);
 		shadow = lerp(nextShadow, shadow, t);
 	}
-	
-	return float4(shadow*colorFromScenelight(buffer) , 1.0f);
+#endif
+	return float4(colorFromScenelight(buffer) , 1.0f);
 }

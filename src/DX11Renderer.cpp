@@ -328,14 +328,11 @@ void DX11Renderer::Init(ContentManager* content)
 
 }
 
-#if defined(DEBUG) || defined(_DEBUG)
-#define DRAW_EVERYTHING
-#endif
 
 //TODO: Fix BoundingFrustum generation issues (near&far planes are too close)
-void DX11Renderer::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything)
+void DX11Renderer::Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything)
 {
-#ifndef DRAW_EVERYTHING
+	/*
 	//Collect objects with sphere colliders
 	for (auto* ent : gameWorld->each<Transform, Renderable, DirectX::BoundingSphere>())
 	{
@@ -353,15 +350,15 @@ void DX11Renderer::Cull(const Camera& cam, ECS::World* gameWorld, std::vector<EC
 			objectsToDraw.push_back(ent);
 		}
 	}
-#else
-	for (auto* ent : gameWorld->each<Transform, Renderable>())
+	*/
+
+	for (auto* ent : objects)
 	{
 		objectsToDraw.push_back(ent);
 	}
-#endif
 }
 
-void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight)
+void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight)
 {
 	using namespace DirectX;
 
@@ -444,10 +441,10 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<ECS::En
 		const UINT offset = 0;
 		for (auto* o : objects)
 		{
-			auto& mesh = o->get<Renderable>()->_mesh;
+			auto& mesh = o->AsRenderable()->_mesh;
 			auto vBuf = mesh->VertexBuffer().GetAs<ID3D11Buffer*>();
 			auto iBuf = mesh->IndexBuffer().GetAs<ID3D11Buffer*>();
-			_shadowMapVS->SetMatrix4x4("model", *o->get<Transform>()->Matrix());
+			_shadowMapVS->SetMatrix4x4("model", *o->GetTransform().Matrix());
 			_shadowMapVS->CopyBufferData("PerInstance");
 			_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
 			_context->IASetIndexBuffer(iBuf, DXGI_FORMAT_R32_UINT, 0);
@@ -498,7 +495,7 @@ void DX11Renderer::RenderProjectors(const std::vector<Projector>& projectors)
 }
 */
 
-void DX11Renderer::Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight)
+void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight)
 {
 	static UINT stride = sizeof(Vertex);
 	static UINT quadStride = sizeof(XMFLOAT2);
@@ -506,7 +503,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<ECS::Entity*>& ob
 
 	Material* currentMaterial = nullptr;
 
-	RenderShadowMaps(cam, objects, sceneLight);
+	//RenderShadowMaps(cam, objects, sceneLight);
 
 	//TODO: Sort renderables by material and texture to minimize state switches
 	ID3D11RenderTargetView* rts[4] = {
@@ -520,8 +517,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<ECS::Entity*>& ob
 	//Load object attributes into the g-buffer (geometry pass)
 	for(auto* object : objects)
 	{
-		auto renderable = object->get<Renderable>();
-		auto transform = object->get<Transform>();
+		auto renderable = object->AsRenderable();
 
 		if (renderable->_material.get() != currentMaterial)
 		{
@@ -530,7 +526,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<ECS::Entity*>& ob
 		}
 		
 		//Update per-object constant buffer
-		renderable->_material->VertexShader()->SetData("world", transform->Matrix(), sizeof(XMFLOAT4X4));
+		renderable->_material->VertexShader()->SetData("world", object->GetTransform().Matrix(), sizeof(XMFLOAT4X4));
 		
 		//Upload buffers and draw
 		renderable->_material->Upload();
@@ -562,7 +558,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<ECS::Entity*>& ob
 	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture.Get());
 	_lightPassPS->CopyAllBufferData();
 
-	_context->IASetVertexBuffers(0, 1, &_quad, &quadStride, &offset);
+	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
 	_context->Draw(6, 0);
 	
 	//RenderSkybox(cam);
@@ -577,7 +573,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<ECS::Entity*>& ob
 	_fxaaPS->SetShaderResourceView("inputMap", _lightMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
 	_fxaaPS->CopyAllBufferData();
 
-	_context->IASetVertexBuffers(0, 1, &_quad, &quadStride, &offset);
+	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
 	_context->Draw(6, 0);
 	
 	//Can't have SRVs and RTVs that are pointing to the same texture bound at the same time, so unset them

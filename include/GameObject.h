@@ -3,12 +3,16 @@
 #include <DirectXMath.h>
 #include "Transform.h"
 
-class GameObject
+namespace BlackMagic
 {
-public:
-	GameObject(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT4 rot, DirectX::XMFLOAT3 scale);
+	class GameObject
+	{
+	public:
+		GameObject() = default;
+		GameObject(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT4 rot, DirectX::XMFLOAT3 scale);
 
-	Transform& GetTransform();
-protected:
-	Transform _transform;
-};
+		Transform& GetTransform();
+	protected:
+		Transform _transform;
+	};
+}

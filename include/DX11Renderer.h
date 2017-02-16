@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 #include "Renderer.h"
-#include "Projector.h"
 
 namespace BlackMagic {
 	class DX11Renderer : public Renderer
@@ -27,9 +26,9 @@ namespace BlackMagic {
 		virtual GraphicsBuffer CreateBuffer(GraphicsBuffer::BufferType desc, void* data, size_t bufferSize) override;
 		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) override;
 		virtual void CleanupBuffer(GraphicsBuffer buffer);
-		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) override;
+		virtual void Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
+		virtual void Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight) override;
 		virtual void RenderSkybox(const Camera& cam) override;
-		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
 		virtual GraphicsTexture CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type) override;
 		virtual void ReleaseTexture(GraphicsTexture texture) override;
 		virtual void ReleaseRenderTarget(GraphicsRenderTarget renderTarget) override;
@@ -85,6 +84,6 @@ namespace BlackMagic {
 
 		void InitBuffers();
 		Texture* createEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
-		void RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight);
+		void RenderShadowMaps(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight);
 	};
 }

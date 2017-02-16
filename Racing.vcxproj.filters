@@ -72,13 +72,13 @@
     <ClCompile Include="src\DX11Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CameraSystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\GameObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\FirstPersonCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Entity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -117,9 +117,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\TransformData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ECS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h">
@@ -170,10 +167,10 @@
     <ClInclude Include="include\DX11Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\CameraSystem.h">
+    <ClInclude Include="include\FirstPersonCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\FirstPersonCamera.h">
+    <ClInclude Include="include\Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

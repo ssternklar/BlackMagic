@@ -3,9 +3,16 @@
 #include "Camera.h"
 #include "GameObject.h"
 
-class FirstPersonCamera : public GameObject, public Camera
+#include "Windows.h"
+
+namespace BlackMagic
 {
-public:
-	FirstPersonCamera(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT4 dir);
-	void Update();
-};
+	class FirstPersonCamera : public GameObject, public Camera
+	{
+	public:
+		FirstPersonCamera(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT4 dir);
+		void Update(float delta);
+	private:
+		DirectX::XMFLOAT2 _rotation;
+	};
+}

@@ -2,15 +2,9 @@
 #include "GameAbstraction.h"
 
 #include "allocators\BadBestFitAllocator.h"
-
-#include <DirectXMath.h>
-#include <memory>
-#include <unordered_map>
-
-#include "Camera.h"
 #include "DirectionalLight.h"
-#include "ECS.h"
-#include "GameAbstraction.h"
+#include "Entity.h"
+#include "FirstPersonCamera.h"
 
 class TestGame : public BlackMagic::GameAbstraction
 {
@@ -29,7 +23,7 @@ private:
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
-	ECS::ComponentHandle<Camera> _camera;
+	BlackMagic::FirstPersonCamera _camera;
 	DirectionalLight _globalLight;
-	ECS::World* _gameWorld;
+	std::vector<BlackMagic::Entity*> _objects;
 };
