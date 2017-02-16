@@ -10,6 +10,7 @@ Camera::Camera()
 	farPlane = 100.0f;
 
 	transform = TransformData::ptr->newTransform();
+	TransformData::ptr->Move(transform, {0, 0, -3});
 
 	Input::bindToControl("camForward", 'W');
 	Input::bindToControl("camLeft", 'A');

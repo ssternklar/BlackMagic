@@ -120,7 +120,7 @@ bool ISimpleShader::LoadShaderFile(LPCWSTR shaderFile)
 			// Create the SRV wrapper
 			SimpleSRV* srv = new SimpleSRV();
 			srv->BindIndex = resourceDesc.BindPoint;	// Shader bind point
-			srv->Index = shaderResourceViews.size();	// Raw index
+			srv->Index = (unsigned int)shaderResourceViews.size();	// Raw index
 
 			textureTable.insert(std::pair<std::string, SimpleSRV*>(resourceDesc.Name, srv));
 			shaderResourceViews.push_back(srv);
@@ -132,7 +132,7 @@ bool ISimpleShader::LoadShaderFile(LPCWSTR shaderFile)
 			// Create the sampler wrapper
 			SimpleSampler* samp = new SimpleSampler();
 			samp->BindIndex = resourceDesc.BindPoint;	// Shader bind point
-			samp->Index = samplerStates.size();			// Raw index
+			samp->Index = (unsigned int)samplerStates.size();			// Raw index
 
 			samplerTable.insert(std::pair<std::string, SimpleSampler*>(resourceDesc.Name, samp));
 			samplerStates.push_back(samp);
@@ -678,7 +678,7 @@ bool SimpleVertexShader::CreateShader(ID3DBlob* shaderBlob)
 		// Check the semantic name for "_PER_INSTANCE"
 		std::string perInstanceStr = "_PER_INSTANCE";
 		std::string sem = paramDesc.SemanticName;
-		int lenDiff = sem.size() - perInstanceStr.size();
+		int lenDiff = (int)(sem.size() - perInstanceStr.size());
 		bool isPerInstance = 
 			lenDiff >= 0 &&
 			sem.compare(lenDiff, perInstanceStr.size(), perInstanceStr) == 0;
@@ -734,9 +734,9 @@ bool SimpleVertexShader::CreateShader(ID3DBlob* shaderBlob)
 
 	// Try to create Input Layout
 	HRESULT hr = device->CreateInputLayout(
-		&inputLayoutDesc[0], 
-		inputLayoutDesc.size(), 
-		shaderBlob->GetBufferPointer(), 
+		&inputLayoutDesc[0],
+		(unsigned int)inputLayoutDesc.size(),
+		shaderBlob->GetBufferPointer(),
 		shaderBlob->GetBufferSize(),
 		&inputLayout);
 
@@ -1302,7 +1302,7 @@ bool SimpleGeometryShader::CreateShaderWithStreamOut(ID3DBlob* shaderBlob)
 		shaderBlob->GetBufferPointer(), // Shader blob pointer
 		shaderBlob->GetBufferSize(),    // Shader blob size
 		&soDecl[0],                     // Stream out declaration
-		soDecl.size(),                  // Number of declaration entries
+		(unsigned int)soDecl.size(),                  // Number of declaration entries
 		NULL,                           // Buffer strides (not used - assume tightly packed?)
 		0,                              // No buffer strides
 		rast,                           // Index of the stream to rasterize (if any)

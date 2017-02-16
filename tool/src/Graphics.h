@@ -14,17 +14,20 @@ public:
 	Graphics(unsigned int windowWidth, unsigned int windowHeight);
 	~Graphics();
 
-	HRESULT Init(HINSTANCE hInstance, const char* windowTitle);
+	HRESULT Init(HINSTANCE hInstance);
 	void Resize(unsigned int width, unsigned int height);
-	void Draw(Camera* camera, float deltaTime, float totalTime);
+	void Draw(Camera* camera, float deltaTime);
+	void Present();
 
 	HWND getHandle();
+	ID3D11Device* getDevice();
+	ID3D11DeviceContext* getContext();
 	D3D_FEATURE_LEVEL getFeatureLevel();
 	unsigned int GetWidth();
 	unsigned int GetHeight();
 
 private:
-	HRESULT InitWindow(HINSTANCE hInstance, const char* windowTitle);
+	HRESULT InitWindow(HINSTANCE hInstance);
 	HRESULT InitDirectX();
 
 	HWND hWnd;

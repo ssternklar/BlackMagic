@@ -119,6 +119,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\dear imgui\imgui.cpp" />
+    <ClCompile Include="src\dear imgui\imgui_demo.cpp" />
+    <ClCompile Include="src\dear imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\dear imgui\imgui_impl_dx11.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\Tool.cpp" />
     <ClCompile Include="src\Graphics.cpp" />
@@ -128,6 +132,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\dear imgui\imconfig.h" />
+    <ClInclude Include="src\dear imgui\imgui.h" />
+    <ClInclude Include="src\dear imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="src\dear imgui\imgui_internal.h" />
+    <ClInclude Include="src\dear imgui\stb_rect_pack.h" />
+    <ClInclude Include="src\dear imgui\stb_textedit.h" />
+    <ClInclude Include="src\dear imgui\stb_truetype.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\Tool.h" />
     <ClInclude Include="src\Graphics.h" />

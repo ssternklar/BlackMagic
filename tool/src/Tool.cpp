@@ -1,5 +1,7 @@
-#include <WindowsX.h>
 #include <sstream>
+
+#include "dear imgui\imgui.h"
+#include "dear imgui\imgui_impl_dx11.h"
 
 #include "Tool.h"
 #include "Input.h"
@@ -16,19 +18,10 @@ LRESULT Tool::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-Tool::Tool(char* titleBarText, bool debugTitleBarStats)
+Tool::Tool()
 {
 	DXCoreInstance = this;
-
-	windowTitle = titleBarText;
-	titleBarStats = debugTitleBarStats;
-
-	fpsFrameCount = 0;
-	fpsTimeElapsed = 0.0f;
-
-	__int64 perfFreq;
-	QueryPerformanceFrequency((LARGE_INTEGER*)&perfFreq);
-	perfCounterSeconds = 1.0 / (double)perfFreq;
+	resizing = false;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	CreateConsoleWindow(500, 120, 32, 120);
@@ -38,6 +31,7 @@ Tool::Tool(char* titleBarText, bool debugTitleBarStats)
 
 Tool::~Tool()
 {
+	ImGui_ImplDX11_Shutdown();
 	delete graphics;
 	delete camera;
 	TransformData::ptr->ShutDown();
@@ -45,19 +39,15 @@ Tool::~Tool()
 
 HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
 {
-	__int64 now;
-	QueryPerformanceCounter((LARGE_INTEGER*)&now);
-	startTime = now;
-	currentTime = now;
-	previousTime = now;
-
 	TransformData::Init(400);
 
 	graphics = new Graphics(windowWidth, windowHeight);
 	camera = new Camera();
 
-	HRESULT hr = graphics->Init(hInstance, windowTitle.c_str());
+	HRESULT hr = graphics->Init(hInstance);
 	if (FAILED(hr)) return hr;
+
+	ImGui_ImplDX11_Init(graphics->getHandle(), graphics->getDevice(), graphics->getContext());
 
 	Input::bindToControl("Quit", VK_ESCAPE);
 
@@ -71,85 +61,51 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 		}
 		else
 		{
-			UpdateTimer();
-			if(titleBarStats)
-				UpdateTitleBarStats();
+			ImGui_ImplDX11_NewFrame();
 
-			camera->Update(deltaTime);
-			Update(deltaTime, totalTime);
-			graphics->Draw(camera, deltaTime, totalTime);
+			float delta = ImGui::GetIO().DeltaTime;
+			Update(delta);
+			camera->Update(delta);
+			graphics->Draw(camera, delta);
+
 			Input::updateControlStates();
-			if (Input::isControlDown("camLook"))
-			{
-				POINT pos;
-				pos.x = graphics->GetWidth() / 2;
-				pos.y = graphics->GetHeight() / 2;
-				ClientToScreen(graphics->getHandle(), &pos);
-				SetCursorPos(pos.x, pos.y);
-			}
+			
+			ImGui::Render();
+			graphics->Present();
 		}
 	}
 
-	return msg.wParam;
+	return (HRESULT)msg.wParam;
 }
 
-void Tool::Update(float deltaTime, float totalTime)
+void Tool::Update(float deltaTime)
 {
 	if (Input::wasControlPressed("Quit"))
 		Quit();
+
+	//if (Input::isControlDown("camLook"))
+	//{
+	//	POINT pos;
+	//	pos.x = graphics->GetWidth() / 2;
+	//	pos.y = graphics->GetHeight() / 2;
+	//	ClientToScreen(graphics->getHandle(), &pos);
+	//	SetCursorPos(pos.x, pos.y);
+	//}
+	bool t;
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	if (!ImGui::Begin("Stats Bar", &t, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs))
+	{
+		ImGui::End();
+		return;
+	}
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::Text("Res: %.0fx%.0f\tFPS: %.0f Delta: %.5f", io.DisplaySize.x, io.DisplaySize.y, io.Framerate, io.DeltaTime * 1000);
+	ImGui::End();
 }
 
 void Tool::Quit()
 {
 	PostQuitMessage(0);
-}
-
-void Tool::UpdateTimer()
-{
-	__int64 now;
-	QueryPerformanceCounter((LARGE_INTEGER*)&now);
-	currentTime = now;
-
-	deltaTime = max((float)((currentTime - previousTime) * perfCounterSeconds), 0.0f);
-
-	totalTime = (float)((currentTime - startTime) * perfCounterSeconds);
-
-	previousTime = currentTime;
-}
-
-void Tool::UpdateTitleBarStats()
-{
-	fpsFrameCount++;
-
-	float timeDiff = totalTime - fpsTimeElapsed;
-	if (timeDiff < 1.0f)
-		return;
-
-	float mspf = 1000.0f / (float)fpsFrameCount;
-
-	std::ostringstream output;
-	output.precision(6);
-	output << windowTitle <<
-		"    Width: "		<< graphics->GetWidth() <<
-		"    Height: "		<< graphics->GetHeight() <<
-		"    FPS: "			<< fpsFrameCount <<
-		"    Frame Time: "	<< mspf << "ms";
-
-	switch (graphics->getFeatureLevel())
-	{
-	case D3D_FEATURE_LEVEL_11_1: output << "    DX 11.1"; break;
-	case D3D_FEATURE_LEVEL_11_0: output << "    DX 11.0"; break;
-	case D3D_FEATURE_LEVEL_10_1: output << "    DX 10.1"; break;
-	case D3D_FEATURE_LEVEL_10_0: output << "    DX 10.0"; break;
-	case D3D_FEATURE_LEVEL_9_3:  output << "    DX 9.3";  break;
-	case D3D_FEATURE_LEVEL_9_2:  output << "    DX 9.2";  break;
-	case D3D_FEATURE_LEVEL_9_1:  output << "    DX 9.1";  break;
-	default:                     output << "    DX ???";  break;
-	}
-
-	SetWindowText(graphics->getHandle(), output.str().c_str());
-	fpsFrameCount = 0;
-	fpsTimeElapsed += 1.0f;
 }
 
 void Tool::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns)
@@ -179,11 +135,22 @@ void Tool::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLin
 	EnableMenuItem(hmenu, SC_CLOSE, MF_GRAYED);
 }
 
+void Tool::OnResize(unsigned int width, unsigned int height)
+{
+	ImGui_ImplDX11_InvalidateDeviceObjects();
+	camera->Resize(width, height);
+	graphics->Resize(width, height);
+	ImGui_ImplDX11_CreateDeviceObjects();
+}
+
+extern LRESULT ImGui_ImplDX11_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	DWORD mouseButton = 0;
-	unsigned int width;
-	unsigned int height;
+	static unsigned int width = 1280;
+	static unsigned int height = 720;
+
+	ImGui_ImplDX11_WndProcHandler(hWnd, uMsg, wParam, lParam);
 
 	switch (uMsg)
 	{
@@ -202,8 +169,17 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		width = LOWORD(lParam);
 		height = HIWORD(lParam);
-		camera->Resize(width, height);
-		graphics->Resize(width, height);
+		if (wParam == SIZE_MAXIMIZED || (wParam == SIZE_RESTORED && !resizing))
+			OnResize(width, height);
+		return 0;
+
+	case WM_ENTERSIZEMOVE:
+		resizing = true;
+		return 0;
+
+	case WM_EXITSIZEMOVE:
+		resizing = false;
+		OnResize(width, height);
 		return 0;
 
 	case WM_LBUTTONDOWN:
@@ -212,7 +188,7 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (mouseButton == 0) mouseButton = VK_MBUTTON;
 	case WM_RBUTTONDOWN:
 		if (mouseButton == 0) mouseButton = VK_RBUTTON;
-		Input::OnMouseDown(mouseButton, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), graphics->getHandle());
+		Input::OnMouseDown(mouseButton, (int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), graphics->getHandle());
 		return 0;
 
 	case WM_LBUTTONUP:
@@ -221,11 +197,11 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (mouseButton == 0) mouseButton = VK_MBUTTON;
 	case WM_RBUTTONUP:
 		if (mouseButton == 0) mouseButton = VK_RBUTTON;
-		Input::OnMouseUp(mouseButton, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		Input::OnMouseUp(mouseButton, (int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam));
 		return 0;
 
 	case WM_MOUSEMOVE:
-		Input::OnMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		Input::OnMouseMove((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam));
 		return 0;
 
 	case WM_MOUSEWHEEL:
@@ -239,6 +215,11 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 		Input::OnKeyUp(wParam);
 		return 0;
+
+	case WM_SYSCOMMAND:
+		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+			return 0;
+		break;
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);

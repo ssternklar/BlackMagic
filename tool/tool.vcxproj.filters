@@ -19,6 +19,12 @@
     <Filter Include="Assets\Shaders">
       <UniqueIdentifier>{5f37ec8c-c624-4f3d-8d2e-1571a1df475b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\dear imgui">
+      <UniqueIdentifier>{a6bb48be-31c9-474f-b9a0-97cde6f17dcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\dear imgui">
+      <UniqueIdentifier>{511b6194-8ad2-45ec-9aab-401a12adaa10}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.cpp">
@@ -42,6 +48,18 @@
     <ClCompile Include="src\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\dear imgui\imgui.cpp">
+      <Filter>Source Files\dear imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dear imgui\imgui_demo.cpp">
+      <Filter>Source Files\dear imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dear imgui\imgui_draw.cpp">
+      <Filter>Source Files\dear imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dear imgui\imgui_impl_dx11.cpp">
+      <Filter>Source Files\dear imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\SimpleShader.h">
@@ -64,6 +82,27 @@
     </ClInclude>
     <ClInclude Include="src\Camera.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\imconfig.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\imgui.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\imgui_internal.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\stb_rect_pack.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\stb_textedit.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\stb_truetype.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\imgui_impl_dx11.h">
+      <Filter>Header Files\dear imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

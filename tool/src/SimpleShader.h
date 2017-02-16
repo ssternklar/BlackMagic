@@ -99,11 +99,11 @@ public:
 	
 	const SimpleSRV* GetShaderResourceViewInfo(std::string name);
 	const SimpleSRV* GetShaderResourceViewInfo(unsigned int index);
-	unsigned int GetShaderResourceViewCount() { return textureTable.size(); }
+	unsigned int GetShaderResourceViewCount() { return (unsigned int)textureTable.size(); }
 	
 	const SimpleSampler* GetSamplerInfo(std::string name);
 	const SimpleSampler* GetSamplerInfo(unsigned int index);
-	unsigned int GetSamplerCount() { return samplerTable.size(); }
+	unsigned int GetSamplerCount() { return (unsigned int)samplerTable.size(); }
 
 	// Get data about constant buffers
 	unsigned int GetBufferCount();

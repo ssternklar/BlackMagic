@@ -37,10 +37,10 @@ Graphics::~Graphics()
 	delete pixelShader;
 }
 
-HRESULT Graphics::Init(HINSTANCE hInstance, const char* windowTitle)
+HRESULT Graphics::Init(HINSTANCE hInstance)
 {
 	HRESULT hr = S_OK;
-	hr = InitWindow(hInstance, windowTitle);
+	hr = InitWindow(hInstance);
 	if (FAILED(hr)) return hr;
 	hr = InitDirectX();
 	if (FAILED(hr)) return hr;
@@ -53,7 +53,7 @@ HRESULT Graphics::Init(HINSTANCE hInstance, const char* windowTitle)
 	return hr;
 }
 
-HRESULT Graphics::InitWindow(HINSTANCE hInstance, const char* windowTitle)
+HRESULT Graphics::InitWindow(HINSTANCE hInstance)
 {
 	WNDCLASS wndClass = {};
 	wndClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -86,7 +86,7 @@ HRESULT Graphics::InitWindow(HINSTANCE hInstance, const char* windowTitle)
 
 	hWnd = CreateWindow(
 		wndClass.lpszClassName,
-		windowTitle,
+		"ChiroTool",
 		WS_OVERLAPPEDWINDOW,
 		centeredX,
 		centeredY,
@@ -247,7 +247,7 @@ void Graphics::Resize(unsigned int width, unsigned int height)
 	context->RSSetViewports(1, &viewport);
 }
 
-void Graphics::Draw(Camera* camera, float deltaTime, float totalTime)
+void Graphics::Draw(Camera* camera, float deltaTime)
 {
 	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	context->ClearRenderTargetView(backBufferRTV, color);
@@ -263,6 +263,10 @@ void Graphics::Draw(Camera* camera, float deltaTime, float totalTime)
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	context->DrawIndexed(3, 0, 0);
+}
+
+void Graphics::Present()
+{
 	swapChain->Present(0, 0);
 }
 
@@ -359,6 +363,16 @@ void Graphics::CreateBasicGeometry()
 HWND Graphics::getHandle()
 {
 	return hWnd;
+}
+
+ID3D11Device* Graphics::getDevice()
+{
+	return device;
+}
+
+ID3D11DeviceContext* Graphics::getContext()
+{
+	return context;
 }
 
 D3D_FEATURE_LEVEL Graphics::getFeatureLevel()

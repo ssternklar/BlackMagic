@@ -6,7 +6,7 @@
 class Tool
 {
 public:
-	Tool(char* titleBarText, bool debugTitleBarStats);
+	Tool();
 	~Tool();
 
 	static Tool* DXCoreInstance;
@@ -21,25 +21,13 @@ private:
 	Graphics* graphics;
 	Camera* camera;
 
-	void Update(float deltaTime, float totalTime);
+	void Update(float deltaTime);
+	void OnResize(unsigned int width, unsigned int height);
 
 	std::string windowTitle;
-	bool titleBarStats;
+	bool resizing;
 
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
-
-	double perfCounterSeconds;
-	float totalTime;
-	float deltaTime;
-	__int64 startTime;
-	__int64 currentTime;
-	__int64 previousTime;
-
-	int fpsFrameCount;
-	float fpsTimeElapsed;
-	
-	void UpdateTimer();
-	void UpdateTitleBarStats();
 
 	POINT prevMousePos;
 };
