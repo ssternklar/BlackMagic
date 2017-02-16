@@ -1,5 +1,5 @@
 #include "WindowsPlatform.h"
-
+#include "StdThreadManager.h"
 using namespace BlackMagic;
 
 WindowsPlatform* WindowsPlatform::singletonRef = nullptr;
@@ -102,7 +102,7 @@ LRESULT BlackMagic::WindowsPlatform::WindowProc(HWND hWnd, UINT uMsg, WPARAM wPa
 
 void WindowsPlatform::InitPlatformGraphicsDevice()
 {
-	graphicsDevice = static_cast<GraphicsDevice*>(allocatorAllocator->allocate<DirectXGraphicsDevice>(false));
+	graphicsDevice = static_cast<GraphicsDevice*>(allocatorAllocator->allocate<DirectXGraphicsDevice>());
 	auto dxGDevice = new (graphicsDevice) DirectXGraphicsDevice;
 	dxGDevice->InitDx(hWnd, windowWidth, windowHeight);
 	// The window exists but is not visible yet
@@ -112,6 +112,7 @@ void WindowsPlatform::InitPlatformGraphicsDevice()
 
 void BlackMagic::WindowsPlatform::InitPlatformThreadManager()
 {
+	threadManager = static_cast<ThreadManager*>(allocatorAllocator->allocate<StdThreadManager>());
 }
 
 bool WindowsPlatform::InitWindow()

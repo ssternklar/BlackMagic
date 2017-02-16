@@ -20,10 +20,6 @@ void internal_ContentWorker(ThreadManager* manager)
 ThreadManager::ThreadManager(BlackMagic::byte* spaceLocation, size_t spaceSize) :
 	allocator((size_t)32, spaceSize, spaceLocation)
 {
-	allocatorMutex = PlatformCreateMutex();
-	GenericTaskListMutex = PlatformCreateMutex();
-	RenderTaskListMutex = PlatformCreateMutex();
-	ContentTaskListMutex = PlatformCreateMutex();
 }
 
 void ThreadManager::CreateGenericThread()
@@ -174,10 +170,10 @@ void BlackMagic::ThreadManager::DestroyGenericJob(JobType* job)
 RenderJob* ThreadManager::CreateRenderJob()
 {
 	PlatformLockMutex(allocatorMutex);
-	RenderJob* job = AllocateAndConstruct(&allocator, 1);
+	RenderJob* job = AllocateAndConstruct<BestFitAllocator, RenderJob>(&allocator, 1);
 	if (job)
 	{
-		LinkedList* next = AllocateAndConstruct(&allocator, 1, job);
+		LinkedList* next = AllocateAndConstruct<BestFitAllocator, LinkedList, RenderJob*>(&allocator, 1, job);
 		PlatformUnlockMutex(allocatorMutex);
 		PlatformLockMutex(RenderTaskListMutex);
 		if (RenderTaskList == nullptr)

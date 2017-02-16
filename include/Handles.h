@@ -13,7 +13,6 @@ namespace BlackMagic
 {
 	class Mutex
 	{
-		
 		_BM_HANDLE_TYPE_INFO(Mutex)
 	};
 }

@@ -7,6 +7,9 @@ public:
 	void* data;
 	LinkedList(void* data);
 	template<typename T>
-	T* GetAs();
+	T* GetAs()
+	{
+		return static_cast<T*>(data);
+	}
 };
 

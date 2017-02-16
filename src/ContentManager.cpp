@@ -16,8 +16,8 @@ using namespace DirectX;
 ContentManager::ContentManager(GraphicsDevice* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
 	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator))), graphicsDevice(device)
 {
-	_device = reinterpret_cast<DirectXGraphicsDevice*>(device)->Device();
-	_context = reinterpret_cast<DirectXGraphicsDevice*>(device)->Context();
+	_device = ((DirectXGraphicsDevice*)(device))->Device();
+	_context = ((DirectXGraphicsDevice*)(device))->Context();
 }
 
 ContentManager::~ContentManager()

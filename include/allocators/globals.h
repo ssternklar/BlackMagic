@@ -7,7 +7,7 @@ namespace BlackMagic
 	typedef unsigned char byte;
 
 	template<typename Alloc, typename T, typename... Args>
-	inline T* AllocateAndConstruct(Alloc* allocator, int num, Args&&... args)
+	inline T* AllocateAndConstruct(Alloc* allocator, int num, Args... args)
 	{
 		T* space = allocator->allocate<T>(num);
 		if (space)
@@ -17,12 +17,23 @@ namespace BlackMagic
 		return space;
 	}
 
+	template<typename Alloc, typename T>
+	inline T* AllocateAndConstruct(Alloc* allocator, int num)
+	{
+		T* space = allocator->allocate<T>(num);
+		if (space)
+		{
+			space = new (space) T;
+		}
+		return space;
+	}
+
 	template<typename Alloc, typename T, typename... Args>
 	inline void DestructAndDeallocate(Alloc* allocator, T* thing, int num)
 	{
 		for (int i = 0; i < num; i++)
 		{
-			thing[i]->~T();
+			thing[i].~T();
 		}
 		allocator->deallocate(thing, num);
 	}

@@ -5,8 +5,7 @@
 
 namespace BlackMagic
 {
-	class StdThreadManager :
-		public ThreadManager
+	class StdThreadManager : public ThreadManager
 	{
 		static const int MAX_THREADS = 8;
 		static const int MAX_MUTEXES = 32;
@@ -20,7 +19,7 @@ namespace BlackMagic
 	public:
 		std::thread threads[MAX_THREADS];
 		std::mutex mutexes[MAX_MUTEXES];
-		StdThreadManager();
+		StdThreadManager(byte* spaceLocation, size_t spaceSize);
 		~StdThreadManager();
 	};
 }
