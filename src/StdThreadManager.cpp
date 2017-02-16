@@ -9,7 +9,6 @@ void BlackMagic::StdThreadManager::PlatformCreateThread(InternalThreadWorker wor
 	{
 		threads[currentThreadCount] = thread(worker, manager);
 		currentThreadCount++;
-		//threads[currentThreadCount].detach();
 	}
 }
 
@@ -34,7 +33,7 @@ void BlackMagic::StdThreadManager::PlatformUnlockMutex(Mutex m)
 	m.GetAs<mutex*>()->unlock();
 }
 
-StdThreadManager::StdThreadManager(byte* spaceLocation, size_t spaceSize) : ThreadManager(spaceLocation, spaceSize)
+StdThreadManager::StdThreadManager(PlatformBase* base, byte* spaceLocation, size_t spaceSize) : ThreadManager(base, spaceLocation, spaceSize)
 {
 	allocatorMutex = PlatformCreateMutex();
 	GenericTaskListMutex = PlatformCreateMutex();
@@ -45,4 +44,8 @@ StdThreadManager::StdThreadManager(byte* spaceLocation, size_t spaceSize) : Thre
 
 StdThreadManager::~StdThreadManager()
 {
+	for (int i = 0; i < currentThreadCount; i++)
+	{
+		threads[i].join();
+	}
 }

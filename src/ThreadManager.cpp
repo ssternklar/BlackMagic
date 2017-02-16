@@ -17,9 +17,10 @@ void internal_ContentWorker(ThreadManager* manager)
 	manager->RunContentWorker();
 };
 
-ThreadManager::ThreadManager(BlackMagic::byte* spaceLocation, size_t spaceSize) :
+ThreadManager::ThreadManager(PlatformBase* base, BlackMagic::byte* spaceLocation, size_t spaceSize) :
 	allocator((size_t)32, spaceSize, spaceLocation)
 {
+	this->base = base;
 }
 
 void ThreadManager::CreateGenericThread()
@@ -39,7 +40,7 @@ void ThreadManager::CreateContentThread()
 
 void ThreadManager::RunGenericWorker()
 {
-	while (true)
+	while (!base->ShouldExit())
 	{
 		LinkedList* toDelete = nullptr;
 		GenericJob* job = nullptr;
@@ -66,7 +67,7 @@ void ThreadManager::RunGenericWorker()
 
 void ThreadManager::RunRenderWorker()
 {
-	while (true)
+	while (!base->ShouldExit())
 	{
 		LinkedList* toDelete = nullptr;
 		RenderJob* job = nullptr;
@@ -96,7 +97,7 @@ void ThreadManager::RunRenderWorker()
 
 void ThreadManager::RunContentWorker()
 {
-	while (true)
+	while (!base->ShouldExit())
 	{
 		LinkedList* toDelete = nullptr;
 		ContentJob_Base* job = nullptr;

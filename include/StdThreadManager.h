@@ -19,7 +19,7 @@ namespace BlackMagic
 	public:
 		std::thread threads[MAX_THREADS];
 		std::mutex mutexes[MAX_MUTEXES];
-		StdThreadManager(byte* spaceLocation, size_t spaceSize);
+		StdThreadManager(PlatformBase* base, byte* spaceLocation, size_t spaceSize);
 		~StdThreadManager();
 	};
 }

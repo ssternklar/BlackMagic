@@ -115,7 +115,7 @@ void BlackMagic::WindowsPlatform::InitPlatformThreadManager()
 	const size_t threadManagerWorkAreaSize = 1024 * 1024 * 64;
 	byte* workArea = (byte*)allocatorAllocator->allocate(threadManagerWorkAreaSize);
 	threadManager = static_cast<ThreadManager*>(allocatorAllocator->allocate<StdThreadManager>());
-	threadManager = new (threadManager) StdThreadManager(workArea, threadManagerWorkAreaSize);
+	threadManager = new (threadManager) StdThreadManager(this, workArea, threadManagerWorkAreaSize);
 	threadManager->CreateGenericThread();
 	threadManager->CreateContentThread();
 	threadManager->CreateRenderThread();

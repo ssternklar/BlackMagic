@@ -76,7 +76,7 @@ namespace BlackMagic {
 		void DestroyContentJob(ContentJob<T>* job);
 
 
-		ThreadManager(byte* spaceLocation, size_t spaceSize);
+		ThreadManager(PlatformBase* base, byte* spaceLocation, size_t spaceSize);
 		~ThreadManager();
 
 	};
