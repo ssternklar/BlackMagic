@@ -34,10 +34,11 @@ void FirstPersonCamera::Update(float delta)
 		_transform.SetRotation(q);
 	}
 
+	int boost = KEYPRESSED(VK_LSHIFT);
 	XMFLOAT3 dp = {
-		delta * (KEYPRESSED('D') - KEYPRESSED('A')),
-		delta * (KEYPRESSED(VK_SPACE) - KEYPRESSED(VK_LCONTROL)),
-		delta * (KEYPRESSED('W') - KEYPRESSED('S'))
+		delta * (KEYPRESSED('D') - KEYPRESSED('A')) * (1+boost) * 2,
+		delta * (KEYPRESSED(VK_SPACE) - KEYPRESSED(VK_LCONTROL)) * (1+boost) * 2,
+		delta * (KEYPRESSED('W') - KEYPRESSED('S')) * (1+boost) * 2
 	};
 
 	_transform.Move(dp);
