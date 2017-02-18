@@ -113,7 +113,7 @@ namespace Input
 
 	void OnMouseMove(int x, int y)
 	{
-		mouseDelta.x = x;
-		mouseDelta.y = y;
+		mouseDelta.x = (float)x;
+		mouseDelta.y = (float)y;
 	}
 }

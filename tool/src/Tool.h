@@ -23,12 +23,8 @@ private:
 
 	void Update(float deltaTime);
 	void OnResize(unsigned int width, unsigned int height);
-
-	std::string windowTitle;
-	bool resizing;
-
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 
-	POINT prevMousePos;
+	bool resizing;
 };
 

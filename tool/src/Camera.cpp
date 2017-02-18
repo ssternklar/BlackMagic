@@ -42,7 +42,7 @@ DirectX::XMFLOAT4X4 Camera::ProjectionMatrix() const
 
 Transform Camera::GetTransform()
 {
-	return TransformData::ptr->GetTransform(transform);
+	return *transform;
 }
 
 void Camera::Update(float deltaTime)
@@ -51,8 +51,8 @@ void Camera::Update(float deltaTime)
 	XMVECTOR offsetUp = XMVectorSet(0, (float)(Input::isControlDown("camUp") - Input::isControlDown("camDown")), 0, 1);
 	XMVECTOR offsetRight = XMVectorSet((float)(Input::isControlDown("camRight") - Input::isControlDown("camLeft")), 0, 0, 1);
 
-	offsetForward = XMVector3Rotate(offsetForward, XMLoadFloat4(&TransformData::ptr->GetRotation(transform)));
-	offsetRight = XMVector3Rotate(offsetRight, XMLoadFloat4(&TransformData::ptr->GetRotation(transform)));
+	offsetForward = XMVector3Rotate(offsetForward, XMLoadFloat4(&transform->rot));
+	offsetRight = XMVector3Rotate(offsetRight, XMLoadFloat4(&transform->rot));
 
 	XMVECTOR offsetVec = offsetForward + offsetUp + offsetRight;
 
@@ -93,7 +93,7 @@ void Camera::Update(float deltaTime)
 
 	XMVECTOR forward = XMLoadFloat3(&TransformData::ptr->GetForward(transform));
 	XMVECTOR up = XMLoadFloat3(&TransformData::ptr->GetUp(transform));
-	XMVECTOR position = XMLoadFloat3(&TransformData::ptr->GetPosition(transform));
+	XMVECTOR position = XMLoadFloat3(&transform->pos);
 	XMMATRIX view = XMMatrixLookToLH(position + forward, forward, up);
 	XMStoreFloat4x4(&viewMat, XMMatrixTranspose(view));
 }

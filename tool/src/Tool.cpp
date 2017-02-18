@@ -39,7 +39,7 @@ Tool::~Tool()
 
 HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
 {
-	TransformData::Init(400);
+	TransformData::Init();
 
 	graphics = new Graphics(windowWidth, windowHeight);
 	camera = new Camera();
@@ -202,8 +202,8 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_INPUT:
 	{
-		UINT dwSize = 40;
-		static BYTE lpb[40];
+		UINT dwSize = sizeof(RAWINPUT);
+		static BYTE lpb[sizeof(RAWINPUT)];
 
 		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
 

@@ -22,7 +22,7 @@ public:
 	
 private:
 	DirectX::XMFLOAT4X4 viewMat, projMat;
-	TransformID transform;
+	TransformHandle transform;
 	bool fpsEnabled;
 	POINT fpsPos;
 };

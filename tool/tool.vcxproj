@@ -140,6 +140,8 @@
     <ClInclude Include="src\dear imgui\stb_textedit.h" />
     <ClInclude Include="src\dear imgui\stb_truetype.h" />
     <ClInclude Include="src\Input.h" />
+    <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\PointerProxy.h" />
     <ClInclude Include="src\Tool.h" />
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="src\SimpleShader.h" />
