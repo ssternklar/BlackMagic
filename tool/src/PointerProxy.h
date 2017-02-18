@@ -66,7 +66,7 @@ ProxyVector<T>::~ProxyVector()
 {
 	for (size_t i = 0; i < lineCount; ++i)
 		delete proxies[i];
-	delete proxies;
+	delete[] proxies;
 }
 
 template<typename T>
@@ -75,10 +75,12 @@ void ProxyVector<T>::expand()
 	proxy_ctr<T>** newArr = new proxy_ctr<T>*[++lineCount];
 
 	if (proxies)
+	{
 		memcpy_s(newArr, lineWidth, proxies, lineWidth - 1);
+		delete[] proxies;
+	}
 
 	newArr[lineCount - 1] = new proxy_ctr<T>[lineWidth];
-	delete[] proxies;
 	proxies = newArr;
 }
 
