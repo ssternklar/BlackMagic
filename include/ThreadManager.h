@@ -63,18 +63,99 @@ namespace BlackMagic {
 		void CreateContentThread();
 
 		template<class JobType, typename... Args>
-		JobType* CreateGenericJob(Args&&... args);
+		JobType* CreateGenericJob(Args&&... args)
+		{
+			PlatformLockMutex(allocatorMutex);
+			JobType* job = AllocateAndConstruct<BestFitAllocator, JobType, Args...>(&allocator, 1, args...);
+			if (job)
+			{
+				LinkedList* next = AllocateAndConstruct<BestFitAllocator, LinkedList, JobType*>(&allocator, 1, job);
+				PlatformUnlockMutex(allocatorMutex);
+				PlatformLockMutex(GenericTaskListMutex);
+				if (GenericTaskList == nullptr)
+				{
+					GenericTaskList = next;
+				}
+				else
+				{
+					GenericTaskList->next = next;
+				}
+				PlatformUnlockMutex(GenericTaskListMutex);
+			}
+			else
+			{
+				PlatformUnlockMutex(allocatorMutex);
+			}
+			return job;
+		}
+
 		template<class JobType>
-		void DestroyGenericJob(JobType* job);
+		void DestroyGenericJob(JobType* job)
+		{
+			LinkedList* node = nullptr;
+			PlatformLockMutex(GenericTaskListMutex);
+			if (!job->inProgress && !job->done)
+			{
+				//in the list, find the node
+			}
+			PlatformUnlockMutex(GenericTaskListMutex);
+			PlatformLockMutex(allocatorMutex);
+			if (node)
+			{
+				DestructAndDeallocate<BestFitAllocator, LinkedList>(&allocator, node, 1);
+			}
+			DestructAndDeallocate<BestFitAllocator, JobType>(&allocator, job, 1);
+			PlatformUnlockMutex(allocatorMutex);
+		}
 
 		RenderJob* CreateRenderJob();
 		void DestroyRenderJob(RenderJob* job);
 
 		template<class T>
-		ContentJob<T>* CreateContentJob(char* resourceName);
-		template<class T>
-		void DestroyContentJob(ContentJob<T>* job);
+		ContentJob<T>* CreateContentJob(char* resourceName)
+		{
+			PlatformLockMutex(allocatorMutex);
+			ContentJob<T>* job = AllocateAndConstruct(&allocator, 1, resourceName);
+			if (job)
+			{
+				LinkedList* next = AllocateAndConstruct(&allocator, 1, job);
+				PlatformUnlockMutex(allocatorMutex);
+				PlatformLockMutex(ContentTaskListMutex);
+				if (ContentTaskList == nullptr)
+				{
+					ContentTaskList = next;
+				}
+				else
+				{
+					ContentTaskList->next = next;
+				}
+				PlatformUnlockMutex(ContentTaskListMutex);
+			}
+			else
+			{
+				PlatformUnlockMutex(allocatorMutex);
+			}
+			return job;
+		}
 
+		template<class T>
+		void DestroyContentJob(ContentJob<T>* job)
+		{
+			LinkedList* node = nullptr;
+			PlatformLockMutex(ContentTaskListMutex);
+			if (!job->inProgress && !job->done)
+			{
+				//in the list, find the node
+			}
+			PlatformUnlockMutex(ContentTaskListMutex);
+			PlatformLockMutex(allocatorMutex);
+			if (node)
+			{
+				DestructAndDeallocate(&allocator, node, 1);
+			}
+			DestructAndDeallocate(&allocator, job, 1);
+			PlatformUnlockMutex(allocatorMutex);
+		}
 
 		ThreadManager(PlatformBase* base, byte* spaceLocation, size_t spaceSize);
 		~ThreadManager();

@@ -158,6 +158,7 @@
     <ClCompile Include="src\SimpleShader.cpp" />
     <ClCompile Include="src\StdThreadManager.cpp" />
     <ClCompile Include="src\TestGame.cpp" />
+    <ClCompile Include="src\TestJob.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\ThreadManager.cpp" />
     <ClCompile Include="src\Transform.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\StdThreadManager.h" />
     <ClInclude Include="include\TestGame.h" />
+    <ClInclude Include="include\TestJob.h" />
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\ThreadManager.h" />
     <ClInclude Include="include\Transform.h" />

@@ -1,5 +1,6 @@
 #include "TestGame.h"
 #include "DX11Renderer.h"
+#include "TestJob.h";
 
 using namespace BlackMagic;
 using namespace ECS;
@@ -44,7 +45,6 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 void TestGame::LoadContent()
 {
 	auto content = platform->GetContentManager();
-	
 }
 
 void TestGame::Update(float deltaTime)
@@ -60,6 +60,7 @@ void TestGame::Update(float deltaTime)
 	_camera->Update(&cam->get<Transform>().get());
 
 	TransformData::GetSingleton()->UpdateTransforms();
+	auto job = platform->GetThreadManager()->CreateGenericJob<TestJob>();
 }
 
 void TestGame::Draw(float deltaTime)

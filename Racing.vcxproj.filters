@@ -1,213 +1,79 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{5f37ec8c-c624-4f3d-8d2e-1571a1df475b}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Material.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SimpleShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ContentManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Renderable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Transform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TransformData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PlatformBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\WindowsPlatform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\InputData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GameAbstraction.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\IResource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Projector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TestGame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ThreadManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\LinkedList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StdThreadManager.cpp">
-    <ClCompile Include="src\DX11Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\DirectionalLight.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Material.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SimpleShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Vertex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ContentManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\IResource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Renderable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GameObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Transform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TransformData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ECS.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\allocators\AllocatorSTLAdapter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\allocators\BadBestFitAllocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\allocators\FixedBlockAllocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\allocators\globals.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\allocators\StackAllocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ShaderStructs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\PlatformBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\WindowsPlatform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\InputData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GameAbstraction.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GraphicsTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Projector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TestGame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\DX11Renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ThreadManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\LinkedList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GenericJob.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ContentJob.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\RenderJob.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Handles.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\StdThreadManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
+    <FxCompile Include="assets\shaders\FXAA_PS.hlsl" />
+    <FxCompile Include="assets\shaders\FXAA_VS.hlsl" />
     <FxCompile Include="assets\shaders\GBufferPS.hlsl" />
+    <FxCompile Include="assets\shaders\LightPassPS.hlsl" />
     <FxCompile Include="assets\shaders\GBufferVS.hlsl" />
-    <FxCompile Include="assets\shaders\LightPassPS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="assets\shaders\LightPassVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
+    <FxCompile Include="assets\shaders\LightPassVS.hlsl" />
+    <FxCompile Include="assets\shaders\ProjectorPS.hlsl" />
     <FxCompile Include="assets\shaders\ShadowMapVS.hlsl" />
     <FxCompile Include="assets\shaders\SkyboxPS.hlsl" />
     <FxCompile Include="assets\shaders\SkyboxVS.hlsl" />
-    <FxCompile Include="assets\shaders\FXAA_PS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="assets\shaders\FXAA_VS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="assets\shaders\ProjectorPS.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\ContentManager.cpp" />
+    <ClCompile Include="src\GameAbstraction.cpp" />
+    <ClCompile Include="src\InputData.cpp" />
+    <ClCompile Include="src\IResource.cpp" />
+    <ClCompile Include="src\LinkedList.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Material.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\PlatformBase.cpp" />
+    <ClCompile Include="src\Projector.cpp" />
+    <ClCompile Include="src\Renderable.cpp" />
+    <ClCompile Include="src\DX11Renderer.cpp" />
+    <ClCompile Include="src\SimpleShader.cpp" />
+    <ClCompile Include="src\StdThreadManager.cpp" />
+    <ClCompile Include="src\TestGame.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\ThreadManager.cpp" />
+    <ClCompile Include="src\Transform.cpp" />
+    <ClCompile Include="src\TransformData.cpp" />
+    <ClCompile Include="src\WindowsPlatform.cpp" />
+    <ClCompile Include="src\TestJob.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
+    <ClInclude Include="include\allocators\BadBestFitAllocator.h" />
+    <ClInclude Include="include\allocators\FixedBlockAllocator.h" />
+    <ClInclude Include="include\allocators\globals.h" />
+    <ClInclude Include="include\allocators\StackAllocator.h" />
+    <ClInclude Include="include\Camera.h" />
+    <ClInclude Include="include\ContentManager.h" />
+    <ClInclude Include="include\DirectionalLight.h" />
+    <ClInclude Include="include\ECS.h" />
+    <ClInclude Include="include\GameAbstraction.h" />
+    <ClInclude Include="include\GameObject.h" />
+    <ClInclude Include="include\GenericJob.h" />
+    <ClInclude Include="include\GraphicsTypes.h" />
+    <ClInclude Include="include\GraphicsDevice.h" />
+    <ClInclude Include="include\ContentJob.h" />
+    <ClInclude Include="include\Handles.h" />
+    <ClInclude Include="include\Renderer.h" />
+    <ClInclude Include="include\InputData.h" />
+    <ClInclude Include="include\LinkedList.h" />
+    <ClInclude Include="include\PlatformBase.h" />
+    <ClInclude Include="include\Projector.h" />
+    <ClInclude Include="include\Renderable.h" />
+    <ClInclude Include="include\Material.h" />
+    <ClInclude Include="include\Mesh.h" />
+    <ClInclude Include="include\IResource.h" />
+    <ClInclude Include="include\RenderJob.h" />
+    <ClInclude Include="include\DX11Renderer.h" />
+    <ClInclude Include="include\ShaderStructs.h" />
+    <ClInclude Include="include\SimpleShader.h" />
+    <ClInclude Include="include\StdThreadManager.h" />
+    <ClInclude Include="include\TestGame.h" />
+    <ClInclude Include="include\Texture.h" />
+    <ClInclude Include="include\ThreadManager.h" />
+    <ClInclude Include="include\Transform.h" />
+    <ClInclude Include="include\TransformData.h" />
+    <ClInclude Include="include\Vertex.h" />
+    <ClInclude Include="include\WindowsPlatform.h" />
+    <ClInclude Include="include\TestJob.h" />
   </ItemGroup>
 </Project>

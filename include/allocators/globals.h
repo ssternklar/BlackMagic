@@ -28,7 +28,7 @@ namespace BlackMagic
 		return space;
 	}
 
-	template<typename Alloc, typename T, typename... Args>
+	template<typename Alloc, typename T>
 	inline void DestructAndDeallocate(Alloc* allocator, T* thing, int num)
 	{
 		for (int i = 0; i < num; i++)
