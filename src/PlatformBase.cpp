@@ -8,6 +8,8 @@ using namespace BlackMagic;
 
 const int CPU_MEMORY_SIZE = 1024 * 1024 * 1024;
 
+PlatformBase* PlatformBase::singleton = nullptr;
+
 void PlatformBase::GetScreenDimensions(unsigned int* width, unsigned int* height)
 {
 	if (width != nullptr) *width = windowWidth;
@@ -16,6 +18,7 @@ void PlatformBase::GetScreenDimensions(unsigned int* width, unsigned int* height
 
 bool PlatformBase::BlackMagicInit()
 {
+	singleton = this;
 	byte* ptr;
 	GetSystemMemory(CPU_MEMORY_SIZE, &ptr);
 	allocatorAllocator = new (ptr) StackAllocator(32, CPU_MEMORY_SIZE);
@@ -81,4 +84,9 @@ void BlackMagic::PlatformBase::GetGameMemory(byte** gameMemoryStorage, size_t* g
 {
 	*gameMemoryStorage = gameMemory;
 	*gameMemorySizeStorage = gameMemorySize;
+}
+
+PlatformBase* BlackMagic::PlatformBase::GetSingleton()
+{
+	return singleton;
 }

@@ -143,8 +143,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\ContentJob.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
     <ClCompile Include="src\GameAbstraction.cpp" />
+    <ClCompile Include="src\GenericJob.cpp" />
     <ClCompile Include="src\InputData.cpp" />
     <ClCompile Include="src\IResource.cpp" />
     <ClCompile Include="src\LinkedList.cpp" />

@@ -25,6 +25,7 @@ namespace BlackMagic {
 		TransformData* transformData;
 		int windowWidth = 1280;
 		int windowHeight = 720;
+		static PlatformBase* singleton;
 	public:
 		virtual bool InitWindow() = 0;
 		virtual void InitPlatformThreadManager() = 0;
@@ -42,5 +43,7 @@ namespace BlackMagic {
 		ContentManager* GetContentManager();
 		ThreadManager* GetThreadManager();
 		void GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage);
+		static PlatformBase* GetSingleton();
+
 	};
 }

@@ -11,9 +11,6 @@ namespace BlackMagic
 		virtual void Run() = 0;
 		bool done = false;
 	public:
-		void WaitUntilJobIsComplete()
-		{
-			while (!done) {}
-		};
+		void WaitUntilJobIsComplete();
 	};
 }

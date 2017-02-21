@@ -35,6 +35,8 @@
     <ClCompile Include="src\TransformData.cpp" />
     <ClCompile Include="src\WindowsPlatform.cpp" />
     <ClCompile Include="src\TestJob.cpp" />
+    <ClCompile Include="src\GenericJob.cpp" />
+    <ClCompile Include="src\ContentJob.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />

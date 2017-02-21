@@ -33,7 +33,7 @@ void BlackMagic::StdThreadManager::PlatformUnlockMutex(Mutex m)
 	m.GetAs<mutex*>()->unlock();
 }
 
-StdThreadManager::StdThreadManager(PlatformBase* base, byte* spaceLocation, size_t spaceSize) : ThreadManager(base, spaceLocation, spaceSize)
+StdThreadManager::StdThreadManager(PlatformBase* base, BlackMagic::byte* spaceLocation, size_t spaceSize) : ThreadManager(base, spaceLocation, spaceSize)
 {
 	allocatorMutex = PlatformCreateMutex();
 	GenericTaskListMutex = PlatformCreateMutex();
