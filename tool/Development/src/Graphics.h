@@ -4,10 +4,11 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include <DirectXMath.h>
+#include <vector>
 
 #include "SimpleShader.h"
 #include "Camera.h"
-#include "Mesh.h"
+#include "Entity.h"
 
 class Graphics
 {
@@ -17,7 +18,7 @@ public:
 
 	HRESULT Init(HINSTANCE hInstance);
 	void Resize(unsigned int width, unsigned int height);
-	void Draw(Camera* camera, float deltaTime);
+	void Draw(Camera* camera, std::vector<EntityHandle>& entities, float deltaTime);
 	void Present();
 
 	HWND getHandle();
@@ -45,11 +46,7 @@ private:
 	unsigned int height;
 
 	// temp
-	DirectX::XMFLOAT4X4 worldMatrix; // transform, done
-	MeshHandle model;
-
 	void LoadShaders();
-	void CreateMatrices();
 
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;

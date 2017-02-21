@@ -5,7 +5,7 @@
 
 #include "Tool.h"
 #include "Input.h"
-#include "Transform.h"
+#include "Entity.h"
 
 using namespace DirectX;
 
@@ -31,6 +31,7 @@ Tool::~Tool()
 	ImGui_ImplDX11_Shutdown();
 	delete graphics;
 	delete camera;
+	EntityData::ptr->ShutDown();
 	MeshData::ptr->ShutDown();
 	TransformData::ptr->ShutDown();
 }
@@ -39,6 +40,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 {
 	TransformData::Init();
 	MeshData::Init();
+	EntityData::Init();
 
 	graphics = new Graphics(windowWidth, windowHeight);
 	camera = new Camera();
@@ -57,6 +59,17 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 
 	Input::bindToControl("Quit", VK_ESCAPE);
 
+	// temp
+	EntityHandle a = EntityData::ptr->newEntity();
+	a->mesh = MeshData::ptr->newMesh(graphics->getDevice(), "assets/models/teapot.obj");
+	a->transform = TransformData::ptr->newTransform();
+	EntityHandle b = EntityData::ptr->newEntity();
+	b->mesh = MeshData::ptr->newMesh(graphics->getDevice(), "assets/models/wilhelm4baked.fbx");
+	b->transform = TransformData::ptr->newTransform();
+	b->transform->pos.z = 10;
+	entities.push_back(a);
+	entities.push_back(b);
+
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
 	{
@@ -72,7 +85,8 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 			float delta = ImGui::GetIO().DeltaTime;
 			Update(delta);
 			camera->Update(delta);
-			graphics->Draw(camera, delta);
+			TransformData::ptr->UpdateTransforms();
+			graphics->Draw(camera, entities, delta);
 
 			Input::updateControlStates();
 			

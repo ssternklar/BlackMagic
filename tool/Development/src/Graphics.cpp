@@ -40,9 +40,6 @@ HRESULT Graphics::Init(HINSTANCE hInstance)
 	if (FAILED(hr)) return hr;
 
 	LoadShaders();
-	CreateMatrices();
-
-	model = MeshData::ptr->newMesh(device, "assets/models/teapot.obj");
 	
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -243,22 +240,27 @@ void Graphics::Resize(unsigned int width, unsigned int height)
 	context->RSSetViewports(1, &viewport);
 }
 
-void Graphics::Draw(Camera* camera, float deltaTime)
+void Graphics::Draw(Camera* camera, std::vector<EntityHandle>& entities, float deltaTime)
 {
 	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	context->ClearRenderTargetView(backBufferRTV, color);
 	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	vertexShader->SetMatrix4x4("world", worldMatrix);
-	vertexShader->SetMatrix4x4("view", camera->ViewMatrix());
-	vertexShader->SetMatrix4x4("projection", camera->ProjectionMatrix());
-	vertexShader->CopyAllBufferData();
-	vertexShader->SetShader();
-	pixelShader->SetShader();
+	
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
-	context->IASetVertexBuffers(0, 1, &model->vertexBuffer, &stride, &offset);
-	context->IASetIndexBuffer(model->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	context->DrawIndexed(model->indexCount, 0, 0);
+
+	for (size_t i = 0; i < entities.size(); ++i)
+	{
+		vertexShader->SetMatrix4x4("world", *TransformData::ptr->GetMatrix(entities[i]->transform));
+		vertexShader->SetMatrix4x4("view", camera->ViewMatrix());
+		vertexShader->SetMatrix4x4("projection", camera->ProjectionMatrix());
+		vertexShader->CopyAllBufferData();
+		vertexShader->SetShader();
+		pixelShader->SetShader();
+		context->IASetVertexBuffers(0, 1, &entities[i]->mesh->vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(entities[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->DrawIndexed(entities[i]->mesh->indexCount, 0, 0);
+	}
 }
 
 void Graphics::Present()
@@ -273,12 +275,6 @@ void Graphics::LoadShaders()
 
 	pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
-}
-
-void Graphics::CreateMatrices()
-{
-	XMMATRIX W = XMMatrixIdentity();
-	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(W));
 }
 
 HWND Graphics::getHandle()

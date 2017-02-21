@@ -1,7 +1,7 @@
 #pragma once
 
+
 #include "Graphics.h"
-#include "Camera.h"
 
 class Tool
 {
@@ -18,13 +18,14 @@ public:
 	void Quit();
 	
 private:
-	Graphics* graphics;
-	Camera* camera;
-
 	void Update(float deltaTime);
 	void OnResize(unsigned int width, unsigned int height);
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 
 	bool resizing;
+
+	Graphics* graphics;
+	Camera* camera;
+	std::vector<EntityHandle> entities;
 };
 

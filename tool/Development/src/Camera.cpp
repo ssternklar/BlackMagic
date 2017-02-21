@@ -91,7 +91,7 @@ void Camera::Update(float deltaTime)
 	XMVECTOR forward = XMLoadFloat3(&TransformData::ptr->GetForward(transform));
 	XMVECTOR up = XMLoadFloat3(&TransformData::ptr->GetUp(transform));
 	XMVECTOR position = XMLoadFloat3(&transform->pos);
-	XMMATRIX view = XMMatrixLookToLH(position + forward, forward, up);
+	XMMATRIX view = XMMatrixLookToLH(position, forward, up);
 	XMStoreFloat4x4(&viewMat, XMMatrixTranspose(view));
 }
 
