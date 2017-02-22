@@ -57,6 +57,9 @@ void EntityData::deleteEntity(EntityHandle handle)
 
 	proxy.relinquish(handle.ptr());
 
+	TransformData::ptr->deleteTransform(handle->transform);
+	// do not delete the mesh, they are shared. GUI handles this.
+
 	if (index != --entityCount)
 	{
 		proxy.move(entities + entityCount, entities + index);

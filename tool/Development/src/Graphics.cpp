@@ -259,7 +259,7 @@ void Graphics::Draw(Camera* camera, std::vector<EntityHandle>& entities, float d
 		pixelShader->SetShader();
 		context->IASetVertexBuffers(0, 1, &entities[i]->mesh->vertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(entities[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		context->DrawIndexed(entities[i]->mesh->indexCount, 0, 0);
+		context->DrawIndexed(entities[i]->mesh->faceCount, 0, 0);
 	}
 }
 

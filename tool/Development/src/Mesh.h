@@ -19,9 +19,12 @@ struct Mesh
 {
 	ID3D11Buffer* vertexBuffer;
 	ID3D11Buffer* indexBuffer;
-	size_t indexCount;
+	Vertex* verts;
+	UINT* faces;
+	size_t vertCount;
+	size_t faceCount;
 
-	DirectX::XMFLOAT4 sphere;
+	DirectX::XMFLOAT4 sphere; // not implemented yet
 	DirectX::XMFLOAT3 halfSize;
 	DirectX::XMFLOAT3 center;
 };
