@@ -5,10 +5,10 @@
 
 MeshData* MeshData::ptr = nullptr;
 
-void MeshData::Init()
+void MeshData::Init(ID3D11Device* device)
 {
 	if (!ptr)
-		ptr = new MeshData();
+		ptr = new MeshData(device);
 }
 
 void MeshData::ShutDown()
@@ -16,12 +16,14 @@ void MeshData::ShutDown()
 	delete ptr;
 }
 
-MeshData::MeshData()
+MeshData::MeshData(ID3D11Device* device)
 {
 	numMeshes = 16;
 	meshCount = 0;
 
 	meshes = new Mesh[numMeshes];
+	this->device = device;
+	defaultMesh = newMesh("assets/models/teapot.obj");
 }
 
 MeshData::~MeshData()
@@ -29,7 +31,7 @@ MeshData::~MeshData()
 	delete[] meshes;
 }
 
-MeshHandle MeshData::newMesh(ID3D11Device* device, char* modelPath)
+MeshHandle MeshData::newMesh(char* modelPath)
 {
 	if (meshCount == numMeshes)
 	{
@@ -187,4 +189,9 @@ void MeshData::deleteMesh(MeshHandle handle)
 
 		meshes[index] = meshes[meshCount];
 	}
+}
+
+MeshHandle MeshData::getDefaultMesh()
+{
+	return defaultMesh;
 }

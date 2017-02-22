@@ -40,7 +40,12 @@ EntityHandle EntityData::newEntity()
 		entities = newEntities;
 	}
 
-	return proxy.track(&entities[entityCount++]);
+	Entity* entity = &entities[entityCount++];
+
+	entity->transform = TransformData::ptr->newTransform();
+	entity->mesh = MeshData::ptr->getDefaultMesh();
+
+	return proxy.track(entity);
 }
 
 void EntityData::deleteEntity(EntityHandle handle)

@@ -31,20 +31,24 @@ typedef proxy_ctr<Mesh>::proxy_ptr MeshHandle;
 class MeshData
 {
 public:
-	static void Init();
+	static void Init(ID3D11Device* device);
 	static MeshData* ptr;
 	void ShutDown();
 
-	MeshHandle newMesh(ID3D11Device* device, char* modelPath);
+	MeshHandle newMesh(char* modelPath);
 	void deleteMesh(MeshHandle handle);
+	MeshHandle getDefaultMesh();
 
 private:
-	MeshData();
+	MeshData(ID3D11Device* device);
 	~MeshData();
 	MeshData(MeshData const&) = delete;
 	void operator=(MeshData const&) = delete;
 
+	ID3D11Device* device;
+
 	ProxyVector<Mesh> proxy;
+	MeshHandle defaultMesh;
 
 	size_t numMeshes;
 	size_t meshCount;

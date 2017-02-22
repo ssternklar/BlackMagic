@@ -39,7 +39,6 @@ Tool::~Tool()
 HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
 {
 	TransformData::Init();
-	MeshData::Init();
 	EntityData::Init();
 
 	graphics = new Graphics(windowWidth, windowHeight);
@@ -47,6 +46,8 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 
 	HRESULT hr = graphics->Init(hInstance);
 	if (FAILED(hr)) return hr;
+
+	MeshData::Init(graphics->getDevice());
 
 	RAWINPUTDEVICE Rid[1];
 	Rid[0].usUsagePage = 0x01;
@@ -61,11 +62,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 
 	// temp
 	EntityHandle a = EntityData::ptr->newEntity();
-	a->mesh = MeshData::ptr->newMesh(graphics->getDevice(), "assets/models/teapot.obj");
-	a->transform = TransformData::ptr->newTransform();
 	EntityHandle b = EntityData::ptr->newEntity();
-	b->mesh = MeshData::ptr->newMesh(graphics->getDevice(), "assets/models/wilhelm4baked.fbx");
-	b->transform = TransformData::ptr->newTransform();
 	b->transform->pos.z = 10;
 	entities.push_back(a);
 	entities.push_back(b);
