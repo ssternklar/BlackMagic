@@ -10,6 +10,23 @@
 using namespace BlackMagic;
 using namespace DirectX;
 
+void CreateTB(Vertex& v, XMVECTOR tO, XMVECTOR uO)
+{
+	XMVECTOR n = XMLoadFloat3(&v.Normal);
+	XMVECTOR t = tO - XMVector3Dot(tO, n)*n;
+	XMVECTOR u = uO - XMVector3Dot(uO, n)*n - XMVector3Dot(uO, t)*t;
+
+	XMVector3Normalize(t);
+	XMVector3Normalize(u);
+
+	XMFLOAT3 tangent, binormal;
+	XMStoreFloat3(&tangent, t);
+	XMStoreFloat3(&binormal, u);
+
+	v.Tangent = tangent;
+	v.Binormal = binormal;
+}
+
 void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 {
 	XMVECTOR p1 = XMLoadFloat3(&v1.Position);
@@ -31,18 +48,9 @@ void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 	XMVECTOR t = (x * b.m128_f32[1] - y*a.m128_f32[1])*det;
 	XMVECTOR u = (y*a.m128_f32[0] - x*b.m128_f32[0])*det;
 
-	t = t - XMVector3Dot(t, n)*n;
-	u = u - XMVector3Dot(u, n)*n - XMVector3Dot(u, t)*t;
-
-	XMVector3Normalize(t);
-	XMVector3Normalize(u);
-
-	XMFLOAT3 tangent, binormal;
-	XMStoreFloat3(&tangent, t);
-	XMStoreFloat3(&binormal, u);
-
-	v1.Tangent = v2.Tangent = v3.Tangent = tangent;
-	v1.Binormal = v2.Binormal = v3.Binormal = binormal;
+	CreateTB(v1, t, u);
+	CreateTB(v2, t, u);
+	CreateTB(v3, t, u);
 }
 
 Mesh::Mesh() :

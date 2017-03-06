@@ -558,12 +558,12 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture.Get());
 	_lightPassPS->CopyAllBufferData();
 
+	_context->OMSetRenderTargets(1, _backBuffer.GetAddressOf(), nullptr);
 	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
 	_context->Draw(6, 0);
 	
 	//RenderSkybox(cam);
 
-	_context->OMSetRenderTargets(1, _backBuffer.GetAddressOf(), nullptr);
 
 	_fxaaVS->SetShader();
 	_fxaaPS->SetShader();
@@ -574,7 +574,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_fxaaPS->CopyAllBufferData();
 
 	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
-	_context->Draw(6, 0);
+	//_context->Draw(6, 0);
 	
 	//Can't have SRVs and RTVs that are pointing to the same texture bound at the same time, so unset them
 	ID3D11ShaderResourceView* srvs[6] = { 0 };
@@ -681,7 +681,7 @@ void DX11Renderer::InitBuffers()
 	normalMapDesc.ArraySize = 1;
 	normalMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	normalMapDesc.CPUAccessFlags = 0;
-	normalMapDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+	normalMapDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	normalMapDesc.MipLevels = 1;
 	normalMapDesc.MiscFlags = 0;
 	normalMapDesc.SampleDesc.Count = 1;
