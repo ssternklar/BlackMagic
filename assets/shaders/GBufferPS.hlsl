@@ -33,7 +33,7 @@ GBuffer main(VertexToPixel input)
 		normalize(input.binormal), 
 		normalize(input.normal));
 	input.normal = normalMap.Sample(mainSampler, input.uv) * 2 - 1;
-	input.normal = normalize(mul(input.normal, tbn));
+	input.normal = normalize(mul(normalize(input.normal), tbn));
 	output.specular = float4(1, 1, 1, dot(input.normal.g, input.normal.g)*64);
 
 	float f = sqrt(2 / (1 - input.normal.z));

@@ -64,7 +64,7 @@ float3 colorFromScenelight(GBuffer input)
 	ambient += sceneLight.AmbientColor.xyz;
 
 	float3 texColor = input.diffuse.rgb;
-	return pow((ambient + diffuse + specular) * texColor, 1 / 2.2);
+	return pow((ambient + diffuse + specular)*texColor, 1 / 2.2);
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
@@ -72,7 +72,7 @@ float3 decompressNormal(float2 compressedNormal)
 {
 	float n = dot(compressedNormal, compressedNormal) / 4;
 	float s = sqrt(1 - n);
-	return float3(s * compressedNormal, n * 2 - 1);
+	return normalize(float3(s * compressedNormal, n * 2 - 1));
 }
 
 float linearizeDepth(float logDepth, float n, float f)

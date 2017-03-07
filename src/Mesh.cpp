@@ -10,7 +10,7 @@
 using namespace BlackMagic;
 using namespace DirectX;
 
-void CreateTB(Vertex& v, XMVECTOR tO, XMVECTOR uO)
+void OrthonormalizeTB(Vertex& v, XMVECTOR tO, XMVECTOR uO)
 {
 	XMVECTOR n = XMLoadFloat3(&v.Normal);
 	XMVECTOR t = tO - XMVector3Dot(tO, n)*n;
@@ -18,6 +18,10 @@ void CreateTB(Vertex& v, XMVECTOR tO, XMVECTOR uO)
 
 	XMVector3Normalize(t);
 	XMVector3Normalize(u);
+
+	if (XMVector3Dot(XMVector3Cross(n, t), u).m128_f32[0] < 0.0f)
+		XMVectorNegate(t);
+
 
 	XMFLOAT3 tangent, binormal;
 	XMStoreFloat3(&tangent, t);
@@ -45,12 +49,12 @@ void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 	XMVECTOR b = t3 - t1;
 
 	float det = 1 / (a.m128_f32[0] * b.m128_f32[1] - a.m128_f32[1] * b.m128_f32[0]);
-	XMVECTOR t = (x * b.m128_f32[1] - y*a.m128_f32[1])*det;
-	XMVECTOR u = (y*a.m128_f32[0] - x*b.m128_f32[0])*det;
+	XMVECTOR t = (x * b.m128_f32[1] - y * a.m128_f32[1])*det;
+	XMVECTOR u = (y * a.m128_f32[0] - x * b.m128_f32[0])*det;
 
-	CreateTB(v1, t, u);
-	CreateTB(v2, t, u);
-	CreateTB(v3, t, u);
+	OrthonormalizeTB(v1, t, u);
+	OrthonormalizeTB(v2, t, u);
+	OrthonormalizeTB(v3, t, u);
 }
 
 Mesh::Mesh() :

@@ -669,7 +669,7 @@ void DX11Renderer::InitBuffers()
 	colorMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	colorMapDesc.CPUAccessFlags = 0;
 	colorMapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	colorMapDesc.MipLevels = 1;
+	colorMapDesc.MipLevels = 0;
 	colorMapDesc.MiscFlags = 0;
 	colorMapDesc.SampleDesc.Count = 1;
 	colorMapDesc.SampleDesc.Quality = 0;
@@ -682,7 +682,7 @@ void DX11Renderer::InitBuffers()
 	normalMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	normalMapDesc.CPUAccessFlags = 0;
 	normalMapDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	normalMapDesc.MipLevels = 1;
+	normalMapDesc.MipLevels = 0;
 	normalMapDesc.MiscFlags = 0;
 	normalMapDesc.SampleDesc.Count = 1;
 	normalMapDesc.SampleDesc.Quality = 0;

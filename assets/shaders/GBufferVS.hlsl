@@ -16,7 +16,7 @@ struct VertexToPixel
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
-	float2 uv : TEXCOORD;
+	float2 uv : TEXCOORD; 
 };
 
 cbuffer frameData
@@ -39,9 +39,9 @@ VertexToPixel main( Vertex input )
 	VertexToPixel output;
 	output.position = mul(float4(input.position, 1.0), mvp);
 	output.worldPos = mul(float4(input.position, 1.0), world).xyz;
-	output.normal = mul(input.normal, rs);
-	output.tangent = mul(input.tangent, rs);
-	output.binormal = mul(input.binormal, rs);
+	output.normal = normalize(mul(input.normal, rs));
+	output.tangent = normalize(mul(input.tangent, rs));
+	output.binormal = normalize(mul(input.binormal, rs));
 	output.uv = input.uv;
 	return output;
 }
