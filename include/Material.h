@@ -20,13 +20,17 @@ enum AttributeStage : int
 	ComputeShader
 };
 
+template<typename T>
+static std::shared_ptr<T> _optional_ptr = std::shared_ptr<T>(nullptr);
+
 class Material
 {
 public:
 	Material(
 		const std::shared_ptr<SimpleVertexShader>& vs, 
 		const std::shared_ptr<SimplePixelShader>& ps,
-		const std::shared_ptr<SimpleHullShader>& hs
+		const std::shared_ptr<SimpleHullShader>& hs = _optional_ptr<SimpleHullShader>,
+        const std::shared_ptr<SimpleDomainShader>& ds = _optional_ptr<SimpleDomainShader>
 	);
 
 	SimpleVertexShader* VertexShader() const;
