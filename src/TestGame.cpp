@@ -61,6 +61,8 @@ void TestGame::Update(float deltaTime)
 
 	TransformData::GetSingleton()->UpdateTransforms();
 	auto job = platform->GetThreadManager()->CreateGenericJob<TestJob>();
+	job->WaitUntilJobIsComplete();
+	platform->GetThreadManager()->DestroyGenericJob(job);
 }
 
 void TestGame::Draw(float deltaTime)
