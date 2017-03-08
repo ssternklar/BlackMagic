@@ -32,7 +32,7 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 	_globalLight = {
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ 0, -1, 1 },
+		{ 1, -1, 1 },
 		0,
 		{ 0, 1, 1 }
 	};

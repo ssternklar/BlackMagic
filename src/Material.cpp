@@ -3,15 +3,21 @@
 Material::Material(
 	const std::shared_ptr<SimpleVertexShader>& vs,
 	const std::shared_ptr<SimplePixelShader>& ps,
-	const std::shared_ptr<Texture>& tex,
-	const ComPtr<ID3D11SamplerState>& sampler,
-	const std::shared_ptr<Texture>& normalMap
+	const std::shared_ptr<Texture>& albedo,
+	const std::shared_ptr<Texture>& roughness,
+	const std::shared_ptr<Texture>& metalness,
+	const std::shared_ptr<Texture>& cavity,
+	const std::shared_ptr<Texture>& normal,
+	const ComPtr<ID3D11SamplerState>& sampler
 )
 	: _vertShader(vs),
-	_pixelShader(ps), 
-	_texture(tex),
-	_mainSampler(sampler),
-	_normalMap(normalMap)
+	_pixelShader(ps),
+	_albedo(albedo),
+	_roughness(roughness),
+	_metalness(metalness),
+	_cavity(cavity),
+	_normal(normal),
+	_sampler(sampler)
 {}
 
 
@@ -25,19 +31,19 @@ SimplePixelShader* Material::PixelShader() const
 	return _pixelShader.get();
 }
 
-Texture* Material::MainTexture() const
+Texture* Material::Albedo() const
 {
-	return _texture.get();
+	return _albedo.get();
 }
 
 Texture* Material::NormalMap() const
 {
-	return _normalMap.get();
+	return _normal.get();
 }
 
-ID3D11SamplerState* Material::MainSampler() const
+ID3D11SamplerState* Material::Sampler() const
 {
-	return _mainSampler.Get();
+	return _sampler.Get();
 }
 
 void Material::Apply(

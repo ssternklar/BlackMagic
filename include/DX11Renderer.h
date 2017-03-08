@@ -42,8 +42,10 @@ namespace BlackMagic {
 
 		//Resources for deferred rendering	
 		ComPtr<ID3D11ShaderResourceView> _depthStencilTexture;
-		Texture* _diffuseMap;
-		Texture* _specularMap;
+		Texture* _albedoMap;
+		Texture* _roughnessMap;
+		Texture* _metalMap;
+		Texture* _cavityMap;
 		Texture* _normalMap; 
 		Texture* _positionMap;
 		Texture* _lightMap;

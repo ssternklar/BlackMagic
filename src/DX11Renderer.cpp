@@ -16,14 +16,24 @@ DX11Renderer::DX11Renderer()
 
 DX11Renderer::~DX11Renderer()
 {
-	if (_diffuseMap)
+	if (_albedoMap)
 	{
-		delete _diffuseMap;
+		delete _albedoMap;
 	}
 
-	if (_specularMap)
+	if (_roughnessMap)
 	{
-		delete _specularMap;
+		delete _roughnessMap;
+	}
+
+	if (_metalMap)
+	{
+		delete _metalMap;
+	}
+
+	if (_cavityMap)
+	{
+		delete _cavityMap;
 	}
 
 	if (_normalMap)
@@ -62,8 +72,8 @@ void DX11Renderer::Clear(XMFLOAT4 color)
 {
 	FLOAT black[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_context->ClearRenderTargetView(_backBuffer.Get(), reinterpret_cast<const FLOAT*>(&color));
-	_context->ClearRenderTargetView(_diffuseMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), reinterpret_cast<const FLOAT*>(&color));
-	_context->ClearRenderTargetView(_specularMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
+	_context->ClearRenderTargetView(_albedoMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), reinterpret_cast<const FLOAT*>(&color));
+	_context->ClearRenderTargetView(_roughnessMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
 	_context->ClearRenderTargetView(_normalMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
 	_context->ClearRenderTargetView(_positionMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
 	_context->ClearRenderTargetView(_lightMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
@@ -117,18 +127,31 @@ void DX11Renderer::OnResize(UINT width, UINT height)
 	_width = width;
 	_height = height;
 	
-	if (_diffuseMap)
+	if (_albedoMap)
 	{
-		delete _diffuseMap;
+		delete _albedoMap;
 	}
-	if (_specularMap)
+
+	if (_roughnessMap)
 	{
-		delete _specularMap;
+		delete _roughnessMap;
 	}
+
+	if (_metalMap)
+	{
+		delete _metalMap;
+	}
+
+	if (_cavityMap)
+	{
+		delete _cavityMap;
+	}
+
 	if (_normalMap)
 	{
 		delete _normalMap;
 	}
+
 	if (_positionMap)
 	{
 		delete _positionMap;
@@ -506,11 +529,13 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	//RenderShadowMaps(cam, objects, sceneLight);
 
 	//TODO: Sort renderables by material and texture to minimize state switches
-	ID3D11RenderTargetView* rts[4] = {
-		_diffuseMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
-		_specularMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
+	ID3D11RenderTargetView* rts[] = {
+		_albedoMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
 		_positionMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
-		_normalMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>()
+		_roughnessMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
+		_normalMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
+		_cavityMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
+		_metalMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>()
 	};
 	_context->OMSetRenderTargets(4, rts, _depthStencil.Get());
 
@@ -550,10 +575,12 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetData("lightProjection", &_shadowProjections[0], sizeof(XMFLOAT4X4)*NUM_SHADOW_CASCADES);
 	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.Get());
 	_lightPassPS->SetSamplerState("shadowSampler", _shadowSampler.Get());
-	_lightPassPS->SetShaderResourceView("diffuseMap", _diffuseMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
-	_lightPassPS->SetShaderResourceView("specularMap", _specularMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_lightPassPS->SetShaderResourceView("albedoMap", _albedoMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_lightPassPS->SetShaderResourceView("roughnessMap", _roughnessMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
 	_lightPassPS->SetShaderResourceView("positionMap", _positionMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
 	_lightPassPS->SetShaderResourceView("normalMap", _normalMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_lightPassPS->SetShaderResourceView("metalMap", _metalMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_lightPassPS->SetShaderResourceView("cavityMap", _cavityMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
 	_lightPassPS->SetShaderResourceView("shadowMap", _shadowMapSRV.Get());
 	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture.Get());
 	_lightPassPS->CopyAllBufferData();
@@ -577,8 +604,8 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	//_context->Draw(6, 0);
 	
 	//Can't have SRVs and RTVs that are pointing to the same texture bound at the same time, so unset them
-	ID3D11ShaderResourceView* srvs[6] = { 0 };
-	_context->PSSetShaderResources(0, 6, srvs);
+	ID3D11ShaderResourceView* srvs[7] = { 0 };
+	_context->PSSetShaderResources(0, 7, srvs);
 }
 
 void DX11Renderer::RenderSkybox(const Camera& cam)
@@ -664,18 +691,31 @@ void DX11Renderer::InitBuffers()
 		_backBuffer.ReleaseAndGetAddressOf());
 	backBufferTexture->Release();
 
-	D3D11_TEXTURE2D_DESC colorMapDesc;
-	colorMapDesc.ArraySize = 1;
-	colorMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-	colorMapDesc.CPUAccessFlags = 0;
-	colorMapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	colorMapDesc.MipLevels = 0;
-	colorMapDesc.MiscFlags = 0;
-	colorMapDesc.SampleDesc.Count = 1;
-	colorMapDesc.SampleDesc.Quality = 0;
-	colorMapDesc.Usage = D3D11_USAGE_DEFAULT;
-	colorMapDesc.Height = _height;
-	colorMapDesc.Width = _width;
+	D3D11_TEXTURE2D_DESC albedoMapDesc;
+	albedoMapDesc.ArraySize = 1;
+	albedoMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	albedoMapDesc.CPUAccessFlags = 0;
+	albedoMapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	albedoMapDesc.MipLevels = 0;
+	albedoMapDesc.MiscFlags = 0;
+	albedoMapDesc.SampleDesc.Count = 1;
+	albedoMapDesc.SampleDesc.Quality = 0;
+	albedoMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	albedoMapDesc.Height = _height;
+	albedoMapDesc.Width = _width;
+
+	D3D11_TEXTURE2D_DESC pbrAttributeDesc;
+	pbrAttributeDesc.ArraySize = 1;
+	pbrAttributeDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	pbrAttributeDesc.CPUAccessFlags = 0;
+	pbrAttributeDesc.Format = DXGI_FORMAT_R8_UNORM;
+	pbrAttributeDesc.MipLevels = 0;
+	pbrAttributeDesc.MiscFlags = 0;
+	pbrAttributeDesc.SampleDesc.Count = 1;
+	pbrAttributeDesc.SampleDesc.Quality = 0;
+	pbrAttributeDesc.Usage = D3D11_USAGE_DEFAULT;
+	pbrAttributeDesc.Height = _height;
+	pbrAttributeDesc.Width = _width;
 
 	D3D11_TEXTURE2D_DESC normalMapDesc;
 	normalMapDesc.ArraySize = 1;
@@ -771,14 +811,18 @@ void DX11Renderer::InitBuffers()
 	lightMapDesc.Height = _height;
 	lightMapDesc.Width = _width;
 
-	delete _diffuseMap;
-	delete _specularMap;
+	delete _albedoMap;
+	delete _roughnessMap;
+	delete _metalMap;
+	delete _cavityMap;
 	delete _normalMap;
 	delete _positionMap;
 	delete _lightMap;
 
-	_diffuseMap = createEmptyTexture(colorMapDesc);
-	_specularMap = createEmptyTexture(colorMapDesc);
+	_albedoMap = createEmptyTexture(albedoMapDesc);
+	_roughnessMap = createEmptyTexture(pbrAttributeDesc);
+	_metalMap = createEmptyTexture(pbrAttributeDesc);
+	_cavityMap = createEmptyTexture(pbrAttributeDesc);
 	_normalMap = createEmptyTexture(normalMapDesc);
 	_positionMap = createEmptyTexture(posMapDesc);
 	_lightMap = createEmptyTexture(lightMapDesc);

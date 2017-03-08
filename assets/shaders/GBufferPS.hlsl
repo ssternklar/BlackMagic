@@ -5,10 +5,12 @@ SamplerState mainSampler : register(s0);
 
 struct GBuffer
 {
-	float4 diffuse : SV_TARGET0;
-	float4 specular : SV_TARGET1;
-	float3 position : SV_TARGET2;
+	float4 albedo : SV_TARGET0;
+	float3 position : SV_TARGET1;
+	float roughness : SV_TARGET2;
 	float2 normal : SV_TARGET3;
+	float cavity : SV_TARGET4;
+	float metal : SV_TARGET5;
 };
 
 struct VertexToPixel
@@ -25,7 +27,7 @@ GBuffer main(VertexToPixel input)
 {
 	GBuffer output;
 
-	output.diffuse = float4(mainTex.Sample(mainSampler, input.uv).rgb, 1.0);
+	output.albedo = float4(mainTex.Sample(mainSampler, input.uv).rgb, 1.0);
 
 
 	float3x3 tbn = float3x3(

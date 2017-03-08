@@ -16,10 +16,12 @@ struct DirectionalLight
 
 struct GBuffer
 {
-	float4 diffuse;
-	float4 specular;
+	float4 albedo;
 	float3 position;
-	float3 normal;
+	float roughness;
+	float2 normal;
+	float cavity;
+	float metal;
 };
 
 struct VertexToPixel
@@ -36,12 +38,14 @@ cbuffer perFrame : register(b0)
 	float3 cameraPosition;
 };
 
-Texture2D diffuseMap : register(t0);
-Texture2D specularMap : register(t1);
-Texture2D positionMap : register(t2);
+Texture2D albedoMap : register(t0);
+Texture2D positionMap : register(t1);
+Texture2D roughnessMap: register(t2);
 Texture2D normalMap : register(t3);
 Texture2DArray shadowMap : register(t4);
 Texture2D depth : register(t5);
+Texture2D metalMap : register(t6);
+Texture2D cavityMap : register(t7);
 SamplerState mainSampler : register(s0);
 SamplerComparisonState shadowSampler : register(s1);
 
