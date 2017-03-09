@@ -19,9 +19,9 @@ namespace BlackMagic
 		AudioChannel channel;
 		State state = Stopped;
 		float actualLoudness;
-		float time;
 		byte id;
-		AudioFX(AudioFile file, byte identifier, float loudness) : file(file), id(identifier), actualLoudness(loudness), state(ToPlay), time(0) {};
+		AudioFX(AudioFile file, byte identifier, float loudness) : file(file), id(identifier), actualLoudness(loudness), state(ToPlay) {}
+		AudioFX() : AudioFX(0, 0, 0) {}
 	};
 
 	class PlatformBase;
@@ -33,23 +33,25 @@ namespace BlackMagic
 		AudioFX sounds[MAX_SOUNDS];
 		AudioFX BGM;
 		byte currentIndex = 0;
-		virtual void PlaySoundInternal(AudioFX effect) = 0;
-		virtual void PlayBGMInternal(AudioFX bgm) = 0;
-		virtual void StopSoundInternal(AudioFX file) = 0;
+		byte PlaySound(AudioFile file, float loudnessScale);
+		void StopSound(int index);
+		virtual void PlaySoundInternal(AudioFX* effect) = 0;
+		virtual void PlayBGMInternal(AudioFX* bgm) = 0;
+		virtual void StopSoundInternal(AudioFX* file) = 0;
 		virtual void StopBGMInternal() = 0;
 	public:
 		PlatformBase* platformBase;
 		float upperLoudness = 40;
 
-		byte PlaySound(AudioFile file, float loudnessScale);
-		void StopSound(byte identifierToStop);
+		byte RequestPlay(AudioFile file, float loudnessScale);
+		void RequestStop(byte identifierToStop);
 		void StopAllSounds();
 		void PlayBGM(AudioFile file, float loudnessScale);
 		void StopBGM();
 
 		void UpdateRunningSounds();
 
-		AudioManager();
+		AudioManager(PlatformBase* base);
 		~AudioManager();
 	};
 

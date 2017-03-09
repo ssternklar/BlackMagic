@@ -4,30 +4,38 @@ using namespace BlackMagic;
 
 byte BlackMagic::AudioManager::PlaySound(AudioFile file, float loudnessScale)
 {
-	AudioFX fx(file, currentIndex++, loudnessScale * upperLoudness);
-	sounds[currentSounds] = fx;
-	currentSounds++;
-	PlaySoundInternal(fx);
-	return fx.id;
+	PlaySoundInternal(&sounds[currentSounds]);
+	return sounds[currentSounds].id;
 }
 
-void BlackMagic::AudioManager::StopSound(byte fileToStop)
+void BlackMagic::AudioManager::StopSound(int index)
 {
-
-	int index = 0;
-	for (; index < currentSounds && sounds[index].id != fileToStop; index++);
 	if (index >= currentSounds) return;
-	StopSoundInternal(sounds[index]);
+	StopSoundInternal(&sounds[index]);
 	currentSounds--;
 	sounds[index] = sounds[currentSounds];
 	sounds[currentSounds] = AudioFX(0, 0, 0);
+}
+
+byte BlackMagic::AudioManager::RequestPlay(AudioFile file, float loudnessScale)
+{
+	AudioFX fx(file, currentIndex++, loudnessScale * upperLoudness);
+	sounds[currentSounds] = fx;
+	currentSounds++;
+}
+
+void BlackMagic::AudioManager::RequestStop(byte identifierToStop)
+{
+	int index = 0;
+	for (; index < currentSounds && sounds[index].id != identifierToStop; index++);
+	sounds[index].state = AudioFX::State::Stopping;
 }
 
 void BlackMagic::AudioManager::StopAllSounds()
 {
 	for (int i = 0; i < currentSounds; i++)
 	{
-		StopSoundInternal(sounds[i]);
+		StopSoundInternal(&sounds[i]);
 		sounds[i] = AudioFX(0, 0, 0);
 	}
 }
@@ -36,16 +44,14 @@ void BlackMagic::AudioManager::PlayBGM(AudioFile file, float loudnessScale)
 {
 	if (BGM.id != 0)
 	{
-		StopBGM();
+		StopBGMInternal();
 	}
 	BGM = AudioFX(file, 1, loudnessScale * upperLoudness);
-	PlayBGMInternal(BGM);
 }
 
 void BlackMagic::AudioManager::StopBGM()
 {
-	StopBGMInternal();
-	BGM = AudioFX(0, 0, 0);
+	BGM.state = AudioFX::State::Stopping;
 }
 
 void BlackMagic::AudioManager::UpdateRunningSounds()
@@ -54,24 +60,26 @@ void BlackMagic::AudioManager::UpdateRunningSounds()
 	{
 		if (sounds[i].state == AudioFX::State::ToPlay)
 		{
-			PlaySoundInternal(sounds[i]);
+			PlaySoundInternal(&sounds[i]);
 		}
 		else if (sounds[i].state == AudioFX::State::Stopping)
 		{
-			StopSoundInternal(sounds[i]);
+			StopSound(i);
 		}
 	}
 	if (BGM.state == AudioFX::State::ToPlay)
 	{
-		PlayBGMInternal(BGM);
+		PlayBGMInternal(&BGM);
+		BGM.state = AudioFX::State::Playing;
 	}
 	else if (BGM.state == AudioFX::State::Stopping)
 	{
 		StopBGMInternal();
+		BGM.state = AudioFX::State::Stopped;
 	}
 }
 
-AudioManager::AudioManager()
+AudioManager::AudioManager(PlatformBase* base) : platformBase(base)
 {
 }
 
