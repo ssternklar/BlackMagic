@@ -142,7 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AudioManager.cpp" />
+    <ClCompile Include="src\AudioManager.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ContentJob.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
@@ -169,12 +169,12 @@
     <ClCompile Include="src\WindowsPlatform.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AudioManager.h" />
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
     <ClInclude Include="include\allocators\BadBestFitAllocator.h" />
     <ClInclude Include="include\allocators\FixedBlockAllocator.h" />
     <ClInclude Include="include\allocators\globals.h" />
     <ClInclude Include="include\allocators\StackAllocator.h" />
+    <ClInclude Include="include\AudioManager.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />

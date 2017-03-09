@@ -37,7 +37,7 @@
     <ClCompile Include="src\TestJob.cpp" />
     <ClCompile Include="src\GenericJob.cpp" />
     <ClCompile Include="src\ContentJob.cpp" />
-    <ClCompile Include="AudioManager.cpp" />
+    <ClCompile Include="src\AudioManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -78,6 +78,6 @@
     <ClInclude Include="include\Vertex.h" />
     <ClInclude Include="include\WindowsPlatform.h" />
     <ClInclude Include="include\TestJob.h" />
-    <ClInclude Include="AudioManager.h" />
+    <ClInclude Include="include\AudioManager.h" />
   </ItemGroup>
 </Project>

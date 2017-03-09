@@ -1,5 +1,6 @@
 #pragma once
 
+#include "allocators\globals.h"
 #include "Handles.h"
 
 namespace BlackMagic
@@ -19,7 +20,8 @@ namespace BlackMagic
 		State state = Stopped;
 		float actualLoudness;
 		float time;
-		AudioFX(AudioFile file, float loudness) : file(file), actualLoudness(loudness), state(ToPlay), time(0) {};
+		byte id;
+		AudioFX(AudioFile file, byte identifier, float loudness) : file(file), id(identifier), actualLoudness(loudness), state(ToPlay), time(0) {};
 	};
 
 	class PlatformBase;
@@ -30,6 +32,7 @@ namespace BlackMagic
 		unsigned int currentSounds = 0;
 		AudioFX sounds[MAX_SOUNDS];
 		AudioFX BGM;
+		byte currentIndex = 0;
 		virtual void PlaySoundInternal(AudioFX effect) = 0;
 		virtual void PlayBGMInternal(AudioFX bgm) = 0;
 		virtual void StopSoundInternal(AudioFX file) = 0;
@@ -38,8 +41,8 @@ namespace BlackMagic
 		PlatformBase* platformBase;
 		float upperLoudness = 40;
 
-		AudioFX* PlaySound(AudioFile file, float loudnessScale);
-		void StopSound(AudioFX* fileToStop);
+		byte PlaySound(AudioFile file, float loudnessScale);
+		void StopSound(byte identifierToStop);
 		void StopAllSounds();
 		void PlayBGM(AudioFile file, float loudnessScale);
 		void StopBGM();
