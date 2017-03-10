@@ -12,12 +12,19 @@ using BlackMagic::Texture;
 
 enum ResourceStage : int
 {
-	VertexShader,	
-	HullShader,
-	DomainShader,
-	GeometryShader,
-	PixelShader,
-	ComputeShader
+	VertexShader = 1 << 0,	
+	HullShader = 1 << 1,
+	DomainShader = 1 << 2,
+	GeometryShader = 1 << 3,
+	PixelShader = 1 << 4,
+	ComputeShader = 1 << 5
+};
+
+enum ResourceType : int
+{
+	Data,
+	Texture,
+	Sampler
 };
 
 class Material
@@ -28,8 +35,7 @@ public:
 		const std::shared_ptr<SimplePixelShader>& ps,
 		const std::shared_ptr<SimpleHullShader>* hs = nullptr,
         const std::shared_ptr<SimpleDomainShader>* ds = nullptr,
-        const std::shared_ptr<SimpleGeometryShader>* gs = nullptr,
-        const std::shared_ptr<SimpleComputeShader>* cs = nullptr
+        const std::shared_ptr<SimpleGeometryShader>* gs = nullptr
 	);
 
 	SimpleVertexShader* VertexShader() const;
@@ -37,29 +43,26 @@ public:
     SimpleHullShader* HullShader() const;
     SimpleDomainShader* DomainShader() const;
     SimpleGeometryShader* GeometryShader() const;
-    SimpleComputeShader* ComputeShader() const;
 
-    //Turns on shader stages and uploads data
+    //Turns on shader stages and uploads persistent data
     void Use() const;
 
-    template<typename T>
-    void Set(ResourceStage s, T& data);
+	void SetData(std::string name, ResourceStage s, ResourceType t, size_t size, void* data, bool persistent = false);
 
 private:
+	struct ResourceData
+	{
+		ResourceStage stage;
+		ResourceType type;
+		size_t size;
+		unsigned char* data;
+	};
+
     bool _active = false;
+	std::unordered_map<std::string, ResourceData> _persistentData;
 	std::shared_ptr<SimpleVertexShader> _vertShader;
 	std::shared_ptr<SimplePixelShader> _pixelShader;
-	std::shared_ptr<Texture> _albedo, _roughness, _metalness, _cavity, _normal;
-	ComPtr<ID3D11SamplerState> _sampler;
+    std::shared_ptr<SimpleHullShader> _hullShader;
+    std::shared_ptr<SimpleDomainShader> _domainShader;
+    std::shared_ptr<SimpleGeometryShader> _geometryShader;
 };
-
-#if defined(_WIN32) || defined(_WIN64)
-template void Material::Set<int>(ResourceStage s, int& data);
-template void Material::Set<float>(ResourceStage s, float& data);
-template void Material::Set<DirectX::XMFLOAT2>(ResourceStage s, DirectX::XMFLOAT2& data);
-template void Material::Set<DirectX::XMFLOAT3>(ResourceStage s, DirectX::XMFLOAT3& data);
-template void Material::Set<DirectX::XMFLOAT4>(ResourceStage s, DirectX::XMFLOAT4& data);
-template void Material::Set<DirectX::XMFLOAT4X4>(ResourceStage s, DirectX::XMFLOAT4X4& data);
-template void Material::Set<ID3D11ShaderResourceView*>(ResourceStage s, ID3D11ShaderResourceView*& data);
-template void Material::Set<ID3D11SamplerState*>(ResourceStage s, ID3D11SamplerState*& data);
-#endif
