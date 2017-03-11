@@ -3,7 +3,7 @@
 using namespace BlackMagic;
 using namespace DirectX;
 
-Entity::Entity(XMFLOAT3 pos, XMFLOAT4 rot, std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat)
+Entity::Entity(XMFLOAT3 pos, XMFLOAT4 rot, std::shared_ptr<Mesh> mesh, const Material& mat)
 	: GameObject(pos, rot, {1, 1, 1}),
 	Renderable(mesh, mat)
 {}

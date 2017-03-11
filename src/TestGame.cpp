@@ -59,11 +59,13 @@ void TestGame::LoadContent()
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	auto sampler = reinterpret_cast<DX11Renderer*>(platform->GetRenderer())->CreateSamplerState(samplerDesc);
-	auto mat = std::make_shared<Material> (
-		gPassVS, gPassPS,
-		sphereTex, sampler,
-		sphereNormals
+	sampler.Get()->AddRef();
+	auto mat = Material(
+		gPassVS, gPassPS
 	);
+	mat.SetResource("albedoMap", Material::ResourceStage::PS, Material::ResourceType::Texture, sizeof(void*), sphereTex.get(), true);
+	mat.SetResource("normalMap", Material::ResourceStage::PS, Material::ResourceType::Texture, sizeof(void*), sphereNormals.get(), true);
+	mat.SetResource("mainSampler", Material::ResourceStage::PS, Material::ResourceType::Sampler, sizeof(void*), sampler.Get(), true);
 
 	for(float y = 0; y < 11; y++)
 	{

@@ -32,6 +32,7 @@ namespace BlackMagic {
 		virtual GraphicsTexture CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type) override;
 		virtual void ReleaseTexture(GraphicsTexture texture) override;
 		virtual void ReleaseRenderTarget(GraphicsRenderTarget renderTarget) override;
+		virtual void ReleaseResource(void* resource) override;
 	private:
 		ComPtr<ID3D11Device> _device;
 		ComPtr<ID3D11DeviceContext> _context;

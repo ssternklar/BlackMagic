@@ -52,8 +52,8 @@ SamplerComparisonState shadowSampler : register(s1);
 
 float3 colorFromScenelight(GBuffer input)
 {
-	float3 ambient, diffuse, specular;
-	ambient = diffuse = specular = float3(0, 0, 0);
+	float3 ambient, diffuse;
+	ambient = diffuse = float3(0, 0, 0);
 
 	float3 v = normalize(cameraPosition - input.position);
 	
@@ -61,14 +61,10 @@ float3 colorFromScenelight(GBuffer input)
 	float nDotL = saturate(dot(input.normal, l));
 	diffuse += nDotL * sceneLight.DiffuseColor.xyz;
 
-	float3 h = normalize(l + v);
-	float spec = pow(max(dot(input.normal, h), 0), 32);
-	specular += spec * input.specular.rgb;
-
 	ambient += sceneLight.AmbientColor.xyz;
 
-	float3 texColor = input.diffuse.rgb;
-	return pow((ambient + diffuse + specular)*texColor, 1 / 2.2);
+	float3 texColor = input.albedo.rgb;
+	return pow((ambient + diffuse)*texColor, 1 / 2.2);
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
@@ -110,8 +106,7 @@ float sampleShadowMap(float3 pos, float cascade)
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	GBuffer buffer;
-	buffer.diffuse = diffuseMap.Sample(mainSampler, input.uv);
-	buffer.specular = specularMap.Sample(mainSampler, input.uv);
+	buffer.albedo = albedoMap.Sample(mainSampler, input.uv);
 	buffer.normal = decompressNormal(normalMap.Sample(mainSampler, input.uv).xy);
 	buffer.position = positionMap.Sample(mainSampler, input.uv);
 

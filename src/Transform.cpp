@@ -73,7 +73,7 @@ void Transform::SetScale(XMFLOAT3 scale)
 	TransformData::GetSingleton()->_scales[_id] = scale;
 }
 
-const DirectX::XMFLOAT4X4* Transform::Matrix()
+DirectX::XMFLOAT4X4* Transform::Matrix()
 {
 	return TransformData::GetSingleton()->GetMatrix(_id);
 }

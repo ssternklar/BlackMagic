@@ -1,7 +1,7 @@
 
-Texture2D mainTex : register(t0);
+Texture2D albedoMap : register(t0);
 Texture2D normalMap : register(t1);
-SamplerState mainSampler : register(s0);
+SamplerState mainSampler: register(s0);
 
 struct GBuffer
 {
@@ -26,9 +26,7 @@ struct VertexToPixel
 GBuffer main(VertexToPixel input)
 {
 	GBuffer output;
-
-	output.albedo = float4(mainTex.Sample(mainSampler, input.uv).rgb, 1.0);
-
+	output.albedo = float4(albedoMap.Sample(mainSampler, input.uv).rgb, 1.0);
 
 	float3x3 tbn = float3x3(
 		normalize(input.tangent), 
@@ -36,12 +34,13 @@ GBuffer main(VertexToPixel input)
 		normalize(input.normal));
 	input.normal = normalMap.Sample(mainSampler, input.uv) * 2 - 1;
 	input.normal = normalize(mul(normalize(input.normal), tbn));
-	output.specular = float4(1, 1, 1, dot(input.normal.g, input.normal.g)*64);
 
 	float f = sqrt(2 / (1 - input.normal.z));
 	output.normal = input.normal.xy * f;
 
 	output.position = input.worldPos;
+
+	output.roughness = output.cavity = output.metal = 1.0f;
 
 	return output;
 }

@@ -27,6 +27,7 @@ namespace BlackMagic
 		virtual GraphicsTexture CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type) = 0;
 		virtual void ReleaseTexture(GraphicsTexture texture) = 0;
 		virtual void ReleaseRenderTarget(GraphicsRenderTarget renderTarget) = 0;
+		virtual void ReleaseResource(void*) = 0;
 		/*virtual GraphicsShader CreateShader(GraphicsShader::ShaderType shaderType, const char* shaderPath);
 		virtual void CleanupShader(GraphicsShader::ShaderType shaderType, GraphicsShader shader);
 		*/

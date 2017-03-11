@@ -524,7 +524,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	static UINT quadStride = sizeof(XMFLOAT2);
 	static UINT offset = 0;
 
-	Material* currentMaterial = nullptr;
+	const Material* currentMaterial = nullptr;
 
 	//RenderShadowMaps(cam, objects, sceneLight);
 
@@ -544,17 +544,13 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	{
 		auto renderable = object->AsRenderable();
 
-		if (renderable->_material.get() != currentMaterial)
-		{
-			currentMaterial = renderable->_material.get();
-			renderable->_material->Apply(cam.ViewMatrix(), cam.ProjectionMatrix());
-		}
-		
 		//Update per-object constant buffer
-		renderable->_material->VertexShader()->SetData("world", object->GetTransform().Matrix(), sizeof(XMFLOAT4X4));
+		renderable->_material.SetResource("world", Material::VS, Material::ResourceType::Data, sizeof(XMFLOAT4X4),
+			reinterpret_cast<void*>(object->GetTransform().Matrix()));
 		
 		//Upload buffers and draw
-		renderable->_material->Upload();
+		renderable->_material.Use(currentMaterial && renderable->_material == *currentMaterial);
+		currentMaterial = &renderable->_material;
 
 		auto vBuf = renderable->_mesh->VertexBuffer().GetAs<ID3D11Buffer*>();
 		_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
@@ -662,14 +658,20 @@ GraphicsTexture DX11Renderer::CreateTexture(const wchar_t* texturePath, Graphics
 	return GraphicsTexture(srv);
 }
 
-void BlackMagic::DX11Renderer::ReleaseTexture(GraphicsTexture texture)
+void DX11Renderer::ReleaseTexture(GraphicsTexture texture)
 {
 	if(texture.buffer) texture.GetAs<ID3D11ShaderResourceView*>()->Release();
 }
 
-void BlackMagic::DX11Renderer::ReleaseRenderTarget(GraphicsRenderTarget renderTarget)
+void DX11Renderer::ReleaseRenderTarget(GraphicsRenderTarget renderTarget)
 {
 	if(renderTarget.buffer) renderTarget.GetAs<ID3D11RenderTargetView*>()->Release();
+}
+
+void DX11Renderer::ReleaseResource(void* resource)
+{
+	if (resource)
+		reinterpret_cast<IUnknown*>(resource)->Release();
 }
 
 void DX11Renderer::InitBuffers()

@@ -6,14 +6,15 @@
 #include "Material.h"
 #include "Transform.h"
 
-class Renderable
+namespace BlackMagic
 {
-public:
-	Renderable() = default;
-	Renderable(const std::shared_ptr<BlackMagic::Mesh>& mesh, const std::shared_ptr<Material>& mat);
+	class Renderable
+	{
+	public:
+		Renderable() = default;
+		Renderable(const std::shared_ptr<BlackMagic::Mesh>& mesh, const Material& mat);
 
-	void PrepareMaterial(Transform& transform, DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj);
-
-	std::shared_ptr<BlackMagic::Mesh> _mesh;
-	std::shared_ptr<Material> _material;
-};
+		std::shared_ptr<BlackMagic::Mesh> _mesh;
+		Material _material;
+	};	
+}
