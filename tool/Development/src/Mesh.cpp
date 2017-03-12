@@ -35,15 +35,15 @@ MeshData::~MeshData()
 }
 
 // update to use DirectXMath for the bounds
-MeshHandle MeshData::newMesh(char* modelPath)
+MeshHandle MeshData::NewMesh(char* modelPath)
 {
 	if (meshCount == numMeshes)
 	{
 		numMeshes += 16;
 		Mesh* newMeshes = new Mesh[numMeshes];
 
-		memcpy_s(newMeshes, numMeshes, meshes, numMeshes - 16);
-		proxy.move(meshes, newMeshes, numMeshes - 16);
+		memcpy_s(newMeshes, sizeof(Mesh) * numMeshes, meshes, sizeof(Mesh) * (numMeshes - 16));
+		proxy.Move(meshes, newMeshes, numMeshes - 16);
 
 		delete[] meshes;
 		meshes = newMeshes;
@@ -199,17 +199,17 @@ MeshHandle MeshData::newMesh(char* modelPath)
 
 	device->CreateBuffer(&ibd, &initialIndexData, &meshes[meshCount].indexBuffer);
 
-	return proxy.track(&meshes[meshCount++]);
+	return proxy.Track(&meshes[meshCount++]);
 }
 
-void MeshData::deleteMesh(MeshHandle handle)
+void MeshData::DeleteMesh(MeshHandle handle)
 {
 	if (!meshCount)
 		return;
 
 	size_t index = handle.ptr() - meshes;
 
-	proxy.relinquish(handle.ptr());
+	proxy.Relinquish(handle.ptr());
 
 	handle->vertexBuffer->Release();
 	handle->indexBuffer->Release();
@@ -218,8 +218,7 @@ void MeshData::deleteMesh(MeshHandle handle)
 
 	if (index != --meshCount)
 	{
-		proxy.move(meshes + meshCount, meshes + index);
-
+		proxy.Move(meshes + meshCount, meshes + index);
 		meshes[index] = meshes[meshCount];
 	}
 }

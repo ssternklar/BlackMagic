@@ -13,8 +13,8 @@ Camera::Camera()
 	fpsEnabled = false;
 	fpsPos = { 0, 0 };
 
-	transform = TransformData::instance().newTransform();
-	TransformData::instance().Move(transform, {0, 0, -3});
+	transform = TransformData::Instance().NewTransform();
+	TransformData::Instance().Move(transform, {0, 0, -3});
 
 	Input::BindToControl("camForward", 'W');
 	Input::BindToControl("camLeft", 'A');
@@ -27,7 +27,7 @@ Camera::Camera()
 
 Camera::~Camera()
 {
-	TransformData::instance().deleteTransform(transform);
+	TransformData::Instance().DeleteTransform(transform);
 }
 
 DirectX::XMFLOAT4X4 Camera::ViewMatrix() const
@@ -63,14 +63,14 @@ void Camera::Update(float deltaTime)
 	offsetVec = offsetVec * (speed * deltaTime);
 	XMFLOAT3 offset;
 	XMStoreFloat3(&offset, offsetVec);
-	TransformData::instance().Move(transform, offset);
+	TransformData::Instance().Move(transform, offset);
 
 	ImGuiIO& io = ImGui::GetIO();
 	XMFLOAT2 delta = Input::getMouseDelta();
 	if (io.MouseDown[1] && (delta.x != 0 || delta.y != 0))
 	{
-		TransformData::instance().Rotate(transform, TransformData::instance().GetRight(transform), delta.y * 2 * deltaTime);
-		TransformData::instance().Rotate(transform, { 0,1,0 }, delta.x * 2 * deltaTime);
+		TransformData::Instance().Rotate(transform, TransformData::Instance().GetRight(transform), delta.y * 2 * deltaTime);
+		TransformData::Instance().Rotate(transform, { 0,1,0 }, delta.x * 2 * deltaTime);
 
 		if (!fpsEnabled)
 		{
@@ -88,8 +88,8 @@ void Camera::Update(float deltaTime)
 		fpsEnabled = false;
 	}
 
-	XMVECTOR forward = XMLoadFloat3(&TransformData::instance().GetForward(transform));
-	XMVECTOR up = XMLoadFloat3(&TransformData::instance().GetUp(transform));
+	XMVECTOR forward = XMLoadFloat3(&TransformData::Instance().GetForward(transform));
+	XMVECTOR up = XMLoadFloat3(&TransformData::Instance().GetUp(transform));
 	XMVECTOR position = XMLoadFloat3(&transform->pos);
 	XMMATRIX view = XMMatrixLookToLH(position, forward, up);
 	XMStoreFloat4x4(&viewMat, XMMatrixTranspose(view));

@@ -37,8 +37,8 @@ public:
 	MeshData(ID3D11Device* device);
 	~MeshData();
 
-	MeshHandle newMesh(char* modelPath);
-	void deleteMesh(MeshHandle handle);
+	MeshHandle NewMesh(char* modelPath);
+	void DeleteMesh(MeshHandle handle);
 
 private:
 	ID3D11Device* device;

@@ -21,8 +21,8 @@ public:
 	TransformData();
 	~TransformData();
 
-	TransformHandle newTransform();
-	void deleteTransform(TransformHandle handle);
+	TransformHandle NewTransform();
+	void DeleteTransform(TransformHandle handle);
 	void UpdateTransforms();
 
 	DirectX::XMFLOAT3 GetForward(TransformHandle handle);

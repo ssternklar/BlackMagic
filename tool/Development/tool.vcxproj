@@ -163,6 +163,7 @@
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\PointerProxy.h" />
+    <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\Shaders.h" />
     <ClInclude Include="src\Singleton.h" />
     <ClInclude Include="src\Tool.h" />

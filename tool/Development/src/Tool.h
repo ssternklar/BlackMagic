@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Scene.h"
 #include "Graphics.h"
 
 class Tool
@@ -22,10 +23,13 @@ private:
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 
 	Graphics* graphics;
-	ShaderData* shaders;
 	Camera* camera;
-	MeshData* meshes;
-	EntityData* entities;
+	Scene scene;
+
+	EntityHandle selectedEntity;
+
+	bool statusInfo;
+	bool entityEditor;
 
 	bool resizing;
 };

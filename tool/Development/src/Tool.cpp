@@ -28,10 +28,10 @@ Tool::Tool()
 Tool::~Tool()
 {
 	ImGui_ImplDX11_Shutdown();
-	delete entities;
-	delete meshes;
+	delete scene.entities;
+	delete scene.meshes;
 	delete camera;
-	delete shaders;
+	delete scene.shaders;
 	delete graphics;
 }
 
@@ -43,30 +43,22 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 	HRESULT hr = graphics->Init(hInstance);
 	if (FAILED(hr)) return hr;
 
-	shaders = new ShaderData(graphics->getDevice(), graphics->getContext());
-	graphics->LoadShaders(shaders);
+	scene.shaders = new ShaderData(graphics->GetDevice(), graphics->GetContext());
+	graphics->LoadShaders(scene.shaders);
 
-	meshes = new MeshData(graphics->getDevice());
-	entities = new EntityData();
+	scene.meshes = new MeshData(graphics->GetDevice());
+	scene.entities = new EntityData();
 
 	RAWINPUTDEVICE Rid[1];
 	Rid[0].usUsagePage = 0x01;
 	Rid[0].usUsage = 0x02;
 	Rid[0].dwFlags = RIDEV_INPUTSINK;
-	Rid[0].hwndTarget = graphics->getHandle();
+	Rid[0].hwndTarget = graphics->GetHandle();
 	RegisterRawInputDevices(Rid, 1, sizeof(Rid[0]));
 
-	ImGui_ImplDX11_Init(graphics->getHandle(), graphics->getDevice(), graphics->getContext());
+	ImGui_ImplDX11_Init(graphics->GetHandle(), graphics->GetDevice(), graphics->GetContext());
 
 	Input::BindToControl("Quit", VK_ESCAPE);
-
-	// temp
-	Entity* a = entities->newEntity();
-	Entity* b = entities->newEntity();
-	b->transform->pos.z = 10;
-
-	a->mesh = meshes->newMesh("assets/models/teapot.obj");
-	b->mesh = a->mesh;
 
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
@@ -83,8 +75,8 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 			float delta = ImGui::GetIO().DeltaTime;
 			Update(delta);
 			camera->Update(delta);
-			TransformData::instance().UpdateTransforms();
-			graphics->Draw(camera, entities, delta);
+			TransformData::Instance().UpdateTransforms();
+			graphics->Draw(camera, scene, delta);
 
 			Input::UpdateControlStates();
 			
@@ -101,15 +93,37 @@ void Tool::Update(float deltaTime)
 	if (Input::WasControlPressed("Quit"))
 		Quit();
 
-	bool t;
+	// status info window
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	if (!ImGui::Begin("Stats Bar", &t, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs))
+	if (!ImGui::Begin("Stats Bar", &statusInfo, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs))
 	{
 		ImGui::End();
 		return;
 	}
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::Text("Res: %.0fx%.0f\tFPS: %.0f Delta: %.5f", io.DisplaySize.x, io.DisplaySize.y, io.Framerate, io.DeltaTime * 1000);
+	ImGui::End();
+
+	ImGui::ShowTestWindow(&statusInfo);
+
+	// entity editor
+	ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
+	if (!ImGui::Begin("EntityEditor", &entityEditor, 0))
+	{
+		ImGui::End();
+		return;
+	}
+	if (ImGui::Button("Spawn", ImVec2(0, 0)))
+	{
+		EntityHandle e = scene.entities->NewEntity();
+		e->mesh = scene.meshes->NewMesh("assets/models/teapot.obj");
+		selectedEntity = e;
+	}
+	if (selectedEntity.ptr())
+	{
+		ImGui::DragFloat3("Position", &selectedEntity->transform->pos.x, 0.005f);
+	}
+
 	ImGui::End();
 }
 

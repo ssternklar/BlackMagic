@@ -4,9 +4,9 @@ template <class T>
 class Singleton
 {
 public:
-	static T& instance()
+	static T& Instance()
 	{
-		static Instance instance_object;
+		static InstanceClass instance_object;
 		return instance_object;
 	}
 
@@ -15,10 +15,10 @@ protected:
 
 private:
 	virtual void SingletonHook() = 0;
-	class Instance : public T
+	class InstanceClass : public T
 	{
 	private:
 		void SingletonHook() {}
-		Instance& operator=(const Instance&) = delete;
+		InstanceClass& operator=(const InstanceClass&) = delete;
 	};
 };

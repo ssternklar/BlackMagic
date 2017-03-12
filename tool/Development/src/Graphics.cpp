@@ -1,5 +1,6 @@
 #include "Graphics.h"
 #include "Tool.h"
+#include "Mesh.h"
 
 using namespace DirectX;
 
@@ -238,7 +239,7 @@ void Graphics::Resize(unsigned int width, unsigned int height)
 	context->RSSetViewports(1, &viewport);
 }
 
-void Graphics::Draw(Camera* camera, EntityData* entities, float deltaTime)
+void Graphics::Draw(Camera* camera, Scene& scene, float deltaTime)
 {
 	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	context->ClearRenderTargetView(backBufferRTV, color);
@@ -247,17 +248,17 @@ void Graphics::Draw(Camera* camera, EntityData* entities, float deltaTime)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	for (size_t i = 0; i < entities->count(); ++i)
+	for (size_t i = 0; i < scene.entities->Count(); ++i)
 	{
-		vertexShader->SetMatrix4x4("world", (*entities)[i]->transform->matrix);
+		vertexShader->SetMatrix4x4("world", (*scene.entities)[i]->transform->matrix);
 		vertexShader->SetMatrix4x4("view", camera->ViewMatrix());
 		vertexShader->SetMatrix4x4("projection", camera->ProjectionMatrix());
 		vertexShader->CopyAllBufferData();
 		vertexShader->SetShader();
 		pixelShader->SetShader();
-		context->IASetVertexBuffers(0, 1, &(*entities)[i]->mesh->vertexBuffer, &stride, &offset);
-		context->IASetIndexBuffer((*entities)[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		context->DrawIndexed((*entities)[i]->mesh->faceCount, 0, 0);
+		context->IASetVertexBuffers(0, 1, &(*scene.entities)[i]->mesh->vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer((*scene.entities)[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->DrawIndexed((*scene.entities)[i]->mesh->faceCount, 0, 0);
 	}
 }
 
@@ -272,22 +273,22 @@ void Graphics::LoadShaders(ShaderData* shaders)
 	pixelShader = shaders->LoadShader<SimplePixelShader>(L"assets/shaders/PixelShader.hlsl");
 }
 
-HWND Graphics::getHandle()
+HWND Graphics::GetHandle()
 {
 	return hWnd;
 }
 
-ID3D11Device* Graphics::getDevice()
+ID3D11Device* Graphics::GetDevice()
 {
 	return device;
 }
 
-ID3D11DeviceContext* Graphics::getContext()
+ID3D11DeviceContext* Graphics::GetContext()
 {
 	return context;
 }
 
-D3D_FEATURE_LEVEL Graphics::getFeatureLevel()
+D3D_FEATURE_LEVEL Graphics::GetFeatureLevel()
 {
 	return dxFeatureLevel;
 }

@@ -8,11 +8,11 @@ struct proxy_ctr
 	{
 		proxy_ptr() {}
 		proxy_ptr(proxy_ctr<T>* c):ctr(c) {}
-		T* ptr() { return ctr->ptr; }
-		T* operator->() { return ctr->ptr; }
-		T& operator *() { return *ctr->ptr; } // are additional operators actually a bad idea?
+		T* ptr() { return ctr ? ctr->ptr : nullptr; }
+		T* operator->() { return ctr ? ctr->ptr : nullptr; }
+		T& operator *() { return *(ctr ? ctr->ptr : nullptr); } // are additional operators actually a bad idea?
 	private:
-		proxy_ctr<T>* ctr;
+		proxy_ctr<T>* ctr = nullptr;
 	};
 	proxy_ptr handle;
 	proxy_ctr() { handle = proxy_ptr(this); }
@@ -25,14 +25,14 @@ public:
 	ProxyVector();
 	~ProxyVector();
 
-	typename proxy_ctr<T>::proxy_ptr track(T* ptr);
-	void relinquish(T* ptr);
-	void relinquish(T* ptr, size_t count);
-	void move(T* from, T* to);
-	void move(T* from, T* to, size_t count);
+	typename proxy_ctr<T>::proxy_ptr Track(T* ptr);
+	void Relinquish(T* ptr);
+	void Relinquish(T* ptr, size_t count);
+	void Move(T* from, T* to);
+	void Move(T* from, T* to, size_t count);
 
 private:
-	void expand();
+	void Expand();
 
 	template<typename T>
 	struct proxy_index
@@ -41,7 +41,7 @@ private:
 		size_t index = 0;
 		proxy_ctr<T>* proxy = nullptr;
 	};
-	proxy_index<T> find(T* ptr);
+	proxy_index<T> Find(T* ptr);
 
 	const size_t lineWidth = 64 / sizeof(proxy_ctr<T>);
 	size_t lineCount;
@@ -56,7 +56,7 @@ ProxyVector<T>::ProxyVector()
 	proxies = nullptr;
 	lineCount = 0;
 
-	expand();
+	Expand();
 
 	nextProxy.proxy = proxies[0];
 }
@@ -70,13 +70,13 @@ ProxyVector<T>::~ProxyVector()
 }
 
 template<typename T>
-void ProxyVector<T>::expand()
+void ProxyVector<T>::Expand()
 {
 	proxy_ctr<T>** newArr = new proxy_ctr<T>*[++lineCount];
 
 	if (proxies)
 	{
-		memcpy_s(newArr, lineWidth, proxies, lineWidth - 1);
+		memcpy_s(newArr, sizeof(proxy_ctr<T>**) * lineCount, proxies, sizeof(proxy_ctr<T>**) * (lineCount - 1));
 		delete[] proxies;
 	}
 
@@ -85,7 +85,7 @@ void ProxyVector<T>::expand()
 }
 
 template<typename T>
-typename ProxyVector<T>::proxy_index<T> ProxyVector<T>::find(T* ptr)
+typename ProxyVector<T>::proxy_index<T> ProxyVector<T>::Find(T* ptr)
 {
 	proxy_index<T> index;
 
@@ -103,7 +103,7 @@ typename ProxyVector<T>::proxy_index<T> ProxyVector<T>::find(T* ptr)
 }
 
 template<typename T>
-typename proxy_ctr<T>::proxy_ptr ProxyVector<T>::track(T* ptr)
+typename proxy_ctr<T>::proxy_ptr ProxyVector<T>::Track(T* ptr)
 {
 	proxy_ctr<T>* proxy = nextProxy.proxy;
 	proxy->ptr = ptr;
@@ -114,17 +114,19 @@ typename proxy_ctr<T>::proxy_ptr ProxyVector<T>::track(T* ptr)
 		nextProxy.line += nextProxy.index == lineWidth;
 		nextProxy.index %= lineWidth;
 
-		if (nextProxy.line < lineCount)
-			nextProxy.proxy = &(proxies[nextProxy.line][nextProxy.index]);
-	} while (nextProxy.line < lineCount && nextProxy.proxy->ptr);
+		if (nextProxy.line >= lineCount)
+			Expand();
+
+		nextProxy.proxy = &(proxies[nextProxy.line][nextProxy.index]);
+	} while (nextProxy.proxy->ptr);
 
 	return proxy->handle;
 }
 
 template<typename T>
-void ProxyVector<T>::relinquish(T* ptr)
+void ProxyVector<T>::Relinquish(T* ptr)
 {
-	proxy_index<T> proxy = find(ptr);
+	proxy_index<T> proxy = Find(ptr);
 
 	if (proxy.proxy)
 	{
@@ -136,7 +138,7 @@ void ProxyVector<T>::relinquish(T* ptr)
 }
 
 template<typename T>
-void ProxyVector<T>::relinquish(T* ptr, size_t count)
+void ProxyVector<T>::Relinquish(T* ptr, size_t count)
 {
 	proxy_index<T> proxy;
 
@@ -155,22 +157,22 @@ void ProxyVector<T>::relinquish(T* ptr, size_t count)
 }
 
 template<typename T>
-void ProxyVector<T>::move(T* from, T* to)
+void ProxyVector<T>::Move(T* from, T* to)
 {
-	proxy_index<T> proxy = find(from);
+	proxy_index<T> proxy = Find(from);
 
 	if (proxy.proxy)
 		proxy.proxy->ptr = to;
 }
 
 template<typename T>
-void ProxyVector<T>::move(T* from, T* to, size_t count)
+void ProxyVector<T>::Move(T* from, T* to, size_t count)
 {
 	proxy_index<T> proxy;
 
 	for (size_t i = 0; i < count; ++i)
 	{
-		proxy = find(from + i);
+		proxy = Find(from + i);
 
 		if (proxy.proxy)
 			proxy.proxy->ptr = to + i;

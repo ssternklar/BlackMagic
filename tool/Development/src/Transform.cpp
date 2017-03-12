@@ -17,15 +17,15 @@ TransformData::~TransformData()
 	delete[] transforms;
 }
 
-TransformHandle TransformData::newTransform()
+TransformHandle TransformData::NewTransform()
 {
 	if (transformCount == numTransforms)
 	{
 		numTransforms += 16;
 		Transform* newTransforms = new Transform[numTransforms];
 
-		memcpy_s(newTransforms, numTransforms, transforms, numTransforms - 16);
-		proxy.move(transforms, newTransforms, numTransforms - 16);
+		memcpy_s(newTransforms, sizeof(Transform) * numTransforms, transforms, sizeof(Transform) * (numTransforms - 16));
+		proxy.Move(transforms, newTransforms, numTransforms - 16);
 
 		delete[] transforms;
 		transforms = newTransforms;
@@ -36,21 +36,21 @@ TransformHandle TransformData::newTransform()
 	transforms[transformCount].scale = { 1, 1, 1 };
 	XMStoreFloat4x4(&transforms[transformCount].matrix, XMMatrixIdentity());
 
-	return proxy.track(&transforms[transformCount++]);
+	return proxy.Track(&transforms[transformCount++]);
 }
 
-void TransformData::deleteTransform(TransformHandle handle)
+void TransformData::DeleteTransform(TransformHandle handle)
 {
 	if (!transformCount)
 		return;
 
 	size_t index = handle.ptr() - transforms;
 
-	proxy.relinquish(handle.ptr());
+	proxy.Relinquish(handle.ptr());
 
 	if (index != --transformCount)
 	{
-		proxy.move(transforms + transformCount, transforms + index);
+		proxy.Move(transforms + transformCount, transforms + index);
 		transforms[index] = transforms[transformCount];
 	}
 }

@@ -8,8 +8,7 @@
 
 #include "SimpleShader.h"
 #include "Camera.h"
-#include "Entity.h"
-#include "Shaders.h"
+#include "Scene.h"
 
 class Graphics
 {
@@ -19,13 +18,13 @@ public:
 
 	HRESULT Init(HINSTANCE hInstance);
 	void Resize(unsigned int width, unsigned int height);
-	void Draw(Camera* camera, EntityData* entities, float deltaTime);
+	void Draw(Camera* camera, Scene& scene, float deltaTime);
 	void Present();
 
-	HWND getHandle();
-	ID3D11Device* getDevice();
-	ID3D11DeviceContext* getContext();
-	D3D_FEATURE_LEVEL getFeatureLevel();
+	HWND GetHandle();
+	ID3D11Device* GetDevice();
+	ID3D11DeviceContext* GetContext();
+	D3D_FEATURE_LEVEL GetFeatureLevel();
 	unsigned int GetWidth();
 	unsigned int GetHeight();
 
