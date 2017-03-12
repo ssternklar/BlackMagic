@@ -72,12 +72,24 @@ void ISimpleShader::CleanUp()
 // --------------------------------------------------------
 bool ISimpleShader::LoadShaderFile(LPCWSTR shaderFile)
 {
+	ID3DBlob* blob;
+
 	// Load the shader to a blob and ensure it worked
-	HRESULT hr = D3DReadFileToBlob(shaderFile, &shaderBlob);
+	HRESULT hr = D3DReadFileToBlob(shaderFile, &blob);
 	if (hr != S_OK)
 	{
 		return false;
 	}
+
+	return LoadShaderBlob(blob);
+}
+
+bool ISimpleShader::LoadShaderBlob(ID3DBlob* blob)
+{
+	if (!shaderBlob)
+		shaderBlob = blob;
+	else
+		return false;
 
 	// Create the shader - Calls an overloaded version of this abstract
 	// method in the appropriate child class

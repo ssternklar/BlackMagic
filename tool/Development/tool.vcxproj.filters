@@ -13,12 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Assets">
-      <UniqueIdentifier>{e301925d-030c-4569-bcf7-5edc7d4b3835}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Assets\Shaders">
-      <UniqueIdentifier>{5f37ec8c-c624-4f3d-8d2e-1571a1df475b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\dear imgui">
       <UniqueIdentifier>{a6bb48be-31c9-474f-b9a0-97cde6f17dcd}</UniqueIdentifier>
     </Filter>
@@ -64,6 +58,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Shaders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -116,13 +113,11 @@
     <ClInclude Include="src\Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\Executable\assets\shaders\PixelShader.hlsl">
-      <Filter>Assets\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Executable\assets\shaders\VertexShader.hlsl">
-      <Filter>Assets\Shaders</Filter>
-    </FxCompile>
+    <ClInclude Include="src\Shaders.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Singleton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

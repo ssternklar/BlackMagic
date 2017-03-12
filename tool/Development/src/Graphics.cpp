@@ -38,8 +38,6 @@ HRESULT Graphics::Init(HINSTANCE hInstance)
 	if (FAILED(hr)) return hr;
 	hr = InitDirectX();
 	if (FAILED(hr)) return hr;
-
-	LoadShaders();
 	
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -240,7 +238,7 @@ void Graphics::Resize(unsigned int width, unsigned int height)
 	context->RSSetViewports(1, &viewport);
 }
 
-void Graphics::Draw(Camera* camera, std::vector<EntityHandle>& entities, float deltaTime)
+void Graphics::Draw(Camera* camera, EntityData* entities, float deltaTime)
 {
 	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	context->ClearRenderTargetView(backBufferRTV, color);
@@ -249,17 +247,17 @@ void Graphics::Draw(Camera* camera, std::vector<EntityHandle>& entities, float d
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	for (size_t i = 0; i < entities.size(); ++i)
+	for (size_t i = 0; i < entities->count(); ++i)
 	{
-		vertexShader->SetMatrix4x4("world", *TransformData::ptr->GetMatrix(entities[i]->transform));
+		vertexShader->SetMatrix4x4("world", (*entities)[i]->transform->matrix);
 		vertexShader->SetMatrix4x4("view", camera->ViewMatrix());
 		vertexShader->SetMatrix4x4("projection", camera->ProjectionMatrix());
 		vertexShader->CopyAllBufferData();
 		vertexShader->SetShader();
 		pixelShader->SetShader();
-		context->IASetVertexBuffers(0, 1, &entities[i]->mesh->vertexBuffer, &stride, &offset);
-		context->IASetIndexBuffer(entities[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		context->DrawIndexed(entities[i]->mesh->faceCount, 0, 0);
+		context->IASetVertexBuffers(0, 1, &(*entities)[i]->mesh->vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer((*entities)[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->DrawIndexed((*entities)[i]->mesh->faceCount, 0, 0);
 	}
 }
 
@@ -268,13 +266,10 @@ void Graphics::Present()
 	swapChain->Present(0, 0);
 }
 
-void Graphics::LoadShaders()
+void Graphics::LoadShaders(ShaderData* shaders)
 {
-	vertexShader = new SimpleVertexShader(device, context);
-	vertexShader->LoadShaderFile(L"VertexShader.cso");
-
-	pixelShader = new SimplePixelShader(device, context);
-	pixelShader->LoadShaderFile(L"PixelShader.cso");
+	vertexShader = shaders->LoadShader<SimpleVertexShader>(L"assets/shaders/VertexShader.hlsl");
+	pixelShader = shaders->LoadShader<SimplePixelShader>(L"assets/shaders/PixelShader.hlsl");
 }
 
 HWND Graphics::getHandle()

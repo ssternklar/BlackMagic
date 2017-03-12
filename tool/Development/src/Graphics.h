@@ -9,6 +9,7 @@
 #include "SimpleShader.h"
 #include "Camera.h"
 #include "Entity.h"
+#include "Shaders.h"
 
 class Graphics
 {
@@ -18,7 +19,7 @@ public:
 
 	HRESULT Init(HINSTANCE hInstance);
 	void Resize(unsigned int width, unsigned int height);
-	void Draw(Camera* camera, std::vector<EntityHandle>& entities, float deltaTime);
+	void Draw(Camera* camera, EntityData* entities, float deltaTime);
 	void Present();
 
 	HWND getHandle();
@@ -27,6 +28,9 @@ public:
 	D3D_FEATURE_LEVEL getFeatureLevel();
 	unsigned int GetWidth();
 	unsigned int GetHeight();
+
+	// temp
+	void LoadShaders(ShaderData* shaders);
 
 private:
 	HRESULT InitWindow(HINSTANCE hInstance);
@@ -46,8 +50,6 @@ private:
 	unsigned int height;
 
 	// temp
-	void LoadShaders();
-
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 };

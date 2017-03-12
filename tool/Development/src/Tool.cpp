@@ -5,7 +5,6 @@
 
 #include "Tool.h"
 #include "Input.h"
-#include "Entity.h"
 
 using namespace DirectX;
 
@@ -29,25 +28,26 @@ Tool::Tool()
 Tool::~Tool()
 {
 	ImGui_ImplDX11_Shutdown();
-	delete graphics;
+	delete entities;
+	delete meshes;
 	delete camera;
-	EntityData::ptr->ShutDown();
-	MeshData::ptr->ShutDown();
-	TransformData::ptr->ShutDown();
+	delete shaders;
+	delete graphics;
 }
 
 HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
 {
-	TransformData::Init();
-	EntityData::Init();
-
-	graphics = new Graphics(windowWidth, windowHeight);
 	camera = new Camera();
 
+	graphics = new Graphics(windowWidth, windowHeight);
 	HRESULT hr = graphics->Init(hInstance);
 	if (FAILED(hr)) return hr;
 
-	MeshData::Init(graphics->getDevice());
+	shaders = new ShaderData(graphics->getDevice(), graphics->getContext());
+	graphics->LoadShaders(shaders);
+
+	meshes = new MeshData(graphics->getDevice());
+	entities = new EntityData();
 
 	RAWINPUTDEVICE Rid[1];
 	Rid[0].usUsagePage = 0x01;
@@ -58,14 +58,15 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 
 	ImGui_ImplDX11_Init(graphics->getHandle(), graphics->getDevice(), graphics->getContext());
 
-	Input::bindToControl("Quit", VK_ESCAPE);
+	Input::BindToControl("Quit", VK_ESCAPE);
 
 	// temp
-	EntityHandle a = EntityData::ptr->newEntity();
-	EntityHandle b = EntityData::ptr->newEntity();
+	Entity* a = entities->newEntity();
+	Entity* b = entities->newEntity();
 	b->transform->pos.z = 10;
-	entities.push_back(a);
-	entities.push_back(b);
+
+	a->mesh = meshes->newMesh("assets/models/teapot.obj");
+	b->mesh = a->mesh;
 
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
@@ -82,10 +83,10 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 			float delta = ImGui::GetIO().DeltaTime;
 			Update(delta);
 			camera->Update(delta);
-			TransformData::ptr->UpdateTransforms();
+			TransformData::instance().UpdateTransforms();
 			graphics->Draw(camera, entities, delta);
 
-			Input::updateControlStates();
+			Input::UpdateControlStates();
 			
 			ImGui::Render();
 			graphics->Present();
@@ -97,7 +98,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 
 void Tool::Update(float deltaTime)
 {
-	if (Input::wasControlPressed("Quit"))
+	if (Input::WasControlPressed("Quit"))
 		Quit();
 
 	bool t;

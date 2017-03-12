@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "Graphics.h"
 
 class Tool
@@ -22,10 +21,12 @@ private:
 	void OnResize(unsigned int width, unsigned int height);
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 
-	bool resizing;
-
 	Graphics* graphics;
+	ShaderData* shaders;
 	Camera* camera;
-	std::vector<EntityHandle> entities;
+	MeshData* meshes;
+	EntityData* entities;
+
+	bool resizing;
 };
 

@@ -4,32 +4,17 @@
 
 using namespace DirectX;
 
-TransformData* TransformData::ptr = nullptr;
-
-void TransformData::Init()
-{
-	if (!ptr)
-		ptr = new TransformData();
-}
-
-void TransformData::ShutDown()
-{
-	delete ptr;
-}
-
 TransformData::TransformData()
 {
 	numTransforms = 16;
 	transformCount = 0;
 
 	transforms = new Transform[numTransforms];
-	matrices = new XMFLOAT4X4[numTransforms];
 }
 
 TransformData::~TransformData()
 {
 	delete[] transforms;
-	delete[] matrices;
 }
 
 TransformHandle TransformData::newTransform()
@@ -38,21 +23,18 @@ TransformHandle TransformData::newTransform()
 	{
 		numTransforms += 16;
 		Transform* newTransforms = new Transform[numTransforms];
-		XMFLOAT4X4* newMatrices = new XMFLOAT4X4[numTransforms];
 
 		memcpy_s(newTransforms, numTransforms, transforms, numTransforms - 16);
 		proxy.move(transforms, newTransforms, numTransforms - 16);
 
 		delete[] transforms;
-		delete[] matrices;
 		transforms = newTransforms;
-		matrices = newMatrices;
 	}
 
 	transforms[transformCount].pos = { 0, 0, 0 };
 	transforms[transformCount].rot = { 0, 0, 0, 1 };
 	transforms[transformCount].scale = { 1, 1, 1 };
-	XMStoreFloat4x4(matrices + transformCount, XMMatrixIdentity());
+	XMStoreFloat4x4(&transforms[transformCount].matrix, XMMatrixIdentity());
 
 	return proxy.track(&transforms[transformCount++]);
 }
@@ -69,9 +51,7 @@ void TransformData::deleteTransform(TransformHandle handle)
 	if (index != --transformCount)
 	{
 		proxy.move(transforms + transformCount, transforms + index);
-
 		transforms[index] = transforms[transformCount];
-		matrices[index] = matrices[transformCount];
 	}
 }
 
@@ -84,13 +64,8 @@ void TransformData::UpdateTransforms()
 		XMVECTOR s = XMLoadFloat3(&transforms[i].scale);
 
 		XMMATRIX mat = XMMatrixAffineTransformation(s, XMVectorZero(), r, p);
-		XMStoreFloat4x4(&matrices[i], XMMatrixTranspose(mat));
+		XMStoreFloat4x4(&transforms[i].matrix, XMMatrixTranspose(mat));
 	}
-}
-
-const DirectX::XMFLOAT4X4* TransformData::GetMatrix(TransformHandle handle)
-{
-	return matrices + (handle.ptr() - transforms);
 }
 
 void TransformData::Move(TransformHandle handle, XMFLOAT3 dp)

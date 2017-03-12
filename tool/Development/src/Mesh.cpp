@@ -12,19 +12,6 @@ static float distanceSquared(float a[3], float b[3])
 	return xx*xx + yy*yy + zz*zz;
 }
 
-MeshData* MeshData::ptr = nullptr;
-
-void MeshData::Init(ID3D11Device* device)
-{
-	if (!ptr)
-		ptr = new MeshData(device);
-}
-
-void MeshData::ShutDown()
-{
-	delete ptr;
-}
-
 MeshData::MeshData(ID3D11Device* device)
 {
 	numMeshes = 16;
@@ -32,7 +19,6 @@ MeshData::MeshData(ID3D11Device* device)
 
 	meshes = new Mesh[numMeshes];
 	this->device = device;
-	defaultMesh = newMesh("assets/models/teapot.obj");
 }
 
 MeshData::~MeshData()
@@ -236,9 +222,4 @@ void MeshData::deleteMesh(MeshHandle handle)
 
 		meshes[index] = meshes[meshCount];
 	}
-}
-
-MeshHandle MeshData::getDefaultMesh()
-{
-	return defaultMesh;
 }

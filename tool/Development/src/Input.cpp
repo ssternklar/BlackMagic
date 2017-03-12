@@ -16,7 +16,7 @@ static DirectX::XMFLOAT2 mouseDelta;
 
 namespace Input
 {
-	void bindToControl(std::string name, DWORD input)
+	void BindToControl(std::string name, DWORD input)
 	{
 		auto controlCheck = controls.find(name);
 		if (controlCheck == controls.end())
@@ -32,7 +32,7 @@ namespace Input
 			controls[name].bindings.push_back(input);
 	}
 
-	void updateControlStates()
+	void UpdateControlStates()
 	{
 		auto controlBucket = controls.begin();
 		while (controlBucket != controls.end())
@@ -44,7 +44,7 @@ namespace Input
 		mouseDelta.y = 0;
 	}
 
-	bool isControlDown(std::string name)
+	bool IsControlDown(std::string name)
 	{
 		auto controlCheck = controls.find(name);
 		if (controlCheck != controls.end())
@@ -52,7 +52,7 @@ namespace Input
 		return false;
 	}
 
-	bool isControlUp(std::string name)
+	bool IsControlUp(std::string name)
 	{
 		auto controlCheck = controls.find(name);
 		if (controlCheck != controls.end())
@@ -60,7 +60,7 @@ namespace Input
 		return false;
 	}
 
-	bool wasControlPressed(std::string name)
+	bool WasControlPressed(std::string name)
 	{
 		auto controlCheck = controls.find(name);
 		if (controlCheck != controls.end())
@@ -68,7 +68,7 @@ namespace Input
 		return false;
 	}
 
-	bool wasControlReleased(std::string name)
+	bool WasControlReleased(std::string name)
 	{
 		auto controlCheck = controls.find(name);
 		if (controlCheck != controls.end())

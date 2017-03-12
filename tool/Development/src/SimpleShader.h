@@ -66,6 +66,7 @@ public:
 	// Initialization method (since we can't invoke derived class
 	// overrides in the base class constructor)
 	bool LoadShaderFile(LPCWSTR shaderFile);
+	bool LoadShaderBlob(ID3DBlob* shaderBlob);
 
 	// Simple helpers
 	bool IsShaderValid() { return shaderValid; }

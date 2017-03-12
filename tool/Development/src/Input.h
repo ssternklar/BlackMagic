@@ -6,12 +6,15 @@
 
 namespace Input
 {
-	void bindToControl(std::string name, DWORD input);
-	bool isControlDown(std::string name);
-	bool isControlUp(std::string name);
-	bool wasControlPressed(std::string name);
-	bool wasControlReleased(std::string name);
-	void updateControlStates();
+	void BindToControl(std::string name, DWORD input);
+	
+	bool IsControlDown(std::string name);
+	bool IsControlUp(std::string name);
+	bool WasControlPressed(std::string name);
+	bool WasControlReleased(std::string name);
+
+	void UpdateControlStates();
+
 	void OnKeyDown(WPARAM btn);
 	void OnKeyUp(WPARAM btn);
 	void OnMouseMove(int x, int y);

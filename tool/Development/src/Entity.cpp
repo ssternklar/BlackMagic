@@ -1,18 +1,5 @@
 #include "Entity.h"
 
-EntityData* EntityData::ptr = nullptr;
-
-void EntityData::Init()
-{
-	if (!ptr)
-		ptr = new EntityData();
-}
-
-void EntityData::ShutDown()
-{
-	delete ptr;
-}
-
 EntityData::EntityData()
 {
 	numEntities = 16;
@@ -26,7 +13,7 @@ EntityData::~EntityData()
 	delete[] entities;
 }
 
-EntityHandle EntityData::newEntity()
+Entity* EntityData::newEntity()
 {
 	if (entityCount == numEntities)
 	{
@@ -34,7 +21,6 @@ EntityHandle EntityData::newEntity()
 		Entity* newEntities = new Entity[numEntities];
 
 		memcpy_s(newEntities, numEntities, entities, numEntities - 16);
-		proxy.move(entities, newEntities, numEntities - 16);
 
 		delete[] entities;
 		entities = newEntities;
@@ -42,28 +28,32 @@ EntityHandle EntityData::newEntity()
 
 	Entity* entity = &entities[entityCount++];
 
-	entity->transform = TransformData::ptr->newTransform();
-	entity->mesh = MeshData::ptr->getDefaultMesh();
+	entity->transform = TransformData::instance().newTransform();
 
-	return proxy.track(entity);
+	return entity;
 }
 
-void EntityData::deleteEntity(EntityHandle handle)
+void EntityData::deleteEntity(Entity* entity)
 {
 	if (!entityCount)
 		return;
 
-	size_t index = handle.ptr() - entities;
+	size_t index = entity - entities;
 
-	proxy.relinquish(handle.ptr());
-
-	TransformData::ptr->deleteTransform(handle->transform);
-	// do not delete the mesh, they are shared. GUI handles this.
+	TransformData::instance().deleteTransform(entity->transform);
 
 	if (index != --entityCount)
 	{
-		proxy.move(entities + entityCount, entities + index);
-
 		entities[index] = entities[entityCount];
 	}
+}
+
+size_t EntityData::count()
+{
+	return entityCount;
+}
+
+Entity* EntityData::operator[](size_t i)
+{
+	return entities + i;
 }
