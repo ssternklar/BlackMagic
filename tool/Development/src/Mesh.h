@@ -3,6 +3,7 @@
 
 #include <d3d11.h>
 #include <DirectXMath.h>
+#include <map>
 
 #include "Patterns.h"
 
@@ -42,4 +43,5 @@ public:
 
 private:
 	ID3D11Device* device;
+	std::map<std::string, Handle> handles;
 };

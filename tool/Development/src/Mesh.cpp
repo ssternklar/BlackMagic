@@ -1,7 +1,8 @@
-#include "Mesh.h"
 #include <assimp\Importer.hpp>
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
+
+#include "Mesh.h"
 
 static float distanceSquared(float a[3], float b[3])
 {
@@ -31,7 +32,13 @@ void MeshData::Init(ID3D11Device* device)
 // update to use DirectXMath for the bounds
 MeshData::Handle MeshData::Get(char* modelPath)
 {
+	std::string pathString = std::string(modelPath);
+	auto check = handles.find(pathString);
+	if (check != handles.end())
+		return check->second;
+
 	Handle h = Asset::Get();
+	handles[pathString] = h;
 
 	Assimp::Importer importer;
 
