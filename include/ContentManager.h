@@ -14,9 +14,9 @@ using VertexShader = SimpleVertexShader;
 using PixelShader = SimplePixelShader;
 #endif
 
-using BlackMagic::IResource;
-using ContentAllocatorAdapter = BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::shared_ptr<IResource>>, BlackMagic::BestFitAllocator>;
-using ContentMap = std::unordered_map<std::wstring, std::shared_ptr<IResource>, std::hash<std::wstring>, std::equal_to<std::wstring>, ContentAllocatorAdapter>;
+using BlackMagic::Resource;
+using ContentAllocatorAdapter = BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::shared_ptr<Resource>>, BlackMagic::BestFitAllocator>;
+using ContentMap = std::unordered_map<std::wstring, std::shared_ptr<Resource>, std::hash<std::wstring>, std::equal_to<std::wstring>, ContentAllocatorAdapter>;
 namespace BlackMagic
 {
 	class Renderer;

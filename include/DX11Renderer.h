@@ -22,17 +22,17 @@ namespace BlackMagic {
 		virtual void OnResize(UINT width, UINT height) override;
 		virtual void Present(UINT interval, UINT flags) override;
 
-		ComPtr<ID3D11SamplerState> CreateSamplerState(D3D11_SAMPLER_DESC& desc);
-		virtual GraphicsBuffer CreateBuffer(GraphicsBuffer::BufferType desc, void* data, size_t bufferSize) override;
-		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) override;
-		virtual void CleanupBuffer(GraphicsBuffer buffer);
+		virtual Sampler CreateSampler() override;
+		Sampler CreateSampler(D3D11_SAMPLER_DESC desc);
+		virtual Buffer CreateBuffer(Buffer::Type desc, void* data, size_t bufferSize) override;
+		virtual void ModifyBuffer(Buffer& buffer, Buffer::Type bufferType, void* newData, size_t newBufferSize) override;
 		virtual void Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
 		virtual void Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight) override;
 		virtual void RenderSkybox(const Camera& cam) override;
-		virtual GraphicsTexture CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type) override;
-		virtual void ReleaseTexture(GraphicsTexture texture) override;
-		virtual void ReleaseRenderTarget(GraphicsRenderTarget renderTarget) override;
+		virtual Texture CreateTexture(const wchar_t* texturePath, Texture::Type type, Texture::Usage usage) override;
 		virtual void ReleaseResource(void* resource) override;
+		virtual void AddResourceRef(void* resource) override;
+
 	private:
 		ComPtr<ID3D11Device> _device;
 		ComPtr<ID3D11DeviceContext> _context;
@@ -54,7 +54,7 @@ namespace BlackMagic {
 		std::shared_ptr<PixelShader> _lightPassPS;
 		std::shared_ptr<VertexShader> _fxaaVS;
 		std::shared_ptr<PixelShader> _fxaaPS;
-		ComPtr<ID3D11SamplerState> _gBufferSampler;
+		Sampler _gBufferSampler;
 		ComPtr<ID3D11Buffer> _quad;
 
 		D3D_FEATURE_LEVEL _featureLevel;
@@ -64,7 +64,7 @@ namespace BlackMagic {
 		//Shadow mapping
 		std::shared_ptr<VertexShader> _shadowMapVS;
 		ComPtr<ID3D11RasterizerState> _shadowRS;
-		ComPtr<ID3D11SamplerState>_shadowSampler;
+		Sampler _shadowSampler;
 		DirectX::XMFLOAT4X4 _shadowMatrices[NUM_SHADOW_CASCADES];
 		DirectX::XMFLOAT4X4 _shadowViews[NUM_SHADOW_CASCADES];
 		DirectX::XMFLOAT4X4 _shadowProjections[NUM_SHADOW_CASCADES];
@@ -76,13 +76,13 @@ namespace BlackMagic {
 		std::shared_ptr<Cubemap> _skyboxTex;
 		std::shared_ptr<VertexShader> _skyboxVS;
 		std::shared_ptr<PixelShader> _skyboxPS;
-		ComPtr<ID3D11SamplerState> _skyboxSampler;
+		Sampler _skyboxSampler;
 		ComPtr<ID3D11DepthStencilState> _skyboxDS;
 		ComPtr<ID3D11RasterizerState> _skyboxRS;
 
 		//Projected Textures
 		std::shared_ptr<PixelShader> _projectionPS;
-		ComPtr<ID3D11SamplerState> _projectionSampler;
+		Sampler _projectionSampler;
 		ComPtr<ID3D11BlendState> _projectionBlend;
 
 		void InitBuffers();

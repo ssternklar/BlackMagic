@@ -3,27 +3,46 @@
 #include <d3d11.h>
 #include <memory>
 #include "GraphicsTypes.h"
-#include "IResource.h"
+#include "Resource.h"
+
 namespace BlackMagic
 {
-	class Texture : public IResource
+	class Texture : public Resource
 	{
 	public:
-		explicit Texture(BlackMagic::Renderer* device, BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView);
+		enum Type
+		{
+			FLAT,
+			CUBEMAP
+		};
+
+		enum Usage
+		{
+			READ,
+			WRITE
+		};
+
+		explicit Texture(BlackMagic::Renderer* device, ResourceHandle* tex, ShaderResource* srView, RenderTarget* rtView);
+		Texture(const Texture& t);
 		~Texture();
 
-		BlackMagic::GraphicsTexture GetGraphicsTexture() const;
-		BlackMagic::GraphicsRenderTarget GetGraphicsRenderTarget() const;
+		ShaderResource* GetShaderResource() const;
+		RenderTarget* GetRenderTarget() const;
+		
+		Texture& operator=(const Texture& t);
+		operator ShaderResource*() { return _srView; }
+		operator RenderTarget*() { return _rtView; }
 
 	protected:
-		BlackMagic::GraphicsTexture _srView;
-		BlackMagic::GraphicsRenderTarget _rtView;
+		ShaderResource* _srView;
+		RenderTarget* _rtView;
 	};
 
 	class Cubemap : public Texture
 	{
 	public:
-		explicit Cubemap(BlackMagic::Renderer* device, BlackMagic::GraphicsTexture srView, BlackMagic::GraphicsRenderTarget rtView)
-			: Texture(device, srView, rtView) {}
+		explicit Cubemap(BlackMagic::Renderer* device, ResourceHandle* tex, ShaderResource* srView, RenderTarget* rtView)
+			: Texture(device, tex, srView, rtView) {}
+		explicit Cubemap(const Texture& t) : Texture(t) {}
 	};
 }

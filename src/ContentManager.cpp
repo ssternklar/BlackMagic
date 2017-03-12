@@ -38,8 +38,8 @@ template<>
 std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	GraphicsTexture tex = renderer->CreateTexture(fullPath.c_str(), GraphicsTexture::TextureType::FLAT);
-	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator), renderer, tex, GraphicsRenderTarget(nullptr));
+	auto tex = renderer->CreateTexture(fullPath.c_str(), Texture::Type::FLAT, Texture::Usage::READ);
+	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator),  tex);
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -48,8 +48,8 @@ template<>
 std::shared_ptr<Cubemap> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto tex = renderer->CreateTexture(fullPath.c_str(), GraphicsTexture::TextureType::CUBEMAP);
-	auto ptr = std::allocate_shared<Cubemap>(AllocatorSTLAdapter<Cubemap, BestFitAllocator>(_allocator), renderer, tex, GraphicsRenderTarget(nullptr));;
+	auto tex = renderer->CreateTexture(fullPath.c_str(), Texture::Type::CUBEMAP, Texture::Usage::READ);
+	auto ptr = std::allocate_shared<Cubemap>(AllocatorSTLAdapter<Cubemap, BestFitAllocator>(_allocator), tex);
 	_resources[name] = ptr;
 	return ptr;
 }

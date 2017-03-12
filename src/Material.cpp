@@ -20,6 +20,26 @@ Material::Material(
 	_geometryShader(gs ? *gs : nullptr)
 {}
 
+Material::Material(const Material& m)
+	: Material(m._vertShader, m._pixelShader, &m._hullShader, &m._domainShader, &m._geometryShader)
+{
+	for (auto& p : m._persistentData)
+	{
+		switch (p.second.type)
+		{
+		case ResourceType::Data:
+			SetResource(p.first, p.second.stage, p.second.size, p.second.data, true);
+			break;
+		case ResourceType::Texture:
+			SetResource(p.first, p.second.stage, *static_cast<std::shared_ptr<Texture>*>(p.second.data), true);
+			break;
+		case ResourceType::Sampler:
+			SetResource(p.first, p.second.stage, *static_cast<Sampler*>(p.second.data), true);
+			break;
+		}
+	}
+}
+
 Material::~Material()
 {
 	for (auto& p : _persistentData)
@@ -27,13 +47,11 @@ Material::~Material()
 		switch (p.second.type)
 		{
 		case ResourceType::Data:
+		case ResourceType::Sampler:
 			delete p.second.data;
 			break;
 		case ResourceType::Texture:
-		case ResourceType::Sampler:
-#if defined(_WIN32) || defined(_WIN64)
-			WindowsPlatform::GetInstance()->GetRenderer()->ReleaseResource(p.second.data);
-#endif
+			break;
 
 		}
 	}
@@ -65,12 +83,13 @@ SimpleGeometryShader* Material::GeometryShader() const
 	return _geometryShader.get();
 }
 
-void Material::SetResource(std::string name, ResourceStage s, ResourceType t, size_t size, void* data, bool persistent) const
+void Material::SetResource(std::string name, ResourceStage s, size_t size, void* data, bool persistent) const
 {
 	ResourceData dat;
 	dat.stage = s;
 	dat.size = size;
-	
+	dat.type = ResourceType::Data;
+
 	//If the data is persistent for this material instance, just insert it into the map
 	//Persistent data gets uploaded in Use
 	//Otherwise, this is per-frame data so upload it to the shaders immediately
@@ -83,6 +102,44 @@ void Material::SetResource(std::string name, ResourceStage s, ResourceType t, si
 	else
 	{
 		dat.data = data;
+		UploadData(name, dat);
+	}
+}
+
+void Material::SetResource(std::string name, ResourceStage s, const std::shared_ptr<Texture>& tex, bool persistent) const
+{
+	ResourceData dat;
+	dat.stage = s;
+	dat.size = sizeof(std::shared_ptr<Texture>);
+	dat.type = ResourceType::Texture;
+
+	if (persistent)
+	{
+		dat.data = new std::shared_ptr<Texture>(tex);
+		_persistentData[name] = dat;
+	}
+	else
+	{
+		dat.data = tex.get();
+		UploadData(name, dat);
+	}
+}
+
+void Material::SetResource(std::string name, ResourceStage s, const Sampler& sampler, bool persistent) const
+{
+	ResourceData dat;
+	dat.stage = s;
+	dat.size = sizeof(Sampler);
+	dat.type = ResourceType::Texture;
+
+	if (persistent)
+	{
+		dat.data = new Sampler(sampler);
+		_persistentData[name] = dat;
+	}
+	else
+	{
+		dat.data = sampler.As<SamplerHandle>();
 		UploadData(name, dat);
 	}
 }
@@ -161,27 +218,27 @@ void Material::UploadData(std::string name, const ResourceData& dat) const
 		break;
 	case ResourceType::Sampler:
 		if (s & ResourceStage::VS)
-			_vertShader->SetSamplerState(name, reinterpret_cast<ID3D11SamplerState*>(dat.data));
+			_vertShader->SetSamplerState(name, *static_cast<Sampler*>(dat.data));
 		if (s & ResourceStage::PS)
-			_pixelShader->SetSamplerState(name, reinterpret_cast<ID3D11SamplerState*>(dat.data));
+			_pixelShader->SetSamplerState(name, *static_cast<Sampler*>(dat.data));
 		if (_hullShader && s & ResourceStage::HS)
-			_hullShader->SetSamplerState(name, reinterpret_cast<ID3D11SamplerState*>(dat.data));
+			_hullShader->SetSamplerState(name, *static_cast<Sampler*>(dat.data));
 		if (_domainShader && s & ResourceStage::DS)
-			_domainShader->SetSamplerState(name, reinterpret_cast<ID3D11SamplerState*>(dat.data));
+			_domainShader->SetSamplerState(name, *static_cast<Sampler*>(dat.data));
 		if (_geometryShader && s & ResourceStage::GS)
-			_geometryShader->SetSamplerState(name, reinterpret_cast<ID3D11SamplerState*>(dat.data));
+			_geometryShader->SetSamplerState(name, *static_cast<Sampler*>(dat.data));
 		break;
 	case ResourceType::Texture:
 		if (s & ResourceStage::VS)
-			_vertShader->SetShaderResourceView(name, reinterpret_cast<ID3D11ShaderResourceView*>(dat.data));
+			_vertShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
 		if (s & ResourceStage::PS)
-			_pixelShader->SetShaderResourceView(name, reinterpret_cast<ID3D11ShaderResourceView*>(dat.data));
+			_pixelShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
 		if (_hullShader && s & ResourceStage::HS)
-			_hullShader->SetShaderResourceView(name, reinterpret_cast<ID3D11ShaderResourceView*>(dat.data));
+			_hullShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
 		if (_domainShader && s & ResourceStage::DS)
-			_domainShader->SetShaderResourceView(name, reinterpret_cast<ID3D11ShaderResourceView*>(dat.data));
+			_domainShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
 		if (_geometryShader && s & ResourceStage::GS)
-			_geometryShader->SetShaderResourceView(name, reinterpret_cast<ID3D11ShaderResourceView*>(dat.data));
+			_geometryShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
 		break;
 	}
 }

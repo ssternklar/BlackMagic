@@ -149,7 +149,7 @@
     <ClCompile Include="src\GameAbstraction.cpp" />
     <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\InputData.cpp" />
-    <ClCompile Include="src\IResource.cpp" />
+    <ClCompile Include="src\Resource.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
@@ -185,8 +185,9 @@
     <ClInclude Include="include\Renderable.h" />
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\Mesh.h" />
-    <ClInclude Include="include\IResource.h" />
+    <ClInclude Include="include\Resource.h" />
     <ClInclude Include="include\DX11Renderer.h" />
+    <ClInclude Include="include\PlatformResourceTypes.h" />
     <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\TestGame.h" />

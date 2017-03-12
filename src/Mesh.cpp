@@ -57,15 +57,15 @@ void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 	OrthonormalizeTB(v3, t, u);
 }
 
-Mesh::Mesh() :
-	IResource(nullptr),
-	_vBuf(nullptr),
-	_iBuf(nullptr),
+Mesh::Mesh() : Resource(),
+	_vBuf(nullptr, nullptr),
+	_iBuf(nullptr, nullptr),
 	_numIndices(0)
 {}
 
 
-Mesh::Mesh(const std::wstring& file, Renderer* device) : IResource(device)
+Mesh::Mesh(const std::wstring& file, Renderer* device)
+	: Resource()
 {
 	// File input object
 	std::ifstream obj(file);
@@ -215,23 +215,21 @@ Mesh::Mesh(const std::wstring& file, Renderer* device) : IResource(device)
 
 	_numIndices = indices.size();
 
-	_vBuf = device->CreateBuffer(GraphicsBuffer::BufferType::VERTEX_BUFFER, verts.data(), static_cast<UINT>(vertCounter * sizeof(Vertex)));
-	_iBuf = device->CreateBuffer(GraphicsBuffer::BufferType::INDEX_BUFFER, indices.data(), static_cast<UINT>(vertCounter * sizeof(UINT)));
+	_vBuf = device->CreateBuffer(Buffer::Type::VERTEX_BUFFER, verts.data(), static_cast<UINT>(vertCounter * sizeof(Vertex)));
+	_iBuf = device->CreateBuffer(Buffer::Type::INDEX_BUFFER, indices.data(), static_cast<UINT>(vertCounter * sizeof(UINT)));
 }
 
 
 Mesh::~Mesh()
 {
-	device->CleanupBuffer(_vBuf);
-	device->CleanupBuffer(_iBuf);
 }
 
-GraphicsBuffer Mesh::VertexBuffer() const
+const Buffer& Mesh::VertexBuffer()
 {
 	return _vBuf;
 }
 
-GraphicsBuffer Mesh::IndexBuffer() const
+const Buffer& Mesh::IndexBuffer()
 {
 	return _iBuf;
 }
@@ -241,10 +239,10 @@ size_t Mesh::IndexCount() const
 	return _numIndices;
 }
 
-void Mesh::Set(GraphicsBuffer vertexBuffer, GraphicsBuffer indexBuffer, size_t numIndices)
+void Mesh::Set(const Buffer& vertexBuffer, const Buffer& indexBuffer, size_t numIndices)
 {
-	device->CleanupBuffer(_vBuf);
-	device->CleanupBuffer(_iBuf);
+	_vBuf.~Buffer();
+	_iBuf.~Buffer();
 	_vBuf = vertexBuffer;
 	_iBuf = indexBuffer;
 	_numIndices = numIndices;

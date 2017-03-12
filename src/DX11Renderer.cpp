@@ -72,11 +72,11 @@ void DX11Renderer::Clear(XMFLOAT4 color)
 {
 	FLOAT black[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_context->ClearRenderTargetView(_backBuffer.Get(), reinterpret_cast<const FLOAT*>(&color));
-	_context->ClearRenderTargetView(_albedoMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), reinterpret_cast<const FLOAT*>(&color));
-	_context->ClearRenderTargetView(_roughnessMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
-	_context->ClearRenderTargetView(_normalMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
-	_context->ClearRenderTargetView(_positionMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
-	_context->ClearRenderTargetView(_lightMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(), black);
+	_context->ClearRenderTargetView(_albedoMap->GetRenderTarget(), reinterpret_cast<const FLOAT*>(&color));
+	_context->ClearRenderTargetView(_roughnessMap->GetRenderTarget(), black);
+	_context->ClearRenderTargetView(_normalMap->GetRenderTarget(), black);
+	_context->ClearRenderTargetView(_positionMap->GetRenderTarget(), black);
+	_context->ClearRenderTargetView(_lightMap->GetRenderTarget(), black);
 	_context->ClearDepthStencilView(_depthStencil.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	for (size_t i = 0; i < NUM_SHADOW_CASCADES; i++)
@@ -85,41 +85,43 @@ void DX11Renderer::Clear(XMFLOAT4 color)
 	}
 }
 
-ComPtr<ID3D11SamplerState> DX11Renderer::CreateSamplerState(D3D11_SAMPLER_DESC& desc)
+Sampler DX11Renderer::CreateSampler()
 {
-	ID3D11SamplerState* tempSampler;
-	_device->CreateSamplerState(&desc, &tempSampler);
-	ComPtr<ID3D11SamplerState> ptr(tempSampler);
-	tempSampler->Release();
-	return ptr;
+	D3D11_SAMPLER_DESC desc = {};
+	desc.AddressU = desc.AddressV = desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	desc.Filter = D3D11_FILTER_ANISOTROPIC;
+	desc.MaxAnisotropy = D3D11_DEFAULT_MAX_ANISOTROPY;
+	desc.MaxLOD = D3D11_FLOAT32_MAX;
+	return CreateSampler(desc);
 }
 
-GraphicsBuffer DX11Renderer::CreateBuffer(GraphicsBuffer::BufferType bufferType, void* data, size_t bufferSize)
+Sampler DX11Renderer::CreateSampler(D3D11_SAMPLER_DESC desc)
+{
+	ID3D11SamplerState* sampler;
+	_device->CreateSamplerState(&desc, &sampler);
+	return Sampler(this, sampler);
+}
+
+Buffer DX11Renderer::CreateBuffer(Buffer::Type bufferType, void* data, size_t bufferSize)
 {
 	D3D11_BUFFER_DESC desc = {};
-	desc.BindFlags = bufferType == GraphicsBuffer::BufferType::VERTEX_BUFFER ? D3D11_BIND_VERTEX_BUFFER : D3D11_BIND_INDEX_BUFFER;
+	desc.BindFlags = bufferType == Buffer::Type::VERTEX_BUFFER ? D3D11_BIND_VERTEX_BUFFER : D3D11_BIND_INDEX_BUFFER;
 	desc.ByteWidth = bufferSize;
 	desc.Usage = D3D11_USAGE_IMMUTABLE;
 
 	D3D11_SUBRESOURCE_DATA dat = {};
 	dat.pSysMem = data;
 
-	GraphicsBuffer buffer;
 	ID3D11Buffer* b;
 	_device->CreateBuffer(&desc, &dat, &b);
-	buffer.buffer = b;
-	return buffer;
+	return Buffer(this, b);
 }
 
-void DX11Renderer::ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize)
+void DX11Renderer::ModifyBuffer(Buffer& buffer, Buffer::Type bufferType, void* newData, size_t newBufferSize)
 {
-	buffer.GetAs<ID3D11Buffer*>()->Release();
+	buffer.~Buffer();
 	buffer = CreateBuffer(bufferType, newData, newBufferSize);
-}
-
-void BlackMagic::DX11Renderer::CleanupBuffer(GraphicsBuffer buffer)
-{
-	if(buffer.buffer) buffer.GetAs<ID3D11Buffer*>()->Release();
 }
 
 void DX11Renderer::OnResize(UINT width, UINT height)
@@ -279,7 +281,7 @@ void DX11Renderer::Init(ContentManager* content)
 	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	sampDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	_gBufferSampler = CreateSamplerState(sampDesc);
+	_gBufferSampler = CreateSampler(sampDesc);
 
 	D3D11_SAMPLER_DESC shadowSampDesc = {};
 	shadowSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -291,7 +293,7 @@ void DX11Renderer::Init(ContentManager* content)
 	shadowSampDesc.BorderColor[3] = 0.0f;
 	shadowSampDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 	shadowSampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-	_shadowSampler = CreateSamplerState(shadowSampDesc);
+	_shadowSampler = CreateSampler(shadowSampDesc);
 
 	D3D11_RASTERIZER_DESC shadowRSDesc = {};
 	shadowRSDesc.CullMode = D3D11_CULL_FRONT;
@@ -302,7 +304,7 @@ void DX11Renderer::Init(ContentManager* content)
 	shadowRSDesc.SlopeScaledDepthBias = 1.0f;
 	_device->CreateRasterizerState(&shadowRSDesc, _shadowRS.ReleaseAndGetAddressOf());
 	//Just need a default sampler, nothing fancy
-	_skyboxSampler = CreateSamplerState(sampDesc);
+	_skyboxSampler = CreateSampler(sampDesc);
 
 	D3D11_DEPTH_STENCIL_DESC skyboxDSDesc = {};
 	D3D11_DEPTH_STENCILOP_DESC defaultDesc = { D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_ALWAYS };
@@ -333,7 +335,7 @@ void DX11Renderer::Init(ContentManager* content)
 	projectorDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	projectorDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
 	projectorDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	_projectionSampler = CreateSamplerState(projectorDesc);
+	_projectionSampler = CreateSampler(projectorDesc);
 
 	D3D11_BLEND_DESC projectorBlend = {};
 	projectorBlend.AlphaToCoverageEnable = false;
@@ -465,8 +467,8 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 		for (auto* o : objects)
 		{
 			auto& mesh = o->AsRenderable()->_mesh;
-			auto vBuf = mesh->VertexBuffer().GetAs<ID3D11Buffer*>();
-			auto iBuf = mesh->IndexBuffer().GetAs<ID3D11Buffer*>();
+			auto vBuf = mesh->VertexBuffer().As<BufferHandle>();
+			auto iBuf = mesh->IndexBuffer().As<BufferHandle>();
 			_shadowMapVS->SetMatrix4x4("model", *o->GetTransform().Matrix());
 			_shadowMapVS->CopyBufferData("PerInstance");
 			_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
@@ -530,12 +532,12 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 
 	//TODO: Sort renderables by material and texture to minimize state switches
 	ID3D11RenderTargetView* rts[] = {
-		_albedoMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
-		_positionMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
-		_roughnessMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
-		_normalMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
-		_cavityMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>(),
-		_metalMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>()
+		_albedoMap->GetRenderTarget(),
+		_positionMap->GetRenderTarget(),
+		_roughnessMap->GetRenderTarget(),
+		_normalMap->GetRenderTarget(),
+		_cavityMap->GetRenderTarget(),
+		_metalMap->GetRenderTarget()
 	};
 	_context->OMSetRenderTargets(4, rts, _depthStencil.Get());
 
@@ -545,20 +547,20 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 		auto renderable = object->AsRenderable();
 
 		//Update per-object constant buffer
-		renderable->_material.SetResource("world", Material::VS, Material::ResourceType::Data, sizeof(XMFLOAT4X4),
+		renderable->_material.SetResource("world", Material::VS, sizeof(XMFLOAT4X4),
 			reinterpret_cast<void*>(object->GetTransform().Matrix()));
 		
 		//Upload buffers and draw
 		renderable->_material.Use(currentMaterial && renderable->_material == *currentMaterial);
 		currentMaterial = &renderable->_material;
 
-		auto vBuf = renderable->_mesh->VertexBuffer().GetAs<ID3D11Buffer*>();
+		auto vBuf = renderable->_mesh->VertexBuffer().As<BufferHandle>();
 		_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
-		_context->IASetIndexBuffer(renderable->_mesh->IndexBuffer().GetAs<ID3D11Buffer*>(), DXGI_FORMAT_R32_UINT, 0);
+		_context->IASetIndexBuffer(renderable->_mesh->IndexBuffer().As<BufferHandle>(), DXGI_FORMAT_R32_UINT, 0);
 		_context->DrawIndexed(static_cast<UINT>(renderable->_mesh->IndexCount()), 0, 0);
 	}
 	
-	ID3D11RenderTargetView* lightMapTarget = _lightMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>();
+	ID3D11RenderTargetView* lightMapTarget = _lightMap->GetRenderTarget();
 	_context->OMSetRenderTargets(1, &lightMapTarget, nullptr);
 	auto cPos = cam.Position();
 	//size_t padding = (16 - (sizeof(DirectionalLight) % 16))*(lights.size() - 1);
@@ -569,14 +571,14 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetData("sceneLight", &sceneLight, sizeof(DirectionalLight));
 	_lightPassPS->SetData("lightView", &_shadowViews[0], sizeof(XMFLOAT4X4)*NUM_SHADOW_CASCADES);
 	_lightPassPS->SetData("lightProjection", &_shadowProjections[0], sizeof(XMFLOAT4X4)*NUM_SHADOW_CASCADES);
-	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.Get());
-	_lightPassPS->SetSamplerState("shadowSampler", _shadowSampler.Get());
-	_lightPassPS->SetShaderResourceView("albedoMap", _albedoMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
-	_lightPassPS->SetShaderResourceView("roughnessMap", _roughnessMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
-	_lightPassPS->SetShaderResourceView("positionMap", _positionMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
-	_lightPassPS->SetShaderResourceView("normalMap", _normalMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
-	_lightPassPS->SetShaderResourceView("metalMap", _metalMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
-	_lightPassPS->SetShaderResourceView("cavityMap", _cavityMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
+	_lightPassPS->SetSamplerState("shadowSampler", _shadowSampler.As<SamplerHandle>());
+	_lightPassPS->SetShaderResourceView("albedoMap", _albedoMap->GetShaderResource());
+	_lightPassPS->SetShaderResourceView("roughnessMap", _roughnessMap->GetShaderResource());
+	_lightPassPS->SetShaderResourceView("positionMap", _positionMap->GetShaderResource());
+	_lightPassPS->SetShaderResourceView("normalMap", _normalMap->GetShaderResource());
+	_lightPassPS->SetShaderResourceView("metalMap", _metalMap->GetShaderResource());
+	_lightPassPS->SetShaderResourceView("cavityMap", _cavityMap->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("shadowMap", _shadowMapSRV.Get());
 	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture.Get());
 	_lightPassPS->CopyAllBufferData();
@@ -592,8 +594,8 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_fxaaPS->SetShader();
 	_fxaaPS->SetInt("width", _width);
 	_fxaaPS->SetInt("height", _height);
-	_fxaaPS->SetSamplerState("mainSampler", _gBufferSampler.Get());
-	_fxaaPS->SetShaderResourceView("inputMap", _lightMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+	_fxaaPS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
+	_fxaaPS->SetShaderResourceView("inputMap", _lightMap->GetShaderResource());
 	_fxaaPS->CopyAllBufferData();
 
 	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
@@ -613,7 +615,7 @@ void DX11Renderer::RenderSkybox(const Camera& cam)
 	ID3D11RasterizerState* lastRasterState;
 	_context->RSGetState(&lastRasterState);
 
-	ID3D11RenderTargetView* lightMapTarget = _lightMap->GetGraphicsRenderTarget().GetAs<ID3D11RenderTargetView*>();
+	ID3D11RenderTargetView* lightMapTarget = _lightMap->GetRenderTarget();
 
 	_context->RSSetState(_skyboxRS.Get());
 	_context->OMSetDepthStencilState(_skyboxDS.Get(), lastStencilRef);
@@ -623,16 +625,16 @@ void DX11Renderer::RenderSkybox(const Camera& cam)
 	_skyboxVS->SetFloat3("camPos", cam.Position());
 	_skyboxVS->SetMatrix4x4("view", cam.ViewMatrix());
 	_skyboxVS->SetMatrix4x4("proj", cam.ProjectionMatrix());
-	_skyboxPS->SetShaderResourceView("skyboxTex", _skyboxTex->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
-	_skyboxPS->SetSamplerState("mainSampler", _skyboxSampler.Get());
+	_skyboxPS->SetShaderResourceView("skyboxTex", _skyboxTex->GetShaderResource());
+	_skyboxPS->SetSamplerState("mainSampler", _skyboxSampler.As<SamplerHandle>());
 	_skyboxVS->CopyAllBufferData();
 	_skyboxPS->CopyAllBufferData();
 
 	const UINT stride = sizeof(Vertex);
 	const UINT offset = 0;
-	auto vBuf = _skybox->VertexBuffer().GetAs<ID3D11Buffer*>();
+	auto vBuf = _skybox->VertexBuffer().As<BufferHandle>();
 	_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
-	_context->IASetIndexBuffer(_skybox->IndexBuffer().GetAs<ID3D11Buffer*>(), DXGI_FORMAT_R32_UINT, 0);
+	_context->IASetIndexBuffer(_skybox->IndexBuffer().As<BufferHandle>(), DXGI_FORMAT_R32_UINT, 0);
 	_context->DrawIndexed(_skybox->IndexCount(), 0, 0);
 
 	//Reset the DS and RS states
@@ -640,32 +642,39 @@ void DX11Renderer::RenderSkybox(const Camera& cam)
 	_context->RSSetState(lastRasterState);
 }
 
-GraphicsTexture DX11Renderer::CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type)
+Texture DX11Renderer::CreateTexture(const wchar_t* texturePath, Texture::Type type, Texture::Usage usage)
 {
+	ID3D11Resource* tex = nullptr;
 	ID3D11ShaderResourceView* srv = nullptr;
 	HRESULT result;
 	switch(type)
 	{
-		case GraphicsTexture::TextureType::FLAT:
-			result = DirectX::CreateWICTextureFromFile(_device.Get(), texturePath, nullptr, &srv);
-			break;
+	case Texture::Type::FLAT:
+		result = DirectX::CreateWICTextureFromFile(_device.Get(), texturePath, &tex, &srv);
+		break;
 	
-		case GraphicsTexture::TextureType::CUBEMAP:
-			result = DirectX::CreateDDSTextureFromFile(_device.Get(), _context.Get(), texturePath, nullptr, &srv);
-			break;
+	case Texture::Type::CUBEMAP:
+		result = DirectX::CreateDDSTextureFromFile(_device.Get(), _context.Get(), texturePath, &tex, &srv);
+		break;
 	}
-	
-	return GraphicsTexture(srv);
+
+	if (!(usage & Texture::Usage::READ))
+	{
+		srv->Release();
+		srv = nullptr;
+	}
+
+	ID3D11RenderTargetView* rtv = nullptr;
+	if (usage & Texture::Usage::WRITE)
+		result = _device->CreateRenderTargetView(tex, nullptr, &rtv);
+
+	return Texture(this, tex, srv, rtv);
 }
 
-void DX11Renderer::ReleaseTexture(GraphicsTexture texture)
+void DX11Renderer::AddResourceRef(void* resource)
 {
-	if(texture.buffer) texture.GetAs<ID3D11ShaderResourceView*>()->Release();
-}
-
-void DX11Renderer::ReleaseRenderTarget(GraphicsRenderTarget renderTarget)
-{
-	if(renderTarget.buffer) renderTarget.GetAs<ID3D11RenderTargetView*>()->Release();
+	if (resource)
+		reinterpret_cast<IUnknown*>(resource)->AddRef();
 }
 
 void DX11Renderer::ReleaseResource(void* resource)
@@ -877,9 +886,8 @@ Texture* DX11Renderer::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
 	_device->CreateTexture2D(&desc, nullptr, &tex);
 	_device->CreateRenderTargetView(tex, nullptr, &rtv);
 	_device->CreateShaderResourceView(tex, nullptr, &srv);
-	tex->Release();
 
-	return new Texture(this, GraphicsTexture(srv), GraphicsRenderTarget(rtv));
+	return new Texture(this, tex, srv, rtv);
 }
 
 

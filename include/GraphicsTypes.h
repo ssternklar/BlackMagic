@@ -1,51 +1,33 @@
 #pragma once
-
-#define _BM_GRAPHICS_TYPE_INFO(X)\
-void* buffer; \
-X##() : buffer(nullptr) {} \
-X##(void* ptr) : buffer(ptr) {} \
-\
-template<typename T> \
-T GetAs(){return static_cast<T>(buffer);}
+#include "Resource.h"
+#include "PlatformResourceTypes.h"
 
 namespace BlackMagic
 {
-
-	struct GraphicsBuffer
+	struct Buffer : public Resource
 	{
-		enum BufferType
+		enum Type
 		{
 			VERTEX_BUFFER,
 			INDEX_BUFFER
 		};
-		_BM_GRAPHICS_TYPE_INFO(GraphicsBuffer)
+		
+		Buffer(Renderer* r, BufferHandle* buffer)
+			: Resource(r, buffer) {}
+		Buffer() = default;
+		Buffer(const Buffer& b) { *this = b; }
+
+		Buffer& operator=(const Buffer& b) { Resource::operator=(b); return *this;  }
+		operator BufferHandle*() { return static_cast<BufferHandle*>(_resource); }
 	};
 
-	struct GraphicsShader
+	struct Sampler : public Resource
 	{
-		enum ShaderType
-		{
-			VERTEX_SHADER,
-			PIXEL_SHADER,
-			COMPUTE_SHADER,
-			COMBINED_SHADER
-		};
-		_BM_GRAPHICS_TYPE_INFO(GraphicsShader)
-	};
+		Sampler() = default;
+		Sampler(Renderer* r, SamplerHandle* handle)
+			: Resource(r, handle) {}
+		~Sampler() = default;
 
-	struct GraphicsTexture
-	{
-		enum class TextureType
-		{
-			FLAT,
-			CUBEMAP
-		};
-
-		_BM_GRAPHICS_TYPE_INFO(GraphicsTexture)
-	};
-
-	struct GraphicsRenderTarget
-	{
-		_BM_GRAPHICS_TYPE_INFO(GraphicsRenderTarget)
+		operator SamplerHandle*() { return static_cast<SamplerHandle*>(_resource); }
 	};
 }

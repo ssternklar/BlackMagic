@@ -51,21 +51,13 @@ void TestGame::LoadContent()
 	auto sphereTex = content->Load<Texture>(L"/textures/test_texture.png");
 	auto sphereNormals = content->Load<Texture>(L"/textures/test_normals.png");
 
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.AddressU = samplerDesc.AddressV = samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	samplerDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	auto sampler = reinterpret_cast<DX11Renderer*>(platform->GetRenderer())->CreateSamplerState(samplerDesc);
-	sampler.Get()->AddRef();
+	auto sampler = platform->GetRenderer()->CreateSampler();
 	auto mat = Material(
 		gPassVS, gPassPS
 	);
-	mat.SetResource("albedoMap", Material::ResourceStage::PS, Material::ResourceType::Texture, sizeof(void*), sphereTex.get(), true);
-	mat.SetResource("normalMap", Material::ResourceStage::PS, Material::ResourceType::Texture, sizeof(void*), sphereNormals.get(), true);
-	mat.SetResource("mainSampler", Material::ResourceStage::PS, Material::ResourceType::Sampler, sizeof(void*), sampler.Get(), true);
+	mat.SetResource("albedoMap", Material::ResourceStage::PS, sphereTex, true);
+	mat.SetResource("normalMap", Material::ResourceStage::PS, sphereNormals, true);
+	mat.SetResource("mainSampler", Material::ResourceStage::PS, sampler, true);
 
 	for(float y = 0; y < 11; y++)
 	{

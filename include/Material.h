@@ -39,6 +39,8 @@ namespace BlackMagic
 			const std::shared_ptr<SimpleDomainShader>* ds = nullptr,
 			const std::shared_ptr<SimpleGeometryShader>* gs = nullptr
 		);
+		Material(const Material&);
+		Material& operator=(const Material&);
 		~Material();
 
 		SimpleVertexShader* VertexShader() const;
@@ -49,7 +51,9 @@ namespace BlackMagic
 
 		//Turns on shader stages and uploads persistent data
 		void Use(bool dataOnly = false) const;
-		void SetResource(std::string name, ResourceStage s, ResourceType t, size_t size, void* data, bool persistent = false) const;
+		void SetResource(std::string name, ResourceStage s, size_t size, void* data, bool persistent = false) const;
+		void SetResource(std::string name, ResourceStage s, const std::shared_ptr<Texture>& tex, bool persistent = false) const;
+		void SetResource(std::string name, ResourceStage s, const Sampler& sampler, bool persistent = false) const;
 		bool operator==(const Material& mat) const;
 		bool operator!=(const Material& mat) const;
 
