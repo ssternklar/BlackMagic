@@ -2,8 +2,7 @@
 
 #include <DirectXMath.h>
 
-#include "Singleton.h"
-#include "PointerProxy.h"
+#include "Patterns.h"
 
 struct Transform
 {
@@ -13,30 +12,21 @@ struct Transform
 	DirectX::XMFLOAT4X4 matrix;
 };
 
-typedef proxy_ctr<Transform>::proxy_ptr TransformHandle;
-
-class TransformData : public Singleton<TransformData>
+class TransformData : public Asset<Transform, TransformData>
 {
 public:
-	TransformData();
-	~TransformData();
+	TransformData() {};
+	~TransformData() {};
 
-	TransformHandle NewTransform();
-	void DeleteTransform(TransformHandle handle);
+	Handle Get();
+	void Revoke(Handle handle);
 	void UpdateTransforms();
 
-	DirectX::XMFLOAT3 GetForward(TransformHandle handle);
-	DirectX::XMFLOAT3 GetUp(TransformHandle handle);
-	DirectX::XMFLOAT3 GetRight(TransformHandle handle);
+	DirectX::XMFLOAT3 GetForward(Handle handle);
+	DirectX::XMFLOAT3 GetUp(Handle handle);
+	DirectX::XMFLOAT3 GetRight(Handle handle);
 
-	void Move(TransformHandle handle, DirectX::XMFLOAT3 delta);
-	void Rotate(TransformHandle handle, DirectX::XMFLOAT4 quaternion);
-	void Rotate(TransformHandle handle, DirectX::XMFLOAT3 axis, float angle);
-
-private:
-	ProxyVector<Transform> proxy;
-
-	size_t numTransforms;
-	size_t transformCount;
-	Transform* transforms;
+	void Move(Handle handle, DirectX::XMFLOAT3 delta);
+	void Rotate(Handle handle, DirectX::XMFLOAT4 quaternion);
+	void Rotate(Handle handle, DirectX::XMFLOAT3 axis, float angle);
 };

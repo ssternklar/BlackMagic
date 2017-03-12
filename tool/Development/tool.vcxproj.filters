@@ -116,10 +116,7 @@
     <ClInclude Include="src\Shaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Singleton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene.h">
+    <ClInclude Include="src\Patterns.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

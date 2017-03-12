@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Scene.h"
 #include "Graphics.h"
+#include "Entity.h"
 
 class Tool
 {
@@ -24,9 +24,8 @@ private:
 
 	Graphics* graphics;
 	Camera* camera;
-	Scene scene;
 
-	EntityHandle selectedEntity;
+	EntityData::Handle selectedEntity;
 
 	bool statusInfo;
 	bool entityEditor;

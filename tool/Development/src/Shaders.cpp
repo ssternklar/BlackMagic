@@ -8,13 +8,8 @@ const char* ShaderTypeString<SimpleHullShader>::value = "hs_5_0";
 const char* ShaderTypeString<SimplePixelShader>::value = "ps_5_0";
 const char* ShaderTypeString<SimpleVertexShader>::value = "vs_5_0";
 
-ShaderData::ShaderData(ID3D11Device* device, ID3D11DeviceContext* context)
+void ShaderData::Init(ID3D11Device* device, ID3D11DeviceContext* context)
 {
 	this->device = device;
 	this->context = context;
-}
-
-ShaderData::~ShaderData()
-{
-
 }

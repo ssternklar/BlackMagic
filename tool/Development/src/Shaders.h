@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Patterns.h"
 #include "SimpleShader.h"
 
 template<typename T, typename = std::is_base_of<ISimpleShader, T>::type>
@@ -8,11 +9,14 @@ struct ShaderTypeString
 	static const char* value;
 };
 
-class ShaderData
+class ShaderData : public Singleton<ShaderData>
 {
 public:
-	ShaderData(ID3D11Device* device, ID3D11DeviceContext* context);
-	~ShaderData();
+	ShaderData() {};
+	~ShaderData() {};
+
+	void Init(ID3D11Device* device, ID3D11DeviceContext* context);
+
 	template<typename T>
 	T* LoadShader(LPCWSTR path);
 

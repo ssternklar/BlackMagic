@@ -4,85 +4,51 @@
 
 using namespace DirectX;
 
-TransformData::TransformData()
+TransformData::Handle TransformData::Get()
 {
-	numTransforms = 16;
-	transformCount = 0;
+	Handle h = Asset::Get();
 
-	transforms = new Transform[numTransforms];
+	h->pos = { 0, 0, 0 };
+	h->rot = { 0, 0, 0, 1 };
+	h->scale = { 1, 1, 1 };
+	XMStoreFloat4x4(&h->matrix, XMMatrixIdentity());
+
+	return h;
 }
 
-TransformData::~TransformData()
+void TransformData::Revoke(Handle handle)
 {
-	delete[] transforms;
-}
-
-TransformHandle TransformData::NewTransform()
-{
-	if (transformCount == numTransforms)
-	{
-		numTransforms += 16;
-		Transform* newTransforms = new Transform[numTransforms];
-
-		memcpy_s(newTransforms, sizeof(Transform) * numTransforms, transforms, sizeof(Transform) * (numTransforms - 16));
-		proxy.Move(transforms, newTransforms, numTransforms - 16);
-
-		delete[] transforms;
-		transforms = newTransforms;
-	}
-
-	transforms[transformCount].pos = { 0, 0, 0 };
-	transforms[transformCount].rot = { 0, 0, 0, 1 };
-	transforms[transformCount].scale = { 1, 1, 1 };
-	XMStoreFloat4x4(&transforms[transformCount].matrix, XMMatrixIdentity());
-
-	return proxy.Track(&transforms[transformCount++]);
-}
-
-void TransformData::DeleteTransform(TransformHandle handle)
-{
-	if (!transformCount)
-		return;
-
-	size_t index = handle.ptr() - transforms;
-
-	proxy.Relinquish(handle.ptr());
-
-	if (index != --transformCount)
-	{
-		proxy.Move(transforms + transformCount, transforms + index);
-		transforms[index] = transforms[transformCount];
-	}
+	Asset::Revoke(handle);
 }
 
 void TransformData::UpdateTransforms()
 {
-	for (size_t i = 0; i < transformCount; i++)
+	for (size_t i = 0; i < size; i++)
 	{
-		XMVECTOR r = XMLoadFloat4(&transforms[i].rot);
-		XMVECTOR p = XMLoadFloat3(&transforms[i].pos);
-		XMVECTOR s = XMLoadFloat3(&transforms[i].scale);
+		XMVECTOR r = XMLoadFloat4(&data[i].rot);
+		XMVECTOR p = XMLoadFloat3(&data[i].pos);
+		XMVECTOR s = XMLoadFloat3(&data[i].scale);
 
 		XMMATRIX mat = XMMatrixAffineTransformation(s, XMVectorZero(), r, p);
-		XMStoreFloat4x4(&transforms[i].matrix, XMMatrixTranspose(mat));
+		XMStoreFloat4x4(&data[i].matrix, XMMatrixTranspose(mat));
 	}
 }
 
-void TransformData::Move(TransformHandle handle, XMFLOAT3 dp)
+void TransformData::Move(Handle handle, XMFLOAT3 dp)
 {
 	handle->pos.x += dp.x;
 	handle->pos.y += dp.y;
 	handle->pos.z += dp.z;
 }
 
-void TransformData::Rotate(TransformHandle handle, XMFLOAT4 quaternion)
+void TransformData::Rotate(Handle handle, XMFLOAT4 quaternion)
 {
 	XMVECTOR current = XMLoadFloat4(&handle->rot);
 	XMVECTOR quat = XMLoadFloat4(&quaternion);
 	XMStoreFloat4(&handle->rot, XMQuaternionMultiply(current, quat));
 }
 
-void TransformData::Rotate(TransformHandle handle, XMFLOAT3 axis, float angle)
+void TransformData::Rotate(Handle handle, XMFLOAT3 axis, float angle)
 {
 	XMVECTOR axisVec = XMLoadFloat3(&axis);
 	XMVECTOR quat = XMQuaternionRotationAxis(axisVec, angle);
@@ -90,21 +56,21 @@ void TransformData::Rotate(TransformHandle handle, XMFLOAT3 axis, float angle)
 	XMStoreFloat4(&handle->rot, XMQuaternionMultiply(current, quat));
 }
 
-XMFLOAT3 TransformData::GetForward(TransformHandle handle)
+XMFLOAT3 TransformData::GetForward(Handle handle)
 {
 	XMFLOAT3 ret;
 	XMStoreFloat3(&ret, XMVector3Rotate(XMVectorSet(0, 0, 1, 0), XMLoadFloat4(&handle->rot)));
 	return ret;
 }
 
-XMFLOAT3 TransformData::GetUp(TransformHandle handle)
+XMFLOAT3 TransformData::GetUp(Handle handle)
 {
 	XMFLOAT3 ret;
 	XMStoreFloat3(&ret, XMVector3Rotate(XMVectorSet(0, 1, 0, 0), XMLoadFloat4(&handle->rot)));
 	return ret;
 }
 
-XMFLOAT3 TransformData::GetRight(TransformHandle handle)
+XMFLOAT3 TransformData::GetRight(Handle handle)
 {
 	XMFLOAT3 ret;
 	XMStoreFloat3(&ret, XMVector3Rotate(XMVectorSet(1, 0, 0, 0), XMLoadFloat4(&handle->rot)));

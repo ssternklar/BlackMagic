@@ -1,6 +1,7 @@
 #include "Graphics.h"
 #include "Tool.h"
 #include "Mesh.h"
+#include "Shaders.h"
 
 using namespace DirectX;
 
@@ -39,6 +40,9 @@ HRESULT Graphics::Init(HINSTANCE hInstance)
 	if (FAILED(hr)) return hr;
 	hr = InitDirectX();
 	if (FAILED(hr)) return hr;
+
+	ShaderData::Instance().Init(device, context);
+	LoadShaders();
 	
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -239,7 +243,7 @@ void Graphics::Resize(unsigned int width, unsigned int height)
 	context->RSSetViewports(1, &viewport);
 }
 
-void Graphics::Draw(Camera* camera, Scene& scene, float deltaTime)
+void Graphics::Draw(Camera* camera, float deltaTime)
 {
 	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 	context->ClearRenderTargetView(backBufferRTV, color);
@@ -247,18 +251,19 @@ void Graphics::Draw(Camera* camera, Scene& scene, float deltaTime)
 	
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
+	Entity* entities = EntityData::Instance().Entities();
 
-	for (size_t i = 0; i < scene.entities->Count(); ++i)
+	for (size_t i = 0; i < EntityData::Instance().Size(); ++i)
 	{
-		vertexShader->SetMatrix4x4("world", (*scene.entities)[i]->transform->matrix);
+		vertexShader->SetMatrix4x4("world", entities[i].transform->matrix);
 		vertexShader->SetMatrix4x4("view", camera->ViewMatrix());
 		vertexShader->SetMatrix4x4("projection", camera->ProjectionMatrix());
 		vertexShader->CopyAllBufferData();
 		vertexShader->SetShader();
 		pixelShader->SetShader();
-		context->IASetVertexBuffers(0, 1, &(*scene.entities)[i]->mesh->vertexBuffer, &stride, &offset);
-		context->IASetIndexBuffer((*scene.entities)[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		context->DrawIndexed((*scene.entities)[i]->mesh->faceCount, 0, 0);
+		context->IASetVertexBuffers(0, 1, &entities[i].mesh->vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(entities[i].mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->DrawIndexed(entities[i].mesh->faceCount, 0, 0);
 	}
 }
 
@@ -267,10 +272,10 @@ void Graphics::Present()
 	swapChain->Present(0, 0);
 }
 
-void Graphics::LoadShaders(ShaderData* shaders)
+void Graphics::LoadShaders()
 {
-	vertexShader = shaders->LoadShader<SimpleVertexShader>(L"assets/shaders/VertexShader.hlsl");
-	pixelShader = shaders->LoadShader<SimplePixelShader>(L"assets/shaders/PixelShader.hlsl");
+	vertexShader = ShaderData::Instance().LoadShader<SimpleVertexShader>(L"assets/shaders/VertexShader.hlsl");
+	pixelShader = ShaderData::Instance().LoadShader<SimplePixelShader>(L"assets/shaders/PixelShader.hlsl");
 }
 
 HWND Graphics::GetHandle()

@@ -4,7 +4,7 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 
-#include "PointerProxy.h"
+#include "Patterns.h"
 
 struct Vertex
 {
@@ -29,24 +29,17 @@ struct Mesh
 	DirectX::XMFLOAT3 center;
 };
 
-typedef proxy_ctr<Mesh>::proxy_ptr MeshHandle;
-
-class MeshData
+class MeshData : public Asset<Mesh, MeshData>
 {
 public:
-	MeshData(ID3D11Device* device);
+	MeshData() {};
 	~MeshData();
 
-	MeshHandle NewMesh(char* modelPath);
-	void DeleteMesh(MeshHandle handle);
+	void Init(ID3D11Device* device);
+
+	Handle Get(char* modelPath);
+	void Revoke(Handle handle);
 
 private:
 	ID3D11Device* device;
-
-	ProxyVector<Mesh> proxy;
-	MeshHandle defaultMesh;
-
-	size_t numMeshes;
-	size_t meshCount;
-	Mesh* meshes;
 };

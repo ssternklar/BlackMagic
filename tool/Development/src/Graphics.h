@@ -8,7 +8,6 @@
 
 #include "SimpleShader.h"
 #include "Camera.h"
-#include "Scene.h"
 
 class Graphics
 {
@@ -18,7 +17,7 @@ public:
 
 	HRESULT Init(HINSTANCE hInstance);
 	void Resize(unsigned int width, unsigned int height);
-	void Draw(Camera* camera, Scene& scene, float deltaTime);
+	void Draw(Camera* camera, float deltaTime);
 	void Present();
 
 	HWND GetHandle();
@@ -27,9 +26,6 @@ public:
 	D3D_FEATURE_LEVEL GetFeatureLevel();
 	unsigned int GetWidth();
 	unsigned int GetHeight();
-
-	// temp
-	void LoadShaders(ShaderData* shaders);
 
 private:
 	HRESULT InitWindow(HINSTANCE hInstance);
@@ -49,6 +45,7 @@ private:
 	unsigned int height;
 
 	// temp
+	void LoadShaders();
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 };

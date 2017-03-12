@@ -5,6 +5,7 @@
 
 #include "Tool.h"
 #include "Input.h"
+#include "Shaders.h"
 
 using namespace DirectX;
 
@@ -28,10 +29,7 @@ Tool::Tool()
 Tool::~Tool()
 {
 	ImGui_ImplDX11_Shutdown();
-	delete scene.entities;
-	delete scene.meshes;
 	delete camera;
-	delete scene.shaders;
 	delete graphics;
 }
 
@@ -43,11 +41,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 	HRESULT hr = graphics->Init(hInstance);
 	if (FAILED(hr)) return hr;
 
-	scene.shaders = new ShaderData(graphics->GetDevice(), graphics->GetContext());
-	graphics->LoadShaders(scene.shaders);
-
-	scene.meshes = new MeshData(graphics->GetDevice());
-	scene.entities = new EntityData();
+	MeshData::Instance().Init(graphics->GetDevice());
 
 	RAWINPUTDEVICE Rid[1];
 	Rid[0].usUsagePage = 0x01;
@@ -76,7 +70,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 			Update(delta);
 			camera->Update(delta);
 			TransformData::Instance().UpdateTransforms();
-			graphics->Draw(camera, scene, delta);
+			graphics->Draw(camera, delta);
 
 			Input::UpdateControlStates();
 			
@@ -115,9 +109,7 @@ void Tool::Update(float deltaTime)
 	}
 	if (ImGui::Button("Spawn", ImVec2(0, 0)))
 	{
-		EntityHandle e = scene.entities->NewEntity();
-		e->mesh = scene.meshes->NewMesh("assets/models/teapot.obj");
-		selectedEntity = e;
+		selectedEntity = EntityData::Instance().Get();
 	}
 	if (selectedEntity.ptr())
 	{

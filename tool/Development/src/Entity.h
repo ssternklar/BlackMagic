@@ -1,32 +1,22 @@
 #pragma once
 
-#include "PointerProxy.h"
+#include "Patterns.h"
 #include "Transform.h"
 #include "Mesh.h"
 
 struct Entity
 {
-	TransformHandle transform;
-	MeshHandle mesh;
+	TransformData::Handle transform;
+	MeshData::Handle mesh;
 };
 
-typedef proxy_ctr<Entity>::proxy_ptr EntityHandle;
-
-class EntityData
+class EntityData : public Asset<Entity, EntityData>
 {
 public:
-	EntityData();
-	~EntityData();
+	EntityData() {};
+	~EntityData() {};
 
-	EntityHandle NewEntity();
-	void DeleteEntity(EntityHandle entity);
-	size_t Count();
-	Entity* operator[](size_t i);
-
-private:
-	ProxyVector<Entity> proxy;
-
-	size_t numEntities;
-	size_t entityCount;
-	Entity* entities;
+	Handle Get();
+	void Revoke(Handle entity);
+	Entity* Entities();
 };

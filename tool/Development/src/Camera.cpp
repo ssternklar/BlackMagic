@@ -13,7 +13,7 @@ Camera::Camera()
 	fpsEnabled = false;
 	fpsPos = { 0, 0 };
 
-	transform = TransformData::Instance().NewTransform();
+	transform = TransformData::Instance().Get();
 	TransformData::Instance().Move(transform, {0, 0, -3});
 
 	Input::BindToControl("camForward", 'W');
@@ -27,7 +27,7 @@ Camera::Camera()
 
 Camera::~Camera()
 {
-	TransformData::Instance().DeleteTransform(transform);
+	TransformData::Instance().Revoke(transform);
 }
 
 DirectX::XMFLOAT4X4 Camera::ViewMatrix() const

@@ -12,42 +12,26 @@ static float distanceSquared(float a[3], float b[3])
 	return xx*xx + yy*yy + zz*zz;
 }
 
-MeshData::MeshData(ID3D11Device* device)
+MeshData::~MeshData()
 {
-	numMeshes = 16;
-	meshCount = 0;
+	for (size_t i = 0; i < size; ++i)
+	{
+		data[i].vertexBuffer->Release();
+		data[i].indexBuffer->Release();
+		delete[] data[i].verts;
+		delete[] data[i].faces;
+	}
+}
 
-	meshes = new Mesh[numMeshes];
+void MeshData::Init(ID3D11Device* device)
+{
 	this->device = device;
 }
 
-MeshData::~MeshData()
-{
-	for (size_t i = 0; i < meshCount; ++i)
-	{
-		meshes[i].vertexBuffer->Release();
-		meshes[i].indexBuffer->Release();
-		delete[] meshes[i].verts;
-		delete[] meshes[i].faces;
-	}
-
-	delete[] meshes;
-}
-
 // update to use DirectXMath for the bounds
-MeshHandle MeshData::NewMesh(char* modelPath)
+MeshData::Handle MeshData::Get(char* modelPath)
 {
-	if (meshCount == numMeshes)
-	{
-		numMeshes += 16;
-		Mesh* newMeshes = new Mesh[numMeshes];
-
-		memcpy_s(newMeshes, sizeof(Mesh) * numMeshes, meshes, sizeof(Mesh) * (numMeshes - 16));
-		proxy.Move(meshes, newMeshes, numMeshes - 16);
-
-		delete[] meshes;
-		meshes = newMeshes;
-	}
+	Handle h = Asset::Get();
 
 	Assimp::Importer importer;
 
@@ -63,18 +47,18 @@ MeshHandle MeshData::NewMesh(char* modelPath)
 		aiProcess_OptimizeMeshes |
 		aiProcess_OptimizeGraph);
 
-	meshes[meshCount].vertCount = 0;
-	meshes[meshCount].faceCount = 0;
+	h->vertCount = 0;
+	h->faceCount = 0;
 
 	for (size_t i = 0; i < scene->mNumMeshes; ++i)
 	{
-		meshes[meshCount].vertCount += scene->mMeshes[i]->mNumVertices;
-		meshes[meshCount].faceCount += scene->mMeshes[i]->mNumFaces * 3;
+		h->vertCount += scene->mMeshes[i]->mNumVertices;
+		h->faceCount += scene->mMeshes[i]->mNumFaces * 3;
 	}
 
 	UINT vertOffset = 0, faceOffset = 0;
-	meshes[meshCount].verts = new Vertex[meshes[meshCount].vertCount];
-	meshes[meshCount].faces = new UINT[meshes[meshCount].faceCount];
+	h->verts = new Vertex[h->vertCount];
+	h->faces = new UINT[h->faceCount];
 
 	float minX = scene->mMeshes[0]->mVertices[0].x;
 	float minY = scene->mMeshes[0]->mVertices[0].y;
@@ -89,11 +73,11 @@ MeshHandle MeshData::NewMesh(char* modelPath)
 
 		for (size_t i = 0; i < mesh->mNumVertices; ++i)
 		{
-			meshes[meshCount].verts[vertOffset + i].Position = DirectX::XMFLOAT3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-			meshes[meshCount].verts[vertOffset + i].Normal = DirectX::XMFLOAT3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-			meshes[meshCount].verts[vertOffset + i].Tangent = DirectX::XMFLOAT3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
-			meshes[meshCount].verts[vertOffset + i].Bitangent = DirectX::XMFLOAT3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
-			meshes[meshCount].verts[vertOffset + i].UV = DirectX::XMFLOAT3(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y, mesh->mTextureCoords[0][i].z);
+			h->verts[vertOffset + i].Position = DirectX::XMFLOAT3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+			h->verts[vertOffset + i].Normal = DirectX::XMFLOAT3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+			h->verts[vertOffset + i].Tangent = DirectX::XMFLOAT3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+			h->verts[vertOffset + i].Bitangent = DirectX::XMFLOAT3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+			h->verts[vertOffset + i].UV = DirectX::XMFLOAT3(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y, mesh->mTextureCoords[0][i].z);
 
 			minX = minX < mesh->mVertices[i].x ? minX : mesh->mVertices[i].x;
 			minY = minY < mesh->mVertices[i].y ? minY : mesh->mVertices[i].y;
@@ -105,22 +89,22 @@ MeshHandle MeshData::NewMesh(char* modelPath)
 
 		for (size_t i = 0; i < mesh->mNumFaces; ++i)
 		{
-			meshes[meshCount].faces[faceOffset + i * 3] = vertOffset + mesh->mFaces[i].mIndices[0];
-			meshes[meshCount].faces[faceOffset + i * 3 + 1] = vertOffset + mesh->mFaces[i].mIndices[1];
-			meshes[meshCount].faces[faceOffset + i * 3 + 2] = vertOffset + mesh->mFaces[i].mIndices[2];
+			h->faces[faceOffset + i * 3] = vertOffset + mesh->mFaces[i].mIndices[0];
+			h->faces[faceOffset + i * 3 + 1] = vertOffset + mesh->mFaces[i].mIndices[1];
+			h->faces[faceOffset + i * 3 + 2] = vertOffset + mesh->mFaces[i].mIndices[2];
 		}
 
 		vertOffset += mesh->mNumVertices;
 		faceOffset += mesh->mNumFaces * 3;
 	}
 
-	meshes[meshCount].halfSize.x = (maxX - minX) * 0.5f;
-	meshes[meshCount].halfSize.y = (maxY - minY) * 0.5f;
-	meshes[meshCount].halfSize.z = (maxZ - minZ) * 0.5f;
+	h->halfSize.x = (maxX - minX) * 0.5f;
+	h->halfSize.y = (maxY - minY) * 0.5f;
+	h->halfSize.z = (maxZ - minZ) * 0.5f;
 
-	meshes[meshCount].center.x = minX + meshes[meshCount].halfSize.x;
-	meshes[meshCount].center.y = minY + meshes[meshCount].halfSize.y;
-	meshes[meshCount].center.z = minZ + meshes[meshCount].halfSize.z;
+	h->center.x = minX + h->halfSize.x;
+	h->center.y = minY + h->halfSize.y;
+	h->center.z = minZ + h->halfSize.z;
 
 	//float dist = 0;
 	//furthest[0] = bounds->aabbCenter[0];
@@ -175,50 +159,39 @@ MeshHandle MeshData::NewMesh(char* modelPath)
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex) * meshes[meshCount].vertCount;
+	vbd.ByteWidth = sizeof(Vertex) * h->vertCount;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA initialVertexData;
-	initialVertexData.pSysMem = meshes[meshCount].verts;
+	initialVertexData.pSysMem = h->verts;
 
-	device->CreateBuffer(&vbd, &initialVertexData, &meshes[meshCount].vertexBuffer);
+	device->CreateBuffer(&vbd, &initialVertexData, &h->vertexBuffer);
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(unsigned int) * meshes[meshCount].faceCount;
+	ibd.ByteWidth = sizeof(unsigned int) * h->faceCount;
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA initialIndexData;
-	initialIndexData.pSysMem = meshes[meshCount].faces;
+	initialIndexData.pSysMem = h->faces;
 
-	device->CreateBuffer(&ibd, &initialIndexData, &meshes[meshCount].indexBuffer);
+	device->CreateBuffer(&ibd, &initialIndexData, &h->indexBuffer);
 
-	return proxy.Track(&meshes[meshCount++]);
+	return h;
 }
 
-void MeshData::DeleteMesh(MeshHandle handle)
+void MeshData::Revoke(Handle handle)
 {
-	if (!meshCount)
-		return;
-
-	size_t index = handle.ptr() - meshes;
-
-	proxy.Relinquish(handle.ptr());
-
 	handle->vertexBuffer->Release();
 	handle->indexBuffer->Release();
 	delete[] handle->verts;
 	delete[] handle->faces;
 
-	if (index != --meshCount)
-	{
-		proxy.Move(meshes + meshCount, meshes + index);
-		meshes[index] = meshes[meshCount];
-	}
+	Asset::Revoke(handle);
 }
