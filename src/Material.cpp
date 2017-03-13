@@ -7,6 +7,7 @@
 using namespace BlackMagic;
 
 Material::Material(
+	BestFitAllocator& allocator,
 	const std::shared_ptr<SimpleVertexShader>& vs,
 	const std::shared_ptr<SimplePixelShader>& ps,
 	const std::shared_ptr<SimpleHullShader>* hs,
@@ -17,11 +18,15 @@ Material::Material(
 	_pixelShader(ps),
 	_hullShader(hs ? *hs : nullptr),
 	_domainShader(ds ? *ds : nullptr),
-	_geometryShader(gs ? *gs : nullptr)
-{}
+	_geometryShader(gs ? *gs : nullptr),
+	_allocator(&allocator),
+	_persistentData(&allocator)
+{
+
+}
 
 Material::Material(const Material& m)
-	: Material(m._vertShader, m._pixelShader, &m._hullShader, &m._domainShader, &m._geometryShader)
+	: Material(*m._allocator, m._vertShader, m._pixelShader, &m._hullShader, &m._domainShader, &m._geometryShader)
 {
 	for (auto& p : m._persistentData)
 	{
@@ -46,13 +51,15 @@ Material::~Material()
 	{
 		switch (p.second.type)
 		{
-		case ResourceType::Data:
-		case ResourceType::Sampler:
-			delete p.second.data;
-			break;
 		case ResourceType::Texture:
+			static_cast<std::shared_ptr<Texture>*>(p.second.data)->reset();
 			break;
-
+		case ResourceType::Sampler:
+			static_cast<Sampler*>(p.second.data)->~Sampler();
+			break;
+		case ResourceType::Data:
+			//Do nothing, don't need to run any destructor
+			break;
 		}
 	}
 }
@@ -95,7 +102,7 @@ void Material::SetResource(std::string name, ResourceStage s, size_t size, void*
 	//Otherwise, this is per-frame data so upload it to the shaders immediately
 	if (persistent)
 	{	
-		dat.data = new unsigned char(size);
+		dat.data = _allocator->allocate(dat.size);
 		memcpy(dat.data, data, size);
 		_persistentData[name] = dat;	
 	}
@@ -115,7 +122,8 @@ void Material::SetResource(std::string name, ResourceStage s, const std::shared_
 
 	if (persistent)
 	{
-		dat.data = new std::shared_ptr<Texture>(tex);
+		dat.data = _allocator->allocate(dat.size);
+		new (dat.data) std::shared_ptr<Texture>(tex);
 		_persistentData[name] = dat;
 	}
 	else
@@ -130,11 +138,12 @@ void Material::SetResource(std::string name, ResourceStage s, const Sampler& sam
 	ResourceData dat;
 	dat.stage = s;
 	dat.size = sizeof(Sampler);
-	dat.type = ResourceType::Texture;
+	dat.type = ResourceType::Sampler;
 
 	if (persistent)
 	{
-		dat.data = new Sampler(sampler);
+		dat.data = _allocator->allocate(dat.size);
+		new (dat.data) Sampler(sampler);
 		_persistentData[name] = dat;
 	}
 	else
@@ -242,3 +251,18 @@ void Material::UploadData(std::string name, const ResourceData& dat) const
 		break;
 	}
 }
+
+size_t Material::GetTotalResourceMem(ISimpleShader* shader)
+{
+	size_t buffers = 0;
+	size_t srvs = shader->GetShaderResourceViewCount() * sizeof(std::shared_ptr<Texture>);
+	size_t samplers = shader->GetSamplerCount() * sizeof(Sampler);
+
+	for (int i = 0; i < shader->GetBufferCount(); i++)
+	{
+		buffers += shader->GetBufferSize(i);
+	}
+
+	return buffers + srvs + samplers;
+}
+

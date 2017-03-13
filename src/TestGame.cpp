@@ -53,6 +53,7 @@ void TestGame::LoadContent()
 
 	auto sampler = platform->GetRenderer()->CreateSampler();
 	auto mat = Material(
+		allocator,
 		gPassVS, gPassPS
 	);
 	mat.SetResource("albedoMap", Material::ResourceStage::PS, sphereTex, true);

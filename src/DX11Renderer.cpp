@@ -539,7 +539,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 		_cavityMap->GetRenderTarget(),
 		_metalMap->GetRenderTarget()
 	};
-	_context->OMSetRenderTargets(4, rts, _depthStencil.Get());
+	_context->OMSetRenderTargets(sizeof(rts)/sizeof(ID3D11RenderTargetView*), rts, _depthStencil.Get());
 
 	//Load object attributes into the g-buffer (geometry pass)
 	for(auto* object : objects)
@@ -654,7 +654,7 @@ Texture DX11Renderer::CreateTexture(const wchar_t* texturePath, Texture::Type ty
 		break;
 	
 	case Texture::Type::CUBEMAP:
-		result = DirectX::CreateDDSTextureFromFile(_device.Get(), _context.Get(), texturePath, &tex, &srv);
+		result = DirectX::CreateDDSTextureFromFile(_device.Get(), texturePath, &tex, &srv);
 		break;
 	}
 

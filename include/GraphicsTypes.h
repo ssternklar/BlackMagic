@@ -26,7 +26,6 @@ namespace BlackMagic
 		Sampler() = default;
 		Sampler(Renderer* r, SamplerHandle* handle)
 			: Resource(r, handle) {}
-		~Sampler() = default;
 
 		operator SamplerHandle*() { return static_cast<SamplerHandle*>(_resource); }
 	};

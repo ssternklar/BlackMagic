@@ -4,6 +4,8 @@
 #include <DirectXMath.h>
 #include <memory>
 
+#include "allocators/AllocatorSTLAdapter.h"
+#include "allocators/BadBestFitAllocator.h"
 #include "DirectionalLight.h"
 #include "SimpleShader.h"
 #include "Texture.h"
@@ -33,6 +35,7 @@ namespace BlackMagic
 
 		Material() = default;
 		Material(
+			BestFitAllocator& allocator,
 			const std::shared_ptr<SimpleVertexShader>& vs, 
 			const std::shared_ptr<SimplePixelShader>& ps,
 			const std::shared_ptr<SimpleHullShader>* hs = nullptr,
@@ -66,13 +69,16 @@ namespace BlackMagic
 			void* data;
 		};
 
-		mutable std::unordered_map<std::string, ResourceData> _persistentData;
+		mutable std::unordered_map<std::string, ResourceData, std::hash<std::string>, std::equal_to<std::string>, 
+			AllocatorSTLAdapter<std::pair<std::string, ResourceData>, BestFitAllocator>> _persistentData;
 		std::shared_ptr<SimpleVertexShader> _vertShader;
 		std::shared_ptr<SimplePixelShader> _pixelShader;
 		std::shared_ptr<SimpleHullShader> _hullShader;
 		std::shared_ptr<SimpleDomainShader> _domainShader;
 		std::shared_ptr<SimpleGeometryShader> _geometryShader;
+		BestFitAllocator* _allocator;
 
+		size_t GetTotalResourceMem(ISimpleShader* shader);
 		void UploadData(std::string name, const ResourceData& dat) const;
 	};
 }
