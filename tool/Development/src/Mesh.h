@@ -38,7 +38,7 @@ public:
 
 	void Init(ID3D11Device* device);
 
-	Handle Get(char* modelPath);
+	Handle Get(std::string modelPath);
 	void Revoke(Handle handle);
 
 private:

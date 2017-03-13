@@ -87,35 +87,86 @@ void Tool::Update(float deltaTime)
 	if (Input::WasControlPressed("Quit"))
 		Quit();
 
+	ImGui::ShowTestWindow(NULL);
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	// menu bar
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Import"))
+		{
+			if (ImGui::MenuItem("Mesh"))
+				meshImporter = true;
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
+	}
+
+	// mesh import
+	if (meshImporter)
+	{
+		ImGui::OpenPopup("Import a new Mesh file");
+		meshImporter = false;
+	}
+	if (ImGui::BeginPopupModal("Import a new Mesh file", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Please specify which model you would like to load.\n");
+		ImGui::Separator();
+
+		ImGui::Text(rootMeshPath.c_str());
+		ImGui::SameLine();
+		static char path[128] = "";
+		ImGui::InputText("", path, 128);
+
+		if (ImGui::Button("Load", ImVec2(120, 0)))
+		{
+			MeshData::Handle h = MeshData::Instance().Get(rootMeshPath + path);
+			if (!h.ptr())
+				ImGui::OpenPopup("Bad mesh path");
+			else
+				ImGui::CloseCurrentPopup();
+		}
+
+		if (ImGui::BeginPopupModal("Bad mesh path"))
+		{
+			ImGui::Text(("The path '" + rootMeshPath + path + "' is invalid.").c_str());
+			if (ImGui::Button("OK", ImVec2(120, 0)))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+	}
+	
 	// status info window
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	if (!ImGui::Begin("Stats Bar", &statusInfo, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs))
+	if (ImGui::Begin("Stats Bar", NULL, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs))
 	{
-		ImGui::End();
-		return;
+		ImGui::Text("Res: %.0fx%.0f\tFPS: %.0f Delta: %.5f", io.DisplaySize.x, io.DisplaySize.y, io.Framerate, io.DeltaTime * 1000);
 	}
-	ImGuiIO& io = ImGui::GetIO();
-	ImGui::Text("Res: %.0fx%.0f\tFPS: %.0f Delta: %.5f", io.DisplaySize.x, io.DisplaySize.y, io.Framerate, io.DeltaTime * 1000);
 	ImGui::End();
-
-	ImGui::ShowTestWindow(&statusInfo);
 
 	// entity editor
 	ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
-	if (!ImGui::Begin("EntityEditor", &entityEditor, 0))
+	if (ImGui::Begin("EntityEditor"))
 	{
-		ImGui::End();
-		return;
+		if (ImGui::Button("Spawn"))
+		{
+			selectedEntity = EntityData::Instance().Get();
+		}
+		if (selectedEntity.ptr())
+		{
+			ImGui::DragFloat3("Position", &selectedEntity->transform->pos.x, 0.005f);
+		}
 	}
-	if (ImGui::Button("Spawn", ImVec2(0, 0)))
-	{
-		selectedEntity = EntityData::Instance().Get();
-	}
-	if (selectedEntity.ptr())
-	{
-		ImGui::DragFloat3("Position", &selectedEntity->transform->pos.x, 0.005f);
-	}
-
 	ImGui::End();
 }
 

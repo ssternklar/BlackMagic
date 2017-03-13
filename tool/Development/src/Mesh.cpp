@@ -30,15 +30,12 @@ void MeshData::Init(ID3D11Device* device)
 }
 
 // update to use DirectXMath for the bounds
-MeshData::Handle MeshData::Get(char* modelPath)
+MeshData::Handle MeshData::Get(std::string modelPath)
 {
 	std::string pathString = std::string(modelPath);
 	auto check = handles.find(pathString);
 	if (check != handles.end())
 		return check->second;
-
-	Handle h = Asset::Get();
-	handles[pathString] = h;
 
 	Assimp::Importer importer;
 
@@ -53,6 +50,15 @@ MeshData::Handle MeshData::Get(char* modelPath)
 		aiProcess_FixInfacingNormals |
 		aiProcess_OptimizeMeshes |
 		aiProcess_OptimizeGraph);
+
+	if (!scene)
+	{
+		Handle e;
+		return e;
+	}
+
+	Handle h = Asset::Get();
+	handles[pathString] = h;
 
 	h->vertCount = 0;
 	h->faceCount = 0;

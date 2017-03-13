@@ -27,8 +27,9 @@ private:
 
 	EntityData::Handle selectedEntity;
 
-	bool statusInfo;
-	bool entityEditor;
+	// imgui
+	bool meshImporter = false;
+	std::string rootMeshPath = "assets/models/";
 
 	bool resizing;
 };
