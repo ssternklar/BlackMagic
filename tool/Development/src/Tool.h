@@ -18,19 +18,17 @@ public:
 	void Quit();
 	
 private:
-	void Update(float deltaTime);
+	void invokeGUI(float deltaTime);
 	void OnResize(unsigned int width, unsigned int height);
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 
 	Graphics* graphics;
 	Camera* camera;
 
-	EntityData::Handle selectedEntity;
+	bool resizing;
 
 	// imgui
+	EntityData::Handle selectedEntity;
 	bool meshImporter = false;
-	std::string rootMeshPath = "assets/models/";
-
-	bool resizing;
 };
 

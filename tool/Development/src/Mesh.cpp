@@ -27,19 +27,19 @@ MeshData::~MeshData()
 void MeshData::Init(ID3D11Device* device)
 {
 	this->device = device;
+	Get("teapot.obj");
 }
 
 // update to use DirectXMath for the bounds
 MeshData::Handle MeshData::Get(std::string modelPath)
 {
-	std::string pathString = std::string(modelPath);
-	auto check = handles.find(pathString);
+	auto check = handles.find(modelPath);
 	if (check != handles.end())
 		return check->second;
 
 	Assimp::Importer importer;
 
-	const aiScene* scene = importer.ReadFile(modelPath,
+	const aiScene* scene = importer.ReadFile(root + modelPath,
 		aiProcess_CalcTangentSpace |
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_FindInvalidData |
@@ -58,7 +58,9 @@ MeshData::Handle MeshData::Get(std::string modelPath)
 	}
 
 	Handle h = Asset::Get();
-	handles[pathString] = h;
+	handles[modelPath] = h;
+	filePaths.push_back(modelPath);
+	h->path = modelPath;
 
 	h->vertCount = 0;
 	h->faceCount = 0;
@@ -205,6 +207,9 @@ void MeshData::Revoke(Handle handle)
 	handle->indexBuffer->Release();
 	delete[] handle->verts;
 	delete[] handle->faces;
+
+	handles.erase(handles.find(handle->path));
+	filePaths.erase(std::remove(filePaths.begin(), filePaths.end(), handle->path));
 
 	Asset::Revoke(handle);
 }

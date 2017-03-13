@@ -141,6 +141,7 @@
     <ClCompile Include="src\dear imgui\imgui_draw.cpp" />
     <ClCompile Include="src\dear imgui\imgui_impl_dx11.cpp" />
     <ClCompile Include="src\Entity.cpp" />
+    <ClCompile Include="src\GUI.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Shaders.cpp" />

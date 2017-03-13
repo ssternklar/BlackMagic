@@ -47,6 +47,11 @@ Transform Camera::GetTransform()
 
 void Camera::Update(float deltaTime)
 {
+	ImGuiIO& io = ImGui::GetIO();
+	
+	if (io.WantCaptureKeyboard || io.WantCaptureMouse || io.WantTextInput)
+		return;
+
 	XMVECTOR offsetForward = XMVectorSet(0, 0, (float)(Input::IsControlDown("camForward") - Input::IsControlDown("camBack")), 1);
 	XMVECTOR offsetUp = XMVectorSet(0, (float)(Input::IsControlDown("camUp") - Input::IsControlDown("camDown")), 0, 1);
 	XMVECTOR offsetRight = XMVectorSet((float)(Input::IsControlDown("camRight") - Input::IsControlDown("camLeft")), 0, 0, 1);
@@ -65,7 +70,6 @@ void Camera::Update(float deltaTime)
 	XMStoreFloat3(&offset, offsetVec);
 	TransformData::Instance().Move(transform, offset);
 
-	ImGuiIO& io = ImGui::GetIO();
 	XMFLOAT2 delta = Input::getMouseDelta();
 	if (io.MouseDown[1] && (delta.x != 0 || delta.y != 0))
 	{

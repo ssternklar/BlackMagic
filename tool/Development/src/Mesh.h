@@ -4,6 +4,7 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include <map>
+#include <vector>
 
 #include "Patterns.h"
 
@@ -28,6 +29,8 @@ struct Mesh
 	DirectX::XMFLOAT4 sphere; // not implemented yet
 	DirectX::XMFLOAT3 halfSize;
 	DirectX::XMFLOAT3 center;
+
+	std::string path;
 };
 
 class MeshData : public Asset<Mesh, MeshData>
@@ -40,6 +43,9 @@ public:
 
 	Handle Get(std::string modelPath);
 	void Revoke(Handle handle);
+
+	const std::string root = "assets/models/";
+	std::vector<std::string> filePaths;
 
 private:
 	ID3D11Device* device;
