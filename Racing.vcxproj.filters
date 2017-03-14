@@ -38,7 +38,6 @@
     <ClCompile Include="src\GenericJob.cpp" />
     <ClCompile Include="src\ContentJob.cpp" />
     <ClCompile Include="src\AudioManager.cpp" />
-    <ClCompile Include="src\IterablePool.cpp" />
     <ClCompile Include="src\DirectXAudioManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -81,7 +80,6 @@
     <ClInclude Include="include\WindowsPlatform.h" />
     <ClInclude Include="include\TestJob.h" />
     <ClInclude Include="include\AudioManager.h" />
-    <ClInclude Include="include\IterablePool.h" />
     <ClInclude Include="include\DirectXAudioManager.h" />
   </ItemGroup>
 </Project>

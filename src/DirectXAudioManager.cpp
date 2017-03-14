@@ -16,6 +16,8 @@ DirectXAudioManager::DirectXAudioManager()
 
 DirectXAudioManager::~DirectXAudioManager()
 {
+	audioEngine->Reset();
+	audioEngine.release();
 }
 
 void BlackMagic::DirectXAudioManager::PlayOneShot(AudioFile file, float relativeVolume)
