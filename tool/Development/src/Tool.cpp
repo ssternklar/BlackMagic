@@ -1,8 +1,5 @@
 #include <sstream>
 
-#include "dear imgui\imgui.h"
-#include "dear imgui\imgui_impl_dx11.h"
-
 #include "Tool.h"
 #include "Input.h"
 
@@ -66,14 +63,19 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 			ImGui_ImplDX11_NewFrame();
 
 			float delta = ImGui::GetIO().DeltaTime;
-			invokeGUI(delta);
-			camera->Update(delta);
+			invokeGUI();
+
+			ImGuiIO& io = ImGui::GetIO();
+			if (!io.WantCaptureKeyboard && !io.WantCaptureMouse && !io.WantTextInput)
+			{
+				camera->Update(delta);
+				ScanEntities(io);
+			}
+
 			TransformData::Instance().UpdateTransforms();
 			graphics->Draw(camera, delta);
-
-			Input::UpdateControlStates();
-			
 			ImGui::Render();
+			Input::UpdateControlStates();
 			graphics->Present();
 		}
 	}
@@ -84,6 +86,55 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 void Tool::Quit()
 {
 	PostQuitMessage(0);
+}
+
+void Tool::ScanEntities(ImGuiIO& io)
+{
+	Entity* entities = EntityData::Instance().Entities();
+	size_t count = EntityData::Instance().Size();
+
+	BoundingFrustum camFrustum;
+	camera->frustum.Transform(camFrustum, XMMatrixTranspose(XMLoadFloat4x4(&camera->transform->matrix)));
+
+	XMFLOAT4X4 proj;
+	XMStoreFloat4x4(&proj, XMMatrixTranspose(XMLoadFloat4x4(&camera->ProjectionMatrix())));
+
+	XMFLOAT3 temp;
+	temp.x = (((2.0f * io.MousePos.x) / graphics->GetWidth()) - 1) / proj._11;
+	temp.y = -(((2.0f * io.MousePos.y) / graphics->GetHeight()) - 1) / proj._22;
+	temp.z = 1.0f;
+
+	XMMATRIX view = XMMatrixInverse(NULL, XMMatrixTranspose(XMLoadFloat4x4(&camera->ViewMatrix())));
+	XMVECTOR rayDir = XMVector3TransformNormal(XMVector3Normalize(XMLoadFloat3(&temp)), view);
+	XMVECTOR rayPosVec = XMLoadFloat3(&camera->transform->pos);
+
+	BoundingOrientedBox entBox;
+	float distance = FLT_MAX;
+	float test = FLT_MIN;
+	size_t clickedIndex = 0;
+
+	for (size_t i = 0; i < count; ++i)
+	{
+		entities[i].mesh->obb.Transform(entBox, XMMatrixTranspose(XMLoadFloat4x4(&entities[i].transform->matrix)));
+		if (camFrustum.Contains(entBox) != ContainmentType::DISJOINT)
+			if (entBox.Intersects(rayPosVec, rayDir, test))
+				if (distance > test)
+				{
+					distance = test;
+					clickedIndex = i;
+				}
+	}
+	
+	if (distance == FLT_MAX)
+		return;
+
+	printf("%f\n", distance);
+}
+
+void Tool::SelectEntity(EntityData::Handle ent)
+{
+	selectedEntity = ent;
+	meshIndex = std::find(MeshData::Instance().filePaths.begin(), MeshData::Instance().filePaths.end(), ent->mesh->path) - MeshData::Instance().filePaths.begin();
 }
 
 void Tool::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns)

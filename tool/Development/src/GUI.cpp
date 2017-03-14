@@ -14,7 +14,7 @@ bool comboPaths(void* data, int idx, const char** out_text)
 	return true;
 }
 
-void Tool::invokeGUI(float deltaTime)
+void Tool::invokeGUI()
 {
 	if (Input::WasControlPressed("Quit"))
 		Quit();
@@ -93,13 +93,8 @@ void Tool::invokeGUI(float deltaTime)
 	ImGui::SetNextWindowSize(ImVec2(309, (float)graphics->GetHeight() - 51));
 	if (ImGui::Begin("EntityEditor", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 	{
-		static int meshIndex = -1;
-
 		if (ImGui::Button("Spawn"))
-		{
-			selectedEntity = EntityData::Instance().Get();
-			meshIndex = std::find(MeshData::Instance().filePaths.begin(), MeshData::Instance().filePaths.end(), selectedEntity->mesh->path) - MeshData::Instance().filePaths.begin();
-		}
+			SelectEntity(EntityData::Instance().Get());
 
 		if (selectedEntity.ptr())
 		{

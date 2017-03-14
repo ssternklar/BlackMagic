@@ -1,5 +1,8 @@
 #pragma once
 
+#include "dear imgui\imgui.h"
+#include "dear imgui\imgui_impl_dx11.h"
+
 #include "Graphics.h"
 #include "Entity.h"
 
@@ -18,7 +21,7 @@ public:
 	void Quit();
 	
 private:
-	void invokeGUI(float deltaTime);
+	void invokeGUI();
 	void OnResize(unsigned int width, unsigned int height);
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 
@@ -27,8 +30,12 @@ private:
 
 	bool resizing;
 
-	// imgui
+	void ScanEntities(ImGuiIO& io);
+	void SelectEntity(EntityData::Handle ent);
 	EntityData::Handle selectedEntity;
+
+	// imgui
 	bool meshImporter = false;
+	int meshIndex = -1;
 };
 

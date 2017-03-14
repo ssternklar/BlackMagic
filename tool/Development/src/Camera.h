@@ -1,6 +1,7 @@
 #pragma once
 
 #include <DirectXMath.h>
+#include <DirectXCollision.h>
 #include <Windows.h>
 
 #include "Transform.h"
@@ -16,13 +17,13 @@ public:
 	
 	void Update(float deltaTime);
 	void Resize(unsigned int width, unsigned int height);
-	Transform GetTransform();
 
 	float fov, nearPlane, farPlane;
+	DirectX::BoundingFrustum frustum;
+	TransformData::Handle transform;
 	
 private:
 	DirectX::XMFLOAT4X4 viewMat, projMat;
-	TransformData::Handle transform;
 	bool fpsEnabled;
 	POINT fpsPos;
 };

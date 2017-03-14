@@ -30,7 +30,6 @@ void MeshData::Init(ID3D11Device* device)
 	Get("teapot.obj");
 }
 
-// update to use DirectXMath for the bounds
 MeshData::Handle MeshData::Get(std::string modelPath)
 {
 	auto check = handles.find(modelPath);
@@ -75,13 +74,6 @@ MeshData::Handle MeshData::Get(std::string modelPath)
 	h->verts = new Vertex[h->vertCount];
 	h->faces = new UINT[h->faceCount];
 
-	float minX = scene->mMeshes[0]->mVertices[0].x;
-	float minY = scene->mMeshes[0]->mVertices[0].y;
-	float minZ = scene->mMeshes[0]->mVertices[0].z;
-	float maxX = minX;
-	float maxY = minY;
-	float maxZ = minZ;
-
 	for (size_t m = 0; m < scene->mNumMeshes; ++m)
 	{
 		aiMesh* mesh = scene->mMeshes[m];
@@ -93,13 +85,6 @@ MeshData::Handle MeshData::Get(std::string modelPath)
 			h->verts[vertOffset + i].Tangent = DirectX::XMFLOAT3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
 			h->verts[vertOffset + i].Bitangent = DirectX::XMFLOAT3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
 			h->verts[vertOffset + i].UV = DirectX::XMFLOAT3(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y, mesh->mTextureCoords[0][i].z);
-
-			minX = minX < mesh->mVertices[i].x ? minX : mesh->mVertices[i].x;
-			minY = minY < mesh->mVertices[i].y ? minY : mesh->mVertices[i].y;
-			minZ = minZ < mesh->mVertices[i].z ? minZ : mesh->mVertices[i].z;
-			maxX = maxX > mesh->mVertices[i].x ? maxX : mesh->mVertices[i].x;
-			maxY = maxY > mesh->mVertices[i].y ? maxY : mesh->mVertices[i].y;
-			maxZ = maxZ > mesh->mVertices[i].z ? maxZ : mesh->mVertices[i].z;
 		}
 
 		for (size_t i = 0; i < mesh->mNumFaces; ++i)
@@ -113,64 +98,8 @@ MeshData::Handle MeshData::Get(std::string modelPath)
 		faceOffset += mesh->mNumFaces * 3;
 	}
 
-	h->halfSize.x = (maxX - minX) * 0.5f;
-	h->halfSize.y = (maxY - minY) * 0.5f;
-	h->halfSize.z = (maxZ - minZ) * 0.5f;
-
-	h->center.x = minX + h->halfSize.x;
-	h->center.y = minY + h->halfSize.y;
-	h->center.z = minZ + h->halfSize.z;
-
-	//float dist = 0;
-	//furthest[0] = bounds->aabbCenter[0];
-	//furthest[1] = bounds->aabbCenter[1];
-	//furthest[2] = bounds->aabbCenter[2];
-	//
-	//for (size_t m = 0; m < scene->mNumMeshes; ++m)
-	//{
-	//	aiMesh* mesh = scene->mMeshes[m];
-	//	for (size_t j = 0; j < mesh->mNumVertices; ++j)
-	//	{
-	//		float distanceCheck = distanceSquared(mesh->mVertices[j].v, bounds->aabbCenter);
-	//		if (distanceCheck > dist)
-	//		{
-	//			furthest[0] = mesh->mVertices[j].x;
-	//			furthest[1] = mesh->mVertices[j].y;
-	//			furthest[2] = mesh->mVertices[j].z;
-	//			dist = distanceCheck;
-	//		}
-	//	}
-	//}
-	//
-	//dist = 0;
-	//furthest2[0] = furthest[0];
-	//furthest2[1] = furthest[1];
-	//furthest2[2] = furthest[2];
-	//
-	//for (size_t m = 0; m < scene->mNumMeshes; ++m)
-	//{
-	//	aiMesh* mesh = scene->mMeshes[m];
-	//	for (size_t j = 0; j < mesh->mNumVertices; ++j)
-	//	{
-	//		float distanceCheck = distanceSquared(mesh->mVertices[j].v, furthest);
-	//		if (distanceCheck > dist)
-	//		{
-	//			furthest2[0] = mesh->mVertices[j].x;
-	//			furthest2[1] = mesh->mVertices[j].y;
-	//			furthest2[2] = mesh->mVertices[j].z;
-	//			dist = distanceCheck;
-	//		}
-	//	}
-	//}
-	//
-	//bounds->sphere[0] = furthest2[0] - furthest[0];
-	//bounds->sphere[1] = furthest2[1] - furthest[1];
-	//bounds->sphere[2] = furthest2[2] - furthest[2];
-	//float diameter = sqrtf(bounds->sphere[0] * bounds->sphere[0] + bounds->sphere[1] * bounds->sphere[1] + bounds->sphere[2] * bounds->sphere[2]);
-	//bounds->sphere[3] = diameter * 0.5f;
-	//bounds->sphere[0] = furthest[0] + (bounds->sphere[0] / diameter) * bounds->sphere[3];
-	//bounds->sphere[1] = furthest[1] + (bounds->sphere[1] / diameter) * bounds->sphere[3];
-	//bounds->sphere[2] = furthest[2] + (bounds->sphere[2] / diameter) * bounds->sphere[3];
+	DirectX::BoundingOrientedBox::CreateFromPoints(h->obb, h->vertCount, &h->verts[0].Position, sizeof(Vertex));
+	DirectX::BoundingSphere::CreateFromPoints(h->sphere, h->vertCount, &h->verts[0].Position, sizeof(Vertex));
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;

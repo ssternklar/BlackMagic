@@ -1,6 +1,7 @@
 #pragma once
 #pragma comment(lib, "assimp-vc140-mt.lib")
 
+#include <DirectXCollision.h>
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include <map>
@@ -26,9 +27,8 @@ struct Mesh
 	size_t vertCount;
 	size_t faceCount;
 
-	DirectX::XMFLOAT4 sphere; // not implemented yet
-	DirectX::XMFLOAT3 halfSize;
-	DirectX::XMFLOAT3 center;
+	DirectX::BoundingOrientedBox obb;
+	DirectX::BoundingSphere sphere;
 
 	std::string path;
 };
