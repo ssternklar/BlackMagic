@@ -121,9 +121,6 @@ void Tool::ScanEntities(float x, float y)
 				entityQueue.push_back(EntityData::Instance().Recover(entities + i));
 	}
 	
-	if (entityQueue.size() == 0)
-		return;
-	
 	EntityData::Handle nearestEntity;
 	float filterDistance = FLT_MAX;
 
@@ -136,10 +133,11 @@ void Tool::ScanEntities(float x, float y)
 		XMVECTOR rayDirLocal = XMVector3Normalize(XMVector3TransformNormal(rayDir, entMatrix));
 
 		Vertex* verts = entity->mesh->verts;
+		UINT* faces = entity->mesh->faces;
 
-		for (size_t j = 0; j < entity->mesh->vertCount; j += 3)
+		for (size_t j = 0; j < entity->mesh->faceCount; j += 3)
 		{
-			if (TriangleTests::Intersects(rayPosLocal, rayDirLocal, XMLoadFloat3(&verts[j].Position), XMLoadFloat3(&verts[j + 1].Position), XMLoadFloat3(&verts[j + 2].Position), distance))
+			if (TriangleTests::Intersects(rayPosLocal, rayDirLocal, XMLoadFloat3(&verts[faces[j]].Position), XMLoadFloat3(&verts[faces[j + 1]].Position), XMLoadFloat3(&verts[faces[j + 2]].Position), distance))
 				if (distance < filterDistance)
 				{
 					filterDistance = distance;
@@ -148,14 +146,21 @@ void Tool::ScanEntities(float x, float y)
 		}
 	}
 
-	if (nearestEntity.ptr())
-		SelectEntity(nearestEntity);
+	SelectEntity(nearestEntity);
 }
 
 void Tool::SelectEntity(EntityData::Handle ent)
 {
 	selectedEntity = ent;
-	meshIndex = std::find(MeshData::Instance().filePaths.begin(), MeshData::Instance().filePaths.end(), ent->mesh->path) - MeshData::Instance().filePaths.begin();
+
+	if (ent.ptr())
+	{
+		meshIndex = std::find(MeshData::Instance().filePaths.begin(), MeshData::Instance().filePaths.end(), ent->mesh->path) - MeshData::Instance().filePaths.begin();
+	}
+	else
+	{
+		meshIndex = -1;
+	}
 }
 
 void Tool::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns)
