@@ -30,7 +30,7 @@ private:
 
 	bool resizing;
 
-	void ScanEntities(ImGuiIO& io);
+	void ScanEntities(float x, float y);
 	void SelectEntity(EntityData::Handle ent);
 	EntityData::Handle selectedEntity;
 

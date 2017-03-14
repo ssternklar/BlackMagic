@@ -30,6 +30,7 @@ public:
 	void Relinquish(T* ptr, size_t count);
 	void Move(T* from, T* to);
 	void Move(T* from, T* to, size_t count);
+	typename proxy_ctr<T>::proxy_ptr Recover(T* ptr);
 
 private:
 	void Expand();
@@ -57,7 +58,7 @@ ProxyVector<T>::ProxyVector()
 	lineCount = 0;
 
 	Expand();
-
+	
 	nextProxy.proxy = proxies[0];
 }
 
@@ -177,4 +178,10 @@ void ProxyVector<T>::Move(T* from, T* to, size_t count)
 		if (proxy.proxy)
 			proxy.proxy->ptr = to + i;
 	}
+}
+
+template<typename T>
+typename proxy_ctr<T>::proxy_ptr ProxyVector<T>::Recover(T* ptr)
+{
+	return Find(ptr).proxy->handle;
 }

@@ -69,7 +69,8 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 			if (!io.WantCaptureKeyboard && !io.WantCaptureMouse && !io.WantTextInput)
 			{
 				camera->Update(delta);
-				ScanEntities(io);
+				if (io.MouseClicked[0])
+					ScanEntities(io.MousePos.x, io.MousePos.y);
 			}
 
 			TransformData::Instance().UpdateTransforms();
@@ -88,7 +89,7 @@ void Tool::Quit()
 	PostQuitMessage(0);
 }
 
-void Tool::ScanEntities(ImGuiIO& io)
+void Tool::ScanEntities(float x, float y)
 {
 	Entity* entities = EntityData::Instance().Entities();
 	size_t count = EntityData::Instance().Size();
@@ -99,36 +100,56 @@ void Tool::ScanEntities(ImGuiIO& io)
 	XMFLOAT4X4 proj;
 	XMStoreFloat4x4(&proj, XMMatrixTranspose(XMLoadFloat4x4(&camera->ProjectionMatrix())));
 
-	XMFLOAT3 temp;
-	temp.x = (((2.0f * io.MousePos.x) / graphics->GetWidth()) - 1) / proj._11;
-	temp.y = -(((2.0f * io.MousePos.y) / graphics->GetHeight()) - 1) / proj._22;
-	temp.z = 1.0f;
+	XMFLOAT3 tempRayDir;
+	tempRayDir.x = (((2 * x) / graphics->GetWidth()) - 1) / proj._11;
+	tempRayDir.y = -(((2 * y) / graphics->GetHeight()) - 1) / proj._22;
+	tempRayDir.z = 1.0f;
 
 	XMMATRIX view = XMMatrixInverse(NULL, XMMatrixTranspose(XMLoadFloat4x4(&camera->ViewMatrix())));
-	XMVECTOR rayDir = XMVector3TransformNormal(XMVector3Normalize(XMLoadFloat3(&temp)), view);
-	XMVECTOR rayPosVec = XMLoadFloat3(&camera->transform->pos);
+	XMVECTOR rayDir = XMVector3TransformNormal(XMVector3Normalize(XMLoadFloat3(&tempRayDir)), view);
+	XMVECTOR rayPos = XMLoadFloat3(&camera->transform->pos);
 
 	BoundingOrientedBox entBox;
-	float distance = FLT_MAX;
-	float test = FLT_MIN;
-	size_t clickedIndex = 0;
+	float distance;
+	std::vector<EntityData::Handle> entityQueue;
 
 	for (size_t i = 0; i < count; ++i)
 	{
 		entities[i].mesh->obb.Transform(entBox, XMMatrixTranspose(XMLoadFloat4x4(&entities[i].transform->matrix)));
 		if (camFrustum.Contains(entBox) != ContainmentType::DISJOINT)
-			if (entBox.Intersects(rayPosVec, rayDir, test))
-				if (distance > test)
-				{
-					distance = test;
-					clickedIndex = i;
-				}
+			if (entBox.Intersects(rayPos, rayDir, distance))
+				entityQueue.push_back(EntityData::Instance().Recover(entities + i));
 	}
 	
-	if (distance == FLT_MAX)
+	if (entityQueue.size() == 0)
 		return;
+	
+	EntityData::Handle nearestEntity;
+	float filterDistance = FLT_MAX;
 
-	printf("%f\n", distance);
+	for (size_t i = 0; i < entityQueue.size(); ++i)
+	{
+		EntityData::Handle entity = entityQueue[i];
+
+		XMMATRIX entMatrix = XMMatrixInverse(NULL, XMMatrixTranspose(XMLoadFloat4x4(&entity->transform->matrix)));
+		XMVECTOR rayPosLocal = XMVector3TransformCoord(rayPos, entMatrix);
+		XMVECTOR rayDirLocal = XMVector3Normalize(XMVector3TransformNormal(rayDir, entMatrix));
+
+		Vertex* verts = entity->mesh->verts;
+
+		for (size_t j = 0; j < entity->mesh->vertCount; j += 3)
+		{
+			if (TriangleTests::Intersects(rayPosLocal, rayDirLocal, XMLoadFloat3(&verts[j].Position), XMLoadFloat3(&verts[j + 1].Position), XMLoadFloat3(&verts[j + 2].Position), distance))
+				if (distance < filterDistance)
+				{
+					filterDistance = distance;
+					nearestEntity = entity;
+				}
+		}
+	}
+
+	if (nearestEntity.ptr())
+		SelectEntity(nearestEntity);
 }
 
 void Tool::SelectEntity(EntityData::Handle ent)

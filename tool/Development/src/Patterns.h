@@ -32,6 +32,7 @@ public:
 	typedef typename proxy_ctr<T>::proxy_ptr Handle;
 
 	size_t Size() { return size; };
+	Handle Recover(T* ptr) { return proxy.Recover(ptr); }
 
 protected:
 	Asset();
