@@ -1,5 +1,6 @@
 #include "WindowsPlatform.h"
 #include "StdThreadManager.h"
+#include "DirectXAudioManager.h"
 using namespace BlackMagic;
 
 WindowsPlatform* WindowsPlatform::singletonRef = nullptr;
@@ -198,6 +199,11 @@ bool WindowsPlatform::InitWindow()
 
 	// Return an "everything is ok" HRESULT value
 	return true;
+}
+
+void BlackMagic::WindowsPlatform::InitPlatformAudioManager()
+{
+	audioManager = AllocateAndConstruct<StackAllocator, DirectXAudioManager>(allocatorAllocator, 1);
 }
 
 #define KEYPRESSED(char) (GetAsyncKeyState(char) & 0x8000)

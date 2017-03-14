@@ -20,11 +20,6 @@ namespace BlackMagic
 	{
 		_BM_HANDLE_TYPE_INFO(AudioFile)
 	};
-
-	class AudioChannel
-	{
-		_BM_HANDLE_TYPE_INFO(AudioChannel)
-	};
 }
 
 #undef _BM_HANDLE_TYPE_INFO(X)

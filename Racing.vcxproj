@@ -146,10 +146,12 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ContentJob.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
+    <ClCompile Include="src\DirectXAudioManager.cpp" />
     <ClCompile Include="src\GameAbstraction.cpp" />
     <ClCompile Include="src\GenericJob.cpp" />
     <ClCompile Include="src\InputData.cpp" />
     <ClCompile Include="src\IResource.cpp" />
+    <ClCompile Include="src\IterablePool.cpp" />
     <ClCompile Include="src\LinkedList.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Material.cpp" />
@@ -178,6 +180,7 @@
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />
+    <ClInclude Include="include\DirectXAudioManager.h" />
     <ClInclude Include="include\ECS.h" />
     <ClInclude Include="include\GameAbstraction.h" />
     <ClInclude Include="include\GameObject.h" />
@@ -186,6 +189,7 @@
     <ClInclude Include="include\GraphicsDevice.h" />
     <ClInclude Include="include\ContentJob.h" />
     <ClInclude Include="include\Handles.h" />
+    <ClInclude Include="include\IterablePool.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\InputData.h" />
     <ClInclude Include="include\LinkedList.h" />

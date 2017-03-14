@@ -1,4 +1,5 @@
 #pragma once
+#include "AudioManager.h"
 #include "allocators\globals.h"
 #include "allocators\StackAllocator.h"
 #include "allocators\BadBestFitAllocator.h"
@@ -23,11 +24,13 @@ namespace BlackMagic {
 		ContentManager* contentManager;
 		ThreadManager* threadManager;
 		TransformData* transformData;
+		AudioManager* audioManager;
 		int windowWidth = 1280;
 		int windowHeight = 720;
 		static PlatformBase* singleton;
 	public:
 		virtual bool InitWindow() = 0;
+		virtual void InitPlatformAudioManager() = 0;
 		virtual void InitPlatformThreadManager() = 0;
 		virtual void InitPlatformRenderer() = 0;
 		virtual bool GetSystemMemory(size_t memSize, byte** ptrToRetrievedMemory) = 0;
@@ -42,6 +45,7 @@ namespace BlackMagic {
 		Renderer* GetRenderer();
 		ContentManager* GetContentManager();
 		ThreadManager* GetThreadManager();
+		AudioManager* GetAudioManager();
 		void GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage);
 		static PlatformBase* GetSingleton();
 

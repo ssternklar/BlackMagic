@@ -39,6 +39,7 @@ bool PlatformBase::BlackMagicInit()
 	
 	renderer->Init(contentManager);
 
+	InitPlatformAudioManager();
 	InitPlatformThreadManager();
 
 	transformData = allocatorAllocator->allocate<TransformData>();
@@ -57,6 +58,12 @@ void PlatformBase::BlackMagicCleanup()
 	if (renderer)
 		renderer->~Renderer();
 	
+	if (threadManager)
+		threadManager->~ThreadManager();
+	
+	if (audioManager)
+		audioManager->~AudioManager();
+
 	ReturnSystemMemory(TheCPUMemory);
 }
 
@@ -75,9 +82,14 @@ ContentManager* BlackMagic::PlatformBase::GetContentManager()
 	return contentManager;
 }
 
-ThreadManager * BlackMagic::PlatformBase::GetThreadManager()
+ThreadManager* BlackMagic::PlatformBase::GetThreadManager()
 {
 	return threadManager;
+}
+
+AudioManager* BlackMagic::PlatformBase::GetAudioManager()
+{
+	return audioManager;
 }
 
 void BlackMagic::PlatformBase::GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage)

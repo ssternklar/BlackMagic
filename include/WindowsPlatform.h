@@ -20,6 +20,7 @@ namespace BlackMagic
 		void HandleMouseMovement(WPARAM param, int x, int y);
 	public:
 		virtual bool InitWindow() override;
+		virtual void InitPlatformAudioManager() override;
 		virtual void InitPlatformThreadManager() override;
 		virtual void InitPlatformRenderer() override;
 		virtual bool GetSystemMemory(size_t size, byte** ptr) override;
