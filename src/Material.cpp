@@ -64,6 +64,33 @@ Material::~Material()
 	}
 }
 
+Material& Material::operator=(const Material& m)
+{
+	_allocator = m._allocator;
+	_vertShader = m._vertShader;
+	_pixelShader = m._pixelShader;
+	_hullShader = m._hullShader;
+	_domainShader = m._domainShader;
+	_geometryShader = m._geometryShader;
+
+	for (auto& p : m._persistentData)
+	{
+		switch (p.second.type)
+		{
+		case ResourceType::Data:
+			SetResource(p.first, p.second.stage, p.second.size, p.second.data, true);
+			break;
+		case ResourceType::Texture:
+			SetResource(p.first, p.second.stage, *static_cast<std::shared_ptr<Texture>*>(p.second.data), true);
+			break;
+		case ResourceType::Sampler:
+			SetResource(p.first, p.second.stage, *static_cast<Sampler*>(p.second.data), true);
+			break;
+		}
+	}
+
+	return *this;
+}
 
 SimpleVertexShader* Material::VertexShader() const
 {
@@ -241,7 +268,7 @@ void Material::UploadData(std::string name, const ResourceData& dat) const
 		if (s & ResourceStage::VS)
 			_vertShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
 		if (s & ResourceStage::PS)
-			_pixelShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
+			_pixelShader->SetShaderResourceView(name, (**static_cast<std::shared_ptr<Texture>*>(dat.data)).GetShaderResource());
 		if (_hullShader && s & ResourceStage::HS)
 			_hullShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
 		if (_domainShader && s & ResourceStage::DS)

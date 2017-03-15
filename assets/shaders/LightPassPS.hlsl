@@ -19,7 +19,7 @@ struct GBuffer
 	float4 albedo;
 	float3 position;
 	float roughness;
-	float2 normal;
+	float3 normal;
 	float cavity;
 	float metal;
 };

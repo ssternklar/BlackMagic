@@ -16,10 +16,10 @@ namespace BlackMagic
 			CUBEMAP
 		};
 
-		enum Usage
+		enum Usage : unsigned char
 		{
-			READ,
-			WRITE
+			READ = 1 << 0,
+			WRITE = 1 << 1
 		};
 
 		explicit Texture(BlackMagic::Renderer* device, ResourceHandle* tex, ShaderResource* srView, RenderTarget* rtView);
