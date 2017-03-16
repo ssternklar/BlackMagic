@@ -28,40 +28,12 @@ Material::Material(
 Material::Material(const Material& m)
 	: Material(*m._allocator, m._vertShader, m._pixelShader, &m._hullShader, &m._domainShader, &m._geometryShader)
 {
-	for (auto& p : m._persistentData)
-	{
-		switch (p.second.type)
-		{
-		case ResourceType::Data:
-			SetResource(p.first, p.second.stage, p.second.size, p.second.data, true);
-			break;
-		case ResourceType::Texture:
-			SetResource(p.first, p.second.stage, *static_cast<std::shared_ptr<Texture>*>(p.second.data), true);
-			break;
-		case ResourceType::Sampler:
-			SetResource(p.first, p.second.stage, *static_cast<Sampler*>(p.second.data), true);
-			break;
-		}
-	}
+	_persistentData = m._persistentData;
 }
 
 Material::~Material()
 {
-	for (auto& p : _persistentData)
-	{
-		switch (p.second.type)
-		{
-		case ResourceType::Texture:
-			static_cast<std::shared_ptr<Texture>*>(p.second.data)->reset();
-			break;
-		case ResourceType::Sampler:
-			static_cast<Sampler*>(p.second.data)->~Sampler();
-			break;
-		case ResourceType::Data:
-			//Do nothing, don't need to run any destructor
-			break;
-		}
-	}
+	
 }
 
 Material& Material::operator=(const Material& m)
@@ -72,22 +44,7 @@ Material& Material::operator=(const Material& m)
 	_hullShader = m._hullShader;
 	_domainShader = m._domainShader;
 	_geometryShader = m._geometryShader;
-
-	for (auto& p : m._persistentData)
-	{
-		switch (p.second.type)
-		{
-		case ResourceType::Data:
-			SetResource(p.first, p.second.stage, p.second.size, p.second.data, true);
-			break;
-		case ResourceType::Texture:
-			SetResource(p.first, p.second.stage, *static_cast<std::shared_ptr<Texture>*>(p.second.data), true);
-			break;
-		case ResourceType::Sampler:
-			SetResource(p.first, p.second.stage, *static_cast<Sampler*>(p.second.data), true);
-			break;
-		}
-	}
+	_persistentData = m._persistentData;
 
 	return *this;
 }
@@ -119,64 +76,73 @@ SimpleGeometryShader* Material::GeometryShader() const
 
 void Material::SetResource(std::string name, ResourceStage s, size_t size, void* data, bool persistent) const
 {
-	ResourceData dat;
-	dat.stage = s;
-	dat.size = size;
-	dat.type = ResourceType::Data;
-
-	//If the data is persistent for this material instance, just insert it into the map
-	//Persistent data gets uploaded in Use
-	//Otherwise, this is per-frame data so upload it to the shaders immediately
-	if (persistent)
-	{	
-		dat.data = _allocator->allocate(dat.size);
-		memcpy(dat.data, data, size);
-		_persistentData[name] = dat;	
+	//If the data isn't persistent (constant across all material instances) send it straight to the shaders
+	//Else, save it into the persistent data pool
+	if (!persistent)
+	{
+		ResourceData dat;
+		dat.stage = s;
+		dat.size = size;
+		dat.type = ResourceType::Data;
+		dat.data = data;
+		UploadData(name, dat);
 	}
 	else
 	{
-		dat.data = data;
-		UploadData(name, dat);
+		auto dat = std::allocate_shared<ResourceData>(AllocatorSTLAdapter<ResourceData, BestFitAllocator>(_allocator));
+		dat->stage = s;
+		dat->size = size;
+		dat->type = ResourceType::Data;
+		dat->data = _allocator->allocate(dat->size);
+		memcpy(dat->data, data, size);
+		_persistentData[name] = dat;
 	}
 }
 
 void Material::SetResource(std::string name, ResourceStage s, const std::shared_ptr<Texture>& tex, bool persistent) const
 {
-	ResourceData dat;
-	dat.stage = s;
-	dat.size = sizeof(std::shared_ptr<Texture>);
-	dat.type = ResourceType::Texture;
 
-	if (persistent)
+	if (!persistent)
 	{
-		dat.data = _allocator->allocate(dat.size);
-		new (dat.data) std::shared_ptr<Texture>(tex);
-		_persistentData[name] = dat;
+		ResourceData dat;
+		dat.stage = s;
+		dat.type = ResourceType::Texture;
+		dat.data = tex.get();
+		dat.size = sizeof(std::shared_ptr<Texture>);
+		UploadData(name, dat);
 	}
 	else
 	{
-		dat.data = tex.get();
-		UploadData(name, dat);
+		auto dat = std::allocate_shared<ResourceData>(AllocatorSTLAdapter<ResourceData, BestFitAllocator>(_allocator));
+		dat->stage = s;
+		dat->size = sizeof(std::shared_ptr<Texture>);
+		dat->type = ResourceType::Texture;
+		dat->data = _allocator->allocate(dat->size);
+		new (dat->data) std::shared_ptr<Texture>(tex);
+		_persistentData[name] = dat;	
 	}
 }
 
 void Material::SetResource(std::string name, ResourceStage s, const Sampler& sampler, bool persistent) const
 {
-	ResourceData dat;
-	dat.stage = s;
-	dat.size = sizeof(Sampler);
-	dat.type = ResourceType::Sampler;
-
-	if (persistent)
+	if (!persistent)
 	{
-		dat.data = _allocator->allocate(dat.size);
-		new (dat.data) Sampler(sampler);
-		_persistentData[name] = dat;
+		ResourceData dat;
+		dat.stage = s;
+		dat.type = ResourceType::Texture;
+		dat.data = sampler.As<SamplerHandle>();
+		dat.size = sizeof(SamplerHandle);
+		UploadData(name, dat);
 	}
 	else
 	{
-		dat.data = sampler.As<SamplerHandle>();
-		UploadData(name, dat);
+		auto dat = std::allocate_shared<ResourceData>(AllocatorSTLAdapter<ResourceData, BestFitAllocator>(_allocator));
+		dat->stage = s;
+		dat->size = sizeof(Sampler);
+		dat->type = ResourceType::Sampler;
+		dat->data = _allocator->allocate(dat->size);
+		new (dat->data) Sampler(sampler);
+		_persistentData[name] = dat;
 	}
 }
 
@@ -200,7 +166,7 @@ void Material::Use(bool dataOnly) const
 	//Need to reupload persistent data on each Use because SimpleShader instances are shared
 	for(auto& pair : _persistentData)
 	{
-		UploadData(pair.first, pair.second);
+		UploadData(pair.first, *pair.second);
 	}
 
 	if (!dataOnly)
@@ -227,7 +193,8 @@ bool Material::operator==(const Material& mat) const
 		&& _pixelShader.get() == mat._pixelShader.get()
 		&& _hullShader.get() == mat._hullShader.get()
 		&& _domainShader.get() == mat._domainShader.get()
-		&& _geometryShader.get() == mat._geometryShader.get());
+		&& _geometryShader.get() == mat._geometryShader.get()
+		&& _persistentData == mat._persistentData);
 }
 
 bool Material::operator!=(const Material& mat) const
@@ -268,7 +235,7 @@ void Material::UploadData(std::string name, const ResourceData& dat) const
 		if (s & ResourceStage::VS)
 			_vertShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
 		if (s & ResourceStage::PS)
-			_pixelShader->SetShaderResourceView(name, (**static_cast<std::shared_ptr<Texture>*>(dat.data)).GetShaderResource());
+			_pixelShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
 		if (_hullShader && s & ResourceStage::HS)
 			_hullShader->SetShaderResourceView(name, **static_cast<std::shared_ptr<Texture>*>(dat.data));
 		if (_domainShader && s & ResourceStage::DS)

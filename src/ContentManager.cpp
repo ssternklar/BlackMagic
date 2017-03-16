@@ -39,7 +39,7 @@ template<>
 std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto tex = renderer->CreateTexture(fullPath.c_str(), Texture::Type::FLAT, Texture::Usage::READ);
+	auto tex = renderer->CreateTexture(fullPath.c_str(), Texture::Type::FLAT_2D, Texture::Usage::READ);
 	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator),  tex);
 	_resources[name] = ptr;
 	return ptr;

@@ -30,6 +30,7 @@ namespace BlackMagic {
 		virtual void Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight) override;
 		virtual void RenderSkybox(const Camera& cam) override;
 		virtual Texture CreateTexture(const wchar_t* texturePath, Texture::Type type, Texture::Usage usage) override;
+		virtual Texture CreateTexture(const TextureDesc& desc) override;
 		virtual void ReleaseResource(void* resource) override;
 		virtual void AddResourceRef(void* resource) override;
 

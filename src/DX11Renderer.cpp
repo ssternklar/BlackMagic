@@ -541,15 +541,24 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	};
 	_context->OMSetRenderTargets(sizeof(rts)/sizeof(ID3D11RenderTargetView*), rts, _depthStencil.Get());
 
+	auto view = cam.ViewMatrix();
+	auto proj = cam.ProjectionMatrix();
+
 	//Load object attributes into the g-buffer (geometry pass)
 	for(auto* object : objects)
 	{
 		auto renderable = object->AsRenderable();
 
+		auto m = object->GetTransform().Matrix();
+
 		//Update per-object constant buffer
 		renderable->_material.SetResource("world", Material::VS, sizeof(XMFLOAT4X4),
-			reinterpret_cast<void*>(object->GetTransform().Matrix()));
-		
+			reinterpret_cast<void*>(m));
+		renderable->_material.SetResource("view", Material::VS, sizeof(XMFLOAT4X4),
+			reinterpret_cast<void*>(&view));
+		renderable->_material.SetResource("projection", Material::VS, sizeof(XMFLOAT4X4),
+			reinterpret_cast<void*>(&proj));
+
 		//Upload buffers and draw
 		renderable->_material.Use(currentMaterial && renderable->_material == *currentMaterial);
 		currentMaterial = &renderable->_material;
@@ -560,8 +569,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 		_context->DrawIndexed(static_cast<UINT>(renderable->_mesh->IndexCount()), 0, 0);
 	}
 	
-	ID3D11RenderTargetView* lightMapTarget = _lightMap->GetRenderTarget();
-	_context->OMSetRenderTargets(1, &lightMapTarget, nullptr);
+	_context->OMSetRenderTargets(1, _backBuffer.GetAddressOf(), nullptr);
 	auto cPos = cam.Position();
 	//size_t padding = (16 - (sizeof(DirectionalLight) % 16))*(lights.size() - 1);
 
@@ -583,7 +591,6 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture.Get());
 	_lightPassPS->CopyAllBufferData();
 
-	_context->OMSetRenderTargets(1, _backBuffer.GetAddressOf(), nullptr);
 	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
 	_context->Draw(6, 0);
 	
@@ -602,8 +609,8 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	//_context->Draw(6, 0);
 	
 	//Can't have SRVs and RTVs that are pointing to the same texture bound at the same time, so unset them
-	ID3D11ShaderResourceView* srvs[7] = { 0 };
-	_context->PSSetShaderResources(0, 7, srvs);
+	ID3D11ShaderResourceView* srvs[8] = { 0 };
+	_context->PSSetShaderResources(0, 8, srvs);
 }
 
 void DX11Renderer::RenderSkybox(const Camera& cam)
@@ -649,7 +656,7 @@ Texture DX11Renderer::CreateTexture(const wchar_t* texturePath, Texture::Type ty
 	HRESULT result;
 	switch(type)
 	{
-	case Texture::Type::FLAT:
+	case Texture::Type::FLAT_2D:
 		result = DirectX::CreateWICTextureFromFile(_device.Get(), texturePath, &tex, &srv);
 		break;
 	
@@ -671,6 +678,286 @@ Texture DX11Renderer::CreateTexture(const wchar_t* texturePath, Texture::Type ty
 	return Texture(this, tex, srv, rtv);
 }
 
+DXGI_FORMAT TranslateTextureFormat(Texture::Format f)
+{
+	switch (f)
+	{
+		case Texture::Format::R32G32B32A32_FLOAT:
+			return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case Texture::Format::R32G32B32A32_UINT:
+			return DXGI_FORMAT_R32G32B32A32_UINT;
+		case Texture::Format::R32G32B32A32_SINT:
+			return DXGI_FORMAT_R32G32B32A32_SINT;
+		case Texture::Format::R32G32B32_FLOAT:
+			return DXGI_FORMAT_R32G32B32_FLOAT;
+		case Texture::Format::R32G32B32_UINT:
+			return DXGI_FORMAT_R32G32B32_UINT;
+		case Texture::Format::R32G32B32_SINT:
+			return DXGI_FORMAT_R32G32B32_SINT;
+		case Texture::Format::R16G16B16A16_FLOAT:
+			return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		case Texture::Format::R16G16B16A16_UNORM:
+			return DXGI_FORMAT_R16G16B16A16_UNORM;
+		case Texture::Format::R16G16B16A16_UINT:
+			return DXGI_FORMAT_R16G16B16A16_UINT;
+		case Texture::Format::R16G16B16A16_SNORM:
+			return DXGI_FORMAT_R16G16B16A16_SNORM;
+		case Texture::Format::R16G16B16A16_SINT:
+			return DXGI_FORMAT_R16G16B16A16_SINT;
+		case Texture::Format::R32G32_FLOAT:
+			return DXGI_FORMAT_R32G32_FLOAT;
+		case Texture::Format::R32G32_UINT:
+			return DXGI_FORMAT_R32G32_UINT;
+		case Texture::Format::R32G32_SINT:
+			return DXGI_FORMAT_R32G32_SINT;
+		case Texture::Format::R10G10B10A2_UNORM:
+			return DXGI_FORMAT_R10G10B10A2_UNORM;
+		case Texture::Format::R10G10B10A2_UINT:
+			return DXGI_FORMAT_R10G10B10A2_UINT;
+		case Texture::Format::R11G11B10_FLOAT:
+			return DXGI_FORMAT_R11G11B10_FLOAT;
+		case Texture::Format::R8G8B8A8_UNORM:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case Texture::Format::R8G8B8A8_UNORM_SRGB:
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		case Texture::Format::R8G8B8A8_UINT:
+			return DXGI_FORMAT_R8G8B8A8_UINT;
+		case Texture::Format::R8G8B8A8_SNORM:
+			return DXGI_FORMAT_R8G8B8A8_SNORM;
+		case Texture::Format::R8G8B8A8_SINT:
+			return DXGI_FORMAT_R8G8B8A8_SINT;
+		case Texture::Format::R16G16_FLOAT:
+			return DXGI_FORMAT_R16G16_FLOAT;
+		case Texture::Format::R16G16_UNORM:
+			return DXGI_FORMAT_R16G16_UNORM;
+		case Texture::Format::R16G16_UINT:
+			return DXGI_FORMAT_R16G16_UINT;
+		case Texture::Format::R16G16_SNORM:
+			return DXGI_FORMAT_R16G16_SNORM;
+		case Texture::Format::R16G16_SINT:
+			return DXGI_FORMAT_R16G16_SINT;
+		case Texture::Format::R32_FLOAT:
+			return DXGI_FORMAT_R32_FLOAT;
+		case Texture::Format::R32_UINT:
+			return DXGI_FORMAT_R32_UINT;
+		case Texture::Format::R32_SINT:
+			return DXGI_FORMAT_R32_SINT;
+		case Texture::Format::R8G8_UNORM:
+			return DXGI_FORMAT_R8G8_UNORM;
+		case Texture::Format::R8G8_UINT:
+			return DXGI_FORMAT_R8G8_UINT;
+		case Texture::Format::R8G8_SNORM:
+			return DXGI_FORMAT_R8G8_SNORM;
+		case Texture::Format::R8G8_SINT:
+			return DXGI_FORMAT_R8G8_SINT;
+		case Texture::Format::R16_FLOAT:
+			return DXGI_FORMAT_R16_FLOAT;
+		case Texture::Format::R16_UNORM:
+			return DXGI_FORMAT_R16_UNORM;
+		case Texture::Format::R16_UINT:
+			return DXGI_FORMAT_R16_UINT;
+		case Texture::Format::R16_SNORM:
+			return DXGI_FORMAT_R16_SNORM;
+		case Texture::Format::R16_SINT:
+			return DXGI_FORMAT_R16_SINT;
+		case Texture::Format::R8_UNORM:
+			return DXGI_FORMAT_R8_UNORM;
+		case Texture::Format::R8_UINT:
+			return DXGI_FORMAT_R8_UINT;
+		case Texture::Format::R8_SNORM:
+			return DXGI_FORMAT_R8_SNORM;
+		case Texture::Format::R8_SINT:
+			return DXGI_FORMAT_R8_SINT;
+		case Texture::Format::A8_UNORM:
+			return DXGI_FORMAT_A8_UNORM;
+		case Texture::Format::R1_UNORM:
+			return DXGI_FORMAT_R1_UNORM;
+		default:
+			assert(false, "Invalid texture format provided to TranslateTextureFormat\n");
+			return DXGI_FORMAT_UNKNOWN;
+	}
+}
+
+unsigned int BytesPerPixel(Texture::Format f)
+{
+	switch (f)
+	{
+		case Texture::Format::R32G32B32A32_FLOAT:
+		case Texture::Format::R32G32B32A32_UINT:
+		case Texture::Format::R32G32B32A32_SINT:
+			return 16;
+
+		case Texture::Format::R32G32B32_FLOAT:
+		case Texture::Format::R32G32B32_UINT:
+		case Texture::Format::R32G32B32_SINT:
+			return 12;
+
+		case Texture::Format::R16G16B16A16_FLOAT:
+		case Texture::Format::R16G16B16A16_UNORM:
+		case Texture::Format::R16G16B16A16_UINT:
+		case Texture::Format::R16G16B16A16_SNORM:
+		case Texture::Format::R16G16B16A16_SINT:
+		case Texture::Format::R32G32_FLOAT:
+		case Texture::Format::R32G32_UINT:
+		case Texture::Format::R32G32_SINT:
+			return 8;
+
+		case Texture::Format::R10G10B10A2_UNORM:
+		case Texture::Format::R10G10B10A2_UINT:
+		case Texture::Format::R11G11B10_FLOAT:
+		case Texture::Format::R16G16_FLOAT:
+		case Texture::Format::R16G16_UNORM:
+		case Texture::Format::R16G16_UINT:
+		case Texture::Format::R16G16_SNORM:
+		case Texture::Format::R16G16_SINT:
+		case Texture::Format::R32_FLOAT:
+		case Texture::Format::R32_UINT:
+		case Texture::Format::R32_SINT:
+			return 4;
+
+		case Texture::Format::R8G8B8A8_UNORM:
+		case Texture::Format::R8G8B8A8_UNORM_SRGB:
+		case Texture::Format::R8G8B8A8_UINT:
+		case Texture::Format::R8G8B8A8_SNORM:
+		case Texture::Format::R8G8B8A8_SINT:
+			return 3;
+		
+		case Texture::Format::R8G8_UNORM:
+		case Texture::Format::R8G8_UINT:
+		case Texture::Format::R8G8_SNORM:
+		case Texture::Format::R8G8_SINT:
+		case Texture::Format::R16_FLOAT:
+		case Texture::Format::R16_UNORM:
+		case Texture::Format::R16_UINT:
+		case Texture::Format::R16_SNORM:
+		case Texture::Format::R16_SINT:
+			return 2;
+
+		case Texture::Format::R8_UNORM:
+		case Texture::Format::R8_UINT:
+		case Texture::Format::R8_SNORM:
+		case Texture::Format::R8_SINT:
+		case Texture::Format::A8_UNORM:
+		case Texture::Format::R1_UNORM:
+			return 1;
+		default:
+			assert(false, "Invalid texture format provided to BytesPerPixel\n");
+			return 0;
+	}
+}
+
+Texture DX11Renderer::CreateTexture(const TextureDesc& desc)
+{
+	auto bpp = BytesPerPixel(desc.Format);
+
+	switch (desc.Type)
+	{
+		case Texture::FLAT_1D:
+		{
+			D3D11_TEXTURE1D_DESC d3dDesc = { 0 };
+			d3dDesc.Width = desc.Width;
+			d3dDesc.ArraySize = 1;
+			d3dDesc.BindFlags = (desc.GPUUsage & Texture::Usage::READ ? D3D11_BIND_SHADER_RESOURCE : 0)
+				| (desc.GPUUsage & Texture::Usage::WRITE ? D3D11_BIND_RENDER_TARGET : 0);
+			d3dDesc.Usage = D3D11_USAGE_DEFAULT;
+			d3dDesc.Format = TranslateTextureFormat(desc.Format);
+			d3dDesc.MiscFlags = (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ? 
+				D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
+
+			ID3D11Texture1D* tex;
+			ID3D11ShaderResourceView* srv = nullptr;
+			ID3D11RenderTargetView* rtv = nullptr;
+			_device->CreateTexture1D(&d3dDesc, nullptr, &tex);
+			_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, 0);
+
+			if (desc.GPUUsage & Texture::Usage::READ)
+			{
+				_device->CreateShaderResourceView(tex, nullptr, &srv);
+
+				if (d3dDesc.MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
+					_context->GenerateMips(srv);
+			}
+			if (desc.GPUUsage & Texture::Usage::WRITE)
+				_device->CreateRenderTargetView(tex, nullptr, &rtv);
+
+			return Texture(this, tex, srv, rtv);
+		}
+
+		case Texture::FLAT_2D:
+		case Texture::CUBEMAP:
+		{
+			D3D11_TEXTURE2D_DESC d3dDesc = { 0 };
+			d3dDesc.Height = desc.Height;
+			d3dDesc.Width = desc.Width;
+			d3dDesc.BindFlags = (desc.GPUUsage & Texture::Usage::READ ? D3D11_BIND_SHADER_RESOURCE : 0)
+				| (desc.GPUUsage & Texture::Usage::WRITE ? D3D11_BIND_RENDER_TARGET : 0);
+			d3dDesc.Usage = D3D11_USAGE_DEFAULT;
+			d3dDesc.ArraySize = (desc.Type == Texture::CUBEMAP ? 6 : 1);
+			d3dDesc.Format = TranslateTextureFormat(desc.Format);
+			d3dDesc.MiscFlags = (desc.Type == Texture::CUBEMAP ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0) 
+				| (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ?
+					D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
+			d3dDesc.SampleDesc.Count = 1;
+			d3dDesc.SampleDesc.Quality = 0;
+
+			ID3D11Texture2D* tex;
+			ID3D11ShaderResourceView* srv = nullptr;
+			ID3D11RenderTargetView* rtv = nullptr;
+			_device->CreateTexture2D(&d3dDesc, nullptr, &tex);
+			_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, bpp * desc.Width * desc.Height);
+
+			if (desc.GPUUsage & Texture::Usage::READ)
+			{
+				_device->CreateShaderResourceView(tex, nullptr, &srv);
+
+				if (d3dDesc.MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
+					_context->GenerateMips(srv);
+			}
+			if (desc.GPUUsage & Texture::Usage::WRITE)
+				_device->CreateRenderTargetView(tex, nullptr, &rtv);
+
+			return Texture(this, tex, srv, rtv);
+		}
+		
+		case Texture::FLAT_3D:
+		{
+			D3D11_TEXTURE3D_DESC d3dDesc = { 0 };
+			d3dDesc.Height = desc.Height;
+			d3dDesc.Width = desc.Width;
+			d3dDesc.BindFlags = (desc.GPUUsage & Texture::Usage::READ ? D3D11_BIND_SHADER_RESOURCE : 0)
+				| (desc.GPUUsage & Texture::Usage::WRITE ? D3D11_BIND_RENDER_TARGET : 0);
+			d3dDesc.Usage = D3D11_USAGE_DEFAULT;
+			d3dDesc.Depth = desc.Depth;
+			d3dDesc.Format = TranslateTextureFormat(desc.Format);
+			d3dDesc.MiscFlags = (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ?
+				D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
+
+			ID3D11Texture3D* tex;
+			ID3D11ShaderResourceView* srv = nullptr;
+			ID3D11RenderTargetView* rtv = nullptr;
+			_device->CreateTexture3D(&d3dDesc, nullptr, &tex);
+			_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, bpp * desc.Width * desc.Height);
+
+			if (desc.GPUUsage & Texture::Usage::READ)
+			{
+				_device->CreateShaderResourceView(tex, nullptr, &srv);
+
+				if (d3dDesc.MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
+					_context->GenerateMips(srv);
+			}
+			if (desc.GPUUsage & Texture::Usage::WRITE)
+				_device->CreateRenderTargetView(tex, nullptr, &rtv);
+
+			return Texture(this, tex, srv, rtv);
+		}
+		
+		default:
+			assert(false, "Invalid texture type provided to DX11Renderer::CreateTexture\n");
+			return Texture(nullptr, nullptr, nullptr, nullptr);
+		
+	}
+}
+
 void DX11Renderer::AddResourceRef(void* resource)
 {
 	if (resource)
@@ -686,7 +973,7 @@ void DX11Renderer::ReleaseResource(void* resource)
 void DX11Renderer::InitBuffers()
 {
 	// The above function created the back buffer render target
-	// for us, but we need a reference to it
+	// for us: but we need a reference to it
 	ID3D11Texture2D* backBufferTexture;
 	_swapChain->GetBuffer(
 		0,

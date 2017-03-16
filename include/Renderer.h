@@ -24,6 +24,7 @@ namespace BlackMagic
 		virtual void Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight) = 0;
 		virtual void RenderSkybox(const Camera& cam) = 0;
 		virtual Texture CreateTexture(const wchar_t* texturePath, Texture::Type type, Texture::Usage usage) = 0;
+		virtual Texture CreateTexture(const TextureDesc& desc) = 0;
 		virtual void AddResourceRef(void*) = 0;
 		virtual void ReleaseResource(void*) = 0;
 		virtual Sampler CreateSampler() = 0;

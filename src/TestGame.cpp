@@ -51,6 +51,18 @@ void TestGame::LoadContent()
 	auto sphereTex = content->Load<Texture>(L"/textures/test_texture.png");
 	auto sphereNormals = content->Load<Texture>(L"/textures/test_normals.png");
 
+	unsigned int roughness = 127;
+	TextureDesc desc = { 0 };
+	desc.Width = 1;
+	desc.Height = 1;
+	desc.InitialData = &roughness;
+	desc.Format = Texture::Format::R8_UNORM;
+	desc.GPUUsage = Texture::Usage::READ;
+	desc.Type = Texture::FLAT_2D;
+	
+	auto rTex = platform->GetRenderer()->CreateTexture(desc);
+	auto roughnessTex = std::make_shared<Texture>(rTex);
+
 	auto sampler = platform->GetRenderer()->CreateSampler();
 	auto mat = Material(
 		allocator,
@@ -65,7 +77,9 @@ void TestGame::LoadContent()
 		for (float x = 0; x < 11; x++)
 		{
 			auto mem = allocator.allocate<Entity>();
-			_objects.push_back(new (mem) Entity(XMFLOAT3{ x, y, 0 }, XMFLOAT4{ 0, 0, 0, 1 }, sphere, mat));
+			auto matInstance = mat;
+			matInstance.SetResource("roughnessMap", Material::ResourceStage::PS, roughnessTex, true);
+			_objects.push_back(new (mem) Entity(XMFLOAT3{ x, y, 0 }, XMFLOAT4{ 0, 0, 0, 1 }, sphere, matInstance));
 		}
 	}
 }

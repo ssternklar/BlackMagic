@@ -1,6 +1,7 @@
 
 Texture2D albedoMap : register(t0);
 Texture2D normalMap : register(t1);
+Texture2D roughnessMap : register(t2);
 SamplerState mainSampler: register(s0);
 
 struct GBuffer
@@ -23,6 +24,8 @@ struct VertexToPixel
 	float2 uv : TEXCOORD;
 };
 
+
+
 GBuffer main(VertexToPixel input)
 {
 	GBuffer output;
@@ -40,7 +43,8 @@ GBuffer main(VertexToPixel input)
 
 	output.position = input.worldPos;
 
-	output.roughness = output.cavity = output.metal = 1.0f;
+	output.roughness = roughnessMap.Sample(mainSampler, input.uv);
+	output.cavity = output.metal = 1.0f;
 
 	return output;
 }

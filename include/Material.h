@@ -67,10 +67,25 @@ namespace BlackMagic
 			ResourceType type;
 			size_t size;
 			void* data;
+
+			~ResourceData()
+			{
+				switch (type)
+				{
+					case ResourceType::Texture:
+						static_cast<std::shared_ptr<Texture>*>(data)->reset();
+						break;
+					case ResourceType::Sampler:
+						static_cast<Sampler*>(data)->~Sampler();
+						break;
+					case ResourceType::Data:
+						break;
+				}
+			}
 		};
 
-		mutable std::unordered_map<std::string, ResourceData, std::hash<std::string>, std::equal_to<std::string>, 
-			AllocatorSTLAdapter<std::pair<std::string, ResourceData>, BestFitAllocator>> _persistentData;
+		mutable std::unordered_map<std::string, std::shared_ptr<ResourceData>, std::hash<std::string>, std::equal_to<std::string>, 
+			AllocatorSTLAdapter<std::pair<std::string, std::shared_ptr<ResourceData>>, BestFitAllocator>> _persistentData;
 		std::shared_ptr<SimpleVertexShader> _vertShader;
 		std::shared_ptr<SimplePixelShader> _pixelShader;
 		std::shared_ptr<SimpleHullShader> _hullShader;
