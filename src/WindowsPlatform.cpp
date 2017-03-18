@@ -120,6 +120,7 @@ void BlackMagic::WindowsPlatform::InitPlatformThreadManager()
 	threadManager->CreateGenericThread();
 	threadManager->CreateContentThread();
 	threadManager->CreateRenderThread();
+	threadManager->CreateAudioThread();
 }
 
 bool WindowsPlatform::InitWindow()

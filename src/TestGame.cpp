@@ -8,7 +8,8 @@ using namespace DirectX;
 
 TestGame::TestGame(BlackMagic::PlatformBase* platformBase)
 	: GameAbstraction(platformBase)
-{}
+{
+}
 
 void TestGame::Destroy()
 {

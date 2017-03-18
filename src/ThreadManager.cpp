@@ -7,15 +7,21 @@ using namespace BlackMagic;
 void internal_GenericWorker(ThreadManager* manager)
 {
 	manager->RunGenericWorker();
-};
+}
+
 void internal_RenderWorker(ThreadManager* manager)
 {
 	manager->RunRenderWorker();
-};
+}
 void internal_ContentWorker(ThreadManager* manager)
 {
 	manager->RunContentWorker();
-};
+}
+
+void internal_AudioWorker(ThreadManager* manager)
+{
+	manager->RunAudioWorker();
+}
 
 ThreadManager::ThreadManager(PlatformBase* base, BlackMagic::byte* spaceLocation, size_t spaceSize) :
 	allocator((size_t)32, spaceSize, spaceLocation)
@@ -36,6 +42,11 @@ void ThreadManager::CreateRenderThread()
 void ThreadManager::CreateContentThread()
 {
 	PlatformCreateThread(internal_ContentWorker, this);
+}
+
+void BlackMagic::ThreadManager::CreateAudioThread()
+{
+	PlatformCreateThread(internal_AudioWorker, this);
 }
 
 void ThreadManager::RunGenericWorker()
@@ -119,7 +130,47 @@ void ThreadManager::RunContentWorker()
 		if (job)
 		{
 			//Run the job
+			job->Run();
 		}
+	}
+}
+
+void BlackMagic::ThreadManager::RunAudioWorker()
+{
+	while (!base->ShouldExit())
+	{
+		while(AudioTaskList != nullptr)
+		{
+			LinkedList* toDelete = nullptr;
+			AudioJob* job = nullptr;
+			PlatformLockMutex(AudioTaskListMutex);
+			if (AudioTaskList)
+			{
+				job = AudioTaskList->GetAs<AudioJob>();
+				toDelete = AudioTaskList;
+				AudioTaskList = AudioTaskList->next;
+			}
+			PlatformUnlockMutex(AudioTaskListMutex);
+			if (toDelete)
+			{
+				PlatformLockMutex(allocatorMutex);
+				DestructAndDeallocate(&allocator, toDelete, 1);
+				PlatformUnlockMutex(allocatorMutex);
+				if (AudioTaskList == toDelete)
+				{
+					AudioTaskList = nullptr;
+				}
+			}
+			if (job)
+			{
+				//Run the job
+				job->Run();
+				PlatformLockMutex(allocatorMutex);
+				DestructAndDeallocate(&allocator, job, 1);
+				PlatformUnlockMutex(allocatorMutex);
+			}
+		}
+		PlatformBase::GetSingleton()->GetAudioManager()->UpdateAudio();
 	}
 }
 
@@ -153,6 +204,59 @@ void BlackMagic::ThreadManager::DestroyRenderJob(RenderJob * job)
 {
 }
 
-ThreadManager::~ThreadManager()
+AudioJob* BlackMagic::ThreadManager::CreatePlayAudioJob(bool isBGM, AudioFile file, float relativeVolume)
 {
+	PlatformLockMutex(allocatorMutex);
+	AudioJob* job = AllocateAndConstruct<BestFitAllocator, AudioJob>(&allocator, 1);
+	job->fileToPlay = file;
+	job->relativeVolume = relativeVolume;
+	job->isBGM = isBGM;
+	if (job)
+	{
+		LinkedList* next = AllocateAndConstruct<BestFitAllocator, LinkedList, AudioJob*>(&allocator, 1, job);
+		PlatformUnlockMutex(allocatorMutex);
+		PlatformLockMutex(AudioTaskListMutex);
+		if (AudioTaskList == nullptr)
+		{
+			AudioTaskList = next;
+		}
+		else
+		{
+			AudioTaskList->next = next;
+		}
+		PlatformUnlockMutex(AudioTaskListMutex);
+	}
+	else
+	{
+		PlatformUnlockMutex(allocatorMutex);
+	}
+	return job;
+}
+
+AudioJob* BlackMagic::ThreadManager::CreateStopBGMAudioJob()
+{
+	PlatformLockMutex(allocatorMutex);
+	AudioJob* job = AllocateAndConstruct<BestFitAllocator, AudioJob>(&allocator, 1);
+	job->isBGM = true;
+	job->bgmPlayPauseStopResume = 2;
+	if (job)
+	{
+		LinkedList* next = AllocateAndConstruct<BestFitAllocator, LinkedList, AudioJob*>(&allocator, 1, job);
+		PlatformUnlockMutex(allocatorMutex);
+		PlatformLockMutex(AudioTaskListMutex);
+		if (AudioTaskList == nullptr)
+		{
+			AudioTaskList = next;
+		}
+		else
+		{
+			AudioTaskList->next = next;
+		}
+		PlatformUnlockMutex(AudioTaskListMutex);
+	}
+	else
+	{
+		PlatformUnlockMutex(allocatorMutex);
+	}
+	return job;
 }

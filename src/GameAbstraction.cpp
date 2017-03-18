@@ -19,9 +19,6 @@ int BlackMagic::GameAbstraction::RunGame()
 		float dt = platform->GetDeltaTime();
 		Update(dt);
 		Draw(dt);
-
-		//To be moved to worker thread soon
-		platform->GetAudioManager()->UpdateAudio();
 	}
 	Destroy();
 	return 0;

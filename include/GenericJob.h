@@ -12,5 +12,6 @@ namespace BlackMagic
 		bool done = false;
 	public:
 		void WaitUntilJobIsComplete();
+		virtual ~GenericJob() {};
 	};
 }

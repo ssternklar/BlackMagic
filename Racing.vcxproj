@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\AudioJob.cpp" />
     <ClCompile Include="src\AudioManager.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ContentJob.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="include\allocators\FixedBlockAllocator.h" />
     <ClInclude Include="include\allocators\globals.h" />
     <ClInclude Include="include\allocators\StackAllocator.h" />
+    <ClInclude Include="include\AudioJob.h" />
     <ClInclude Include="include\AudioManager.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ContentManager.h" />

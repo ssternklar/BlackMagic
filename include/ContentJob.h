@@ -15,6 +15,7 @@ namespace BlackMagic
 		char* resourceName;
 		ContentJob_Base(char* resourceName);
 		void WaitUntilJobIsComplete();
+		virtual void Run() = 0;
 	};
 
 	//Promise/Future style content load job
@@ -23,6 +24,6 @@ namespace BlackMagic
 	{
 	public:
 		T* GetResult() { return static_cast<T>(resourceLocation) };
-		void Run();
+		virtual void Run() override;
 	};
 }

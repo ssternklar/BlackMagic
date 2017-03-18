@@ -39,6 +39,7 @@ StdThreadManager::StdThreadManager(PlatformBase* base, BlackMagic::byte* spaceLo
 	GenericTaskListMutex = PlatformCreateMutex();
 	RenderTaskListMutex = PlatformCreateMutex();
 	ContentTaskListMutex = PlatformCreateMutex();
+	AudioTaskListMutex = PlatformCreateMutex();
 }
 
 

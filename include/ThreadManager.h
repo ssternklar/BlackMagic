@@ -5,6 +5,7 @@
 #include "GenericJob.h"
 #include "ContentJob.h"
 #include "RenderJob.h"
+#include "AudioJob.h"
 #include "LinkedList.h"
 #include "Handles.h"
 #include <atomic>
@@ -33,11 +34,13 @@ namespace BlackMagic {
 		Mutex GenericTaskListMutex;
 		Mutex RenderTaskListMutex;
 		Mutex ContentTaskListMutex;
+		Mutex AudioTaskListMutex;
 
 		LinkedList* GenericTaskList = nullptr;
 		LinkedList* RenderTaskList = nullptr;
 		LinkedList* ContentTaskList = nullptr;
-		
+		LinkedList* AudioTaskList = nullptr;
+
 		typedef void(*InternalThreadWorker)(ThreadManager*);
 
 		virtual void PlatformCreateThread(InternalThreadWorker worker, ThreadManager* manager) = 0;
@@ -45,13 +48,12 @@ namespace BlackMagic {
 		virtual void PlatformLockMutex(Mutex mutex) = 0;
 		virtual void PlatformUnlockMutex(Mutex mutex) = 0;
 
-
 	public:
-
 		//These are public because lambdas
 		void RunGenericWorker();
 		void RunRenderWorker();
 		void RunContentWorker();
+		void RunAudioWorker();
 
 		//There can be as many generic threads as you want there to be
 		void CreateGenericThread();
@@ -61,6 +63,9 @@ namespace BlackMagic {
 
 		//There *should* only be one content thread as of right now
 		void CreateContentThread();
+
+		//There *should* only be one audio thread as of right now
+		void CreateAudioThread();
 
 		template<class JobType, typename... Args>
 		JobType* CreateGenericJob(Args&&... args)
@@ -111,6 +116,9 @@ namespace BlackMagic {
 		RenderJob* CreateRenderJob();
 		void DestroyRenderJob(RenderJob* job);
 
+		AudioJob* CreatePlayAudioJob(bool isBGM, AudioFile file, float relativeVolume);
+		AudioJob* CreateStopBGMAudioJob();
+
 		template<class T>
 		ContentJob<T>* CreateContentJob(char* resourceName)
 		{
@@ -158,7 +166,7 @@ namespace BlackMagic {
 		}
 
 		ThreadManager(PlatformBase* base, byte* spaceLocation, size_t spaceSize);
-		~ThreadManager();
+		virtual ~ThreadManager() {};
 
 	};
 
