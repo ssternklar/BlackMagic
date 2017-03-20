@@ -560,7 +560,11 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 			reinterpret_cast<void*>(&proj));
 
 		//Upload buffers and draw
-		renderable->_material.Use(currentMaterial && renderable->_material == *currentMaterial);
+		bool freshMaterial = true;
+		if (currentMaterial)
+			freshMaterial = renderable->_material != *currentMaterial;
+
+		renderable->_material.Use(freshMaterial);
 		currentMaterial = &renderable->_material;
 
 		auto vBuf = renderable->_mesh->VertexBuffer().As<BufferHandle>();

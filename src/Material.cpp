@@ -20,7 +20,8 @@ Material::Material(
 	_domainShader(ds ? *ds : nullptr),
 	_geometryShader(gs ? *gs : nullptr),
 	_allocator(&allocator),
-	_persistentData(&allocator)
+	_staticData(&allocator),
+	_instanceData(&allocator)
 {
 
 }
@@ -28,7 +29,8 @@ Material::Material(
 Material::Material(const Material& m)
 	: Material(*m._allocator, m._vertShader, m._pixelShader, &m._hullShader, &m._domainShader, &m._geometryShader)
 {
-	_persistentData = m._persistentData;
+	_staticData = m._staticData;
+	_instanceData = m._instanceData;
 }
 
 Material::~Material()
@@ -44,7 +46,8 @@ Material& Material::operator=(const Material& m)
 	_hullShader = m._hullShader;
 	_domainShader = m._domainShader;
 	_geometryShader = m._geometryShader;
-	_persistentData = m._persistentData;
+	_staticData = m._staticData;
+	_instanceData = m._instanceData;
 
 	return *this;
 }
@@ -74,11 +77,11 @@ SimpleGeometryShader* Material::GeometryShader() const
 	return _geometryShader.get();
 }
 
-void Material::SetResource(std::string name, ResourceStage s, size_t size, void* data, bool persistent) const
+void Material::SetResource(std::string name, ResourceStage s, size_t size, void* data, ResourceStorageType storage) const
 {
 	//If the data isn't persistent (constant across all material instances) send it straight to the shaders
 	//Else, save it into the persistent data pool
-	if (!persistent)
+	if (storage == ResourceStorageType::Frame)
 	{
 		ResourceData dat;
 		dat.stage = s;
@@ -95,14 +98,17 @@ void Material::SetResource(std::string name, ResourceStage s, size_t size, void*
 		dat->type = ResourceType::Data;
 		dat->data = _allocator->allocate(dat->size);
 		memcpy(dat->data, data, size);
-		_persistentData[name] = dat;
+		if (storage == ResourceStorageType::Static)
+			_staticData[name] = dat;
+		else
+			_instanceData[name] = dat;
 	}
 }
 
-void Material::SetResource(std::string name, ResourceStage s, const std::shared_ptr<Texture>& tex, bool persistent) const
+void Material::SetResource(std::string name, ResourceStage s, const std::shared_ptr<Texture>& tex, ResourceStorageType storage) const
 {
 
-	if (!persistent)
+	if (storage == ResourceStorageType::Frame)
 	{
 		ResourceData dat;
 		dat.stage = s;
@@ -119,13 +125,16 @@ void Material::SetResource(std::string name, ResourceStage s, const std::shared_
 		dat->type = ResourceType::Texture;
 		dat->data = _allocator->allocate(dat->size);
 		new (dat->data) std::shared_ptr<Texture>(tex);
-		_persistentData[name] = dat;	
+		if (storage == ResourceStorageType::Static)
+			_staticData[name] = dat;
+		else
+			_instanceData[name] = dat;
 	}
 }
 
-void Material::SetResource(std::string name, ResourceStage s, const Sampler& sampler, bool persistent) const
+void Material::SetResource(std::string name, ResourceStage s, const Sampler& sampler, ResourceStorageType storage) const
 {
-	if (!persistent)
+	if (storage == ResourceStorageType::Frame)
 	{
 		ResourceData dat;
 		dat.stage = s;
@@ -142,13 +151,16 @@ void Material::SetResource(std::string name, ResourceStage s, const Sampler& sam
 		dat->type = ResourceType::Sampler;
 		dat->data = _allocator->allocate(dat->size);
 		new (dat->data) Sampler(sampler);
-		_persistentData[name] = dat;
+		if (storage == ResourceStorageType::Static)
+			_staticData[name] = dat;
+		else
+			_instanceData[name] = dat;
 	}
 }
 
-void Material::Use(bool dataOnly) const
+void Material::Use(bool freshUse) const
 {
-	if (!dataOnly)
+	if (freshUse)
 	{
 		_vertShader->SetShader();
 		_pixelShader->SetShader();
@@ -162,39 +174,46 @@ void Material::Use(bool dataOnly) const
 		if (_geometryShader)
 			_geometryShader->SetShader();
 	
+		//If freshUse == true, then all data needs to be set because it's a complete context switch
+		//If false, a material sharing the same shader set and static data has already been set,
+		//so none of that data needs to be uploaded
+		for (auto& pair : _staticData)
+		{
+			UploadData(pair.first, *pair.second);
+		}
 	}
-	//Need to reupload persistent data on each Use because SimpleShader instances are shared
-	for(auto& pair : _persistentData)
+	
+	for(auto& pair : _instanceData)
 	{
 		UploadData(pair.first, *pair.second);
 	}
 
-	if (!dataOnly)
+	//TODO: Seperate per-frame and per-instance uploads
+	_vertShader->CopyAllBufferData();
+	_pixelShader->CopyAllBufferData();
+
+	if (_hullShader && _domainShader)
 	{
-		//TODO: Seperate per-frame and per-instance uploads
-		_vertShader->CopyAllBufferData();
-		_pixelShader->CopyAllBufferData();
-
-		if (_hullShader && _domainShader)
-		{
-			_hullShader->CopyAllBufferData();
-			_domainShader->CopyAllBufferData();
-		}
-
-		if (_geometryShader)
-			_geometryShader->CopyAllBufferData();	
+		_hullShader->CopyAllBufferData();
+		_domainShader->CopyAllBufferData();
 	}
+
+	if (_geometryShader)
+		_geometryShader->CopyAllBufferData();	
+	
 
 }
 
 bool Material::operator==(const Material& mat) const
 {
+	//Not including _instanceData because we only care if these materials have the same
+	//base parameters (_globalData)
 	return (_vertShader.get() == mat._vertShader.get()
 		&& _pixelShader.get() == mat._pixelShader.get()
 		&& _hullShader.get() == mat._hullShader.get()
 		&& _domainShader.get() == mat._domainShader.get()
 		&& _geometryShader.get() == mat._geometryShader.get()
-		&& _persistentData == mat._persistentData);
+		&& _staticData == mat._staticData);
 }
 
 bool Material::operator!=(const Material& mat) const

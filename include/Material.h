@@ -33,6 +33,13 @@ namespace BlackMagic
 			Sampler
 		};
 
+		enum class ResourceStorageType : unsigned char
+		{
+			Static,
+			Instance,
+			Frame
+		};
+
 		Material() = default;
 		Material(
 			BestFitAllocator& allocator,
@@ -53,10 +60,10 @@ namespace BlackMagic
 		SimpleGeometryShader* GeometryShader() const;
 
 		//Turns on shader stages and uploads persistent data
-		void Use(bool dataOnly = false) const;
-		void SetResource(std::string name, ResourceStage s, size_t size, void* data, bool persistent = false) const;
-		void SetResource(std::string name, ResourceStage s, const std::shared_ptr<Texture>& tex, bool persistent = false) const;
-		void SetResource(std::string name, ResourceStage s, const Sampler& sampler, bool persistent = false) const;
+		void Use(bool freshUse = false) const;
+		void SetResource(std::string name, ResourceStage s, size_t size, void* data, ResourceStorageType storage = ResourceStorageType::Frame) const;
+		void SetResource(std::string name, ResourceStage s, const std::shared_ptr<Texture>& tex, ResourceStorageType storage = ResourceStorageType::Frame) const;
+		void SetResource(std::string name, ResourceStage s, const Sampler& sampler, ResourceStorageType storage = ResourceStorageType::Frame) const;
 		bool operator==(const Material& mat) const;
 		bool operator!=(const Material& mat) const;
 
@@ -85,7 +92,9 @@ namespace BlackMagic
 		};
 
 		mutable std::unordered_map<std::string, std::shared_ptr<ResourceData>, std::hash<std::string>, std::equal_to<std::string>, 
-			AllocatorSTLAdapter<std::pair<std::string, std::shared_ptr<ResourceData>>, BestFitAllocator>> _persistentData;
+			AllocatorSTLAdapter<std::pair<std::string, std::shared_ptr<ResourceData>>, BestFitAllocator>> _staticData;
+		mutable std::unordered_map<std::string, std::shared_ptr<ResourceData>, std::hash<std::string>, std::equal_to<std::string>,
+			AllocatorSTLAdapter<std::pair<std::string, std::shared_ptr<ResourceData>>, BestFitAllocator>> _instanceData;
 		std::shared_ptr<SimpleVertexShader> _vertShader;
 		std::shared_ptr<SimplePixelShader> _pixelShader;
 		std::shared_ptr<SimpleHullShader> _hullShader;

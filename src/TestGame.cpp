@@ -68,9 +68,9 @@ void TestGame::LoadContent()
 		allocator,
 		gPassVS, gPassPS
 	);
-	mat.SetResource("albedoMap", Material::ResourceStage::PS, sphereTex, true);
-	mat.SetResource("normalMap", Material::ResourceStage::PS, sphereNormals, true);
-	mat.SetResource("mainSampler", Material::ResourceStage::PS, sampler, true);
+	mat.SetResource("albedoMap", Material::ResourceStage::PS, sphereTex, Material::ResourceStorageType::Static);
+	mat.SetResource("normalMap", Material::ResourceStage::PS, sphereNormals, Material::ResourceStorageType::Static);
+	mat.SetResource("mainSampler", Material::ResourceStage::PS, sampler, Material::ResourceStorageType::Static);
 
 	for(float y = 0; y < 11; y++)
 	{
@@ -78,7 +78,7 @@ void TestGame::LoadContent()
 		{
 			auto mem = allocator.allocate<Entity>();
 			auto matInstance = mat;
-			matInstance.SetResource("roughnessMap", Material::ResourceStage::PS, roughnessTex, true);
+			matInstance.SetResource("roughnessMap", Material::ResourceStage::PS, roughnessTex, Material::ResourceStorageType::Instance);
 			_objects.push_back(new (mem) Entity(XMFLOAT3{ x, y, 0 }, XMFLOAT4{ 0, 0, 0, 1 }, sphere, matInstance));
 		}
 	}
