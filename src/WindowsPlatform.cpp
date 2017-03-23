@@ -1,6 +1,7 @@
 #include "WindowsPlatform.h"
 #include "StdThreadManager.h"
 #include "DirectXAudioManager.h"
+#include <fstream>
 using namespace BlackMagic;
 
 WindowsPlatform* WindowsPlatform::singletonRef = nullptr;
@@ -272,6 +273,30 @@ void WindowsPlatform::ReturnSystemMemory(BlackMagic::byte* memory)
 	{
 		delete[] memory;
 	}
+}
+
+bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileBuffer, size_t bufferSize)
+{
+	std::ifstream file(fileName, std::ios::binary);
+	if (file.is_open())
+	{
+		file.seekg(file.end);
+		int fileLength = file.tellg();
+		file.seekg(file.beg);
+#ifdef DEBUG
+		if (fileLength > bufferSize)
+		{
+			printf("Incomplete file read");
+		}
+		if (bufferSize > fileLength)
+		{
+			printf("Buffer has extra characters in it");
+		}
+#endif
+		file.read((char*)fileBuffer, bufferSize);
+		return true;
+	}
+	return false;
 }
 
 WindowsPlatform::~WindowsPlatform()
