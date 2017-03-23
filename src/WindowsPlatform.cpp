@@ -299,6 +299,19 @@ bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileB
 	return false;
 }
 
+unsigned int BlackMagic::WindowsPlatform::GetFileSize(char* fileName)
+{
+	std::ifstream file(fileName, std::ios::binary);
+	if(file.is_open())
+	{
+		file.seekg(file.end);
+		unsigned int fileLength = file.tellg();
+		file.seekg(file.beg);
+		return fileLength;
+	}
+	return 0;
+}
+
 WindowsPlatform::~WindowsPlatform()
 {
 }

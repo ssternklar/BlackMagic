@@ -29,6 +29,7 @@ namespace BlackMagic
 		virtual float GetDeltaTime() override;
 		virtual void ReturnSystemMemory(byte* memory) override;
 		virtual bool ReadFileIntoMemory(char* fileName, byte* fileBuffer, size_t bufferSize) override;
+		virtual unsigned int GetFileSize(char* fileName) override;
 		static LRESULT CALLBACK WindowProc(
 			HWND hWnd, // Window handle
 			UINT uMsg, // Message
