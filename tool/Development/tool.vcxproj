@@ -152,6 +152,7 @@
     <ClCompile Include="src\Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Assets.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\dear imgui\imconfig.h" />
     <ClInclude Include="src\dear imgui\imgui.h" />

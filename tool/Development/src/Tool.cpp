@@ -2,6 +2,7 @@
 
 #include "Tool.h"
 #include "Input.h"
+#include "Assets.h"
 
 using namespace DirectX;
 
@@ -60,10 +61,13 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 		}
 		else
 		{
+			if (Input::WasControlPressed("Quit"))
+				Quit();
+
 			ImGui_ImplDX11_NewFrame();
 
 			float delta = ImGui::GetIO().DeltaTime;
-			invokeGUI();
+			InvokeGUI();
 
 			ImGuiIO& io = ImGui::GetIO();
 			if (!io.WantCaptureKeyboard && !io.WantCaptureMouse && !io.WantTextInput)
@@ -91,9 +95,6 @@ void Tool::Quit()
 
 void Tool::ScanEntities(float x, float y)
 {
-	Entity* entities = EntityData::Instance().Entities();
-	size_t count = EntityData::Instance().Size();
-
 	BoundingFrustum camFrustum;
 	camera->frustum.Transform(camFrustum, XMMatrixTranspose(XMLoadFloat4x4(&camera->transform->matrix)));
 
@@ -109,6 +110,8 @@ void Tool::ScanEntities(float x, float y)
 	XMVECTOR rayDir = XMVector3TransformNormal(XMVector3Normalize(XMLoadFloat3(&tempRayDir)), view);
 	XMVECTOR rayPos = XMLoadFloat3(&camera->transform->pos);
 
+	Entity* entities = EntityData::Instance().Entities();
+	size_t count = EntityData::Instance().Size();
 	BoundingOrientedBox entBox;
 	float distance;
 	std::vector<EntityData::Handle> entityQueue;
@@ -155,11 +158,11 @@ void Tool::SelectEntity(EntityData::Handle ent)
 
 	if (ent.ptr())
 	{
-		meshIndex = std::find(MeshData::Instance().filePaths.begin(), MeshData::Instance().filePaths.end(), ent->mesh->path) - MeshData::Instance().filePaths.begin();
+		gui.meshIndex = (int)AssetManager::Instance().GetIndex<MeshData>(ent->mesh);
 	}
 	else
 	{
-		meshIndex = -1;
+		gui.meshIndex = -1;
 	}
 }
 

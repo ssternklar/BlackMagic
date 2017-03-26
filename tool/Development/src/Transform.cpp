@@ -6,7 +6,7 @@ using namespace DirectX;
 
 TransformData::Handle TransformData::Get()
 {
-	Handle h = Asset::Get();
+	Handle h = ProxyHandler::Get();
 
 	h->pos = { 0, 0, 0 };
 	h->rot = { 0, 0, 0, 1 };
@@ -18,7 +18,7 @@ TransformData::Handle TransformData::Get()
 
 void TransformData::Revoke(Handle handle)
 {
-	Asset::Revoke(handle);
+	ProxyHandler::Revoke(handle);
 }
 
 void TransformData::UpdateTransforms()

@@ -26,7 +26,7 @@ private:
 };
 
 template <class T, class S>
-class Asset : public Singleton<S>
+class ProxyHandler : public Singleton<S>
 {
 public:
 	typedef typename proxy_ctr<T>::proxy_ptr Handle;
@@ -35,8 +35,8 @@ public:
 	Handle Recover(T* ptr) { return proxy.Recover(ptr); }
 
 protected:
-	Asset();
-	virtual ~Asset() { delete[] data; };
+	ProxyHandler();
+	virtual ~ProxyHandler() { delete[] data; };
 
 	virtual void Revoke(Handle handle);
 	virtual Handle Get();
@@ -51,7 +51,7 @@ private:
 };
 
 template <class T, class S>
-Asset<T, S>::Asset()
+ProxyHandler<T, S>::ProxyHandler()
 {
 	growth = 4;
 	size = 0;
@@ -61,7 +61,7 @@ Asset<T, S>::Asset()
 }
 
 template <class T, class S>
-typename Asset<T, S>::Handle Asset<T, S>::Get()
+typename ProxyHandler<T, S>::Handle ProxyHandler<T, S>::Get()
 {
 	if (size == count)
 	{
@@ -79,7 +79,7 @@ typename Asset<T, S>::Handle Asset<T, S>::Get()
 }
 
 template <class T, class S>
-void Asset<T, S>::Revoke(Handle handle)
+void ProxyHandler<T, S>::Revoke(Handle handle)
 {
 	size_t index = handle.ptr() - data;
 	proxy.Relinquish(handle.ptr());

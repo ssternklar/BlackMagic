@@ -3,6 +3,7 @@
 #include <assimp\postprocess.h>
 
 #include "Mesh.h"
+#include "Assets.h"
 
 static float distanceSquared(float a[3], float b[3])
 {
@@ -27,18 +28,41 @@ MeshData::~MeshData()
 void MeshData::Init(ID3D11Device* device)
 {
 	this->device = device;
-	Get("teapot.obj");
+	// TODO move default loading to asset manager
+	Handle h = LoadMesh("assets/defaults/teapot.obj");
+	AssetManager::Instance().SetDefault<MeshData>(h);
+	Asset<MeshData> asset = {
+		h,
+		"assets/defaults/teapot.obj",
+		"default"
+	};
+	AssetManager::Instance().TrackAsset<MeshData>(asset);
 }
 
 MeshData::Handle MeshData::Get(std::string modelPath)
 {
-	auto check = handles.find(modelPath);
-	if (check != handles.end())
-		return check->second;
+	std::string fullPath = root + modelPath;
 
+	Handle h = AssetManager::Instance().GetHandle<MeshData>(fullPath);
+	if (h.ptr())
+		return h;
+
+	h = LoadMesh(fullPath);
+
+	if (!h.ptr())
+		return h;
+
+	// TODO parse the name out
+	AssetManager::Instance().TrackAsset<MeshData>({ h, fullPath, fullPath });
+
+	return h;
+}
+
+MeshData::Handle MeshData::LoadMesh(std::string modelPath)
+{
 	Assimp::Importer importer;
 
-	const aiScene* scene = importer.ReadFile(root + modelPath,
+	const aiScene* scene = importer.ReadFile(modelPath,
 		aiProcess_CalcTangentSpace |
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_FindInvalidData |
@@ -56,11 +80,7 @@ MeshData::Handle MeshData::Get(std::string modelPath)
 		return e;
 	}
 
-	Handle h = Asset::Get();
-	handles[modelPath] = h;
-	filePaths.push_back(modelPath);
-	h->path = modelPath;
-
+	Handle h = ProxyHandler::Get();
 	h->vertCount = 0;
 	h->faceCount = 0;
 
@@ -137,8 +157,6 @@ void MeshData::Revoke(Handle handle)
 	delete[] handle->verts;
 	delete[] handle->faces;
 
-	handles.erase(handles.find(handle->path));
-	filePaths.erase(std::remove(filePaths.begin(), filePaths.end(), handle->path));
-
-	Asset::Revoke(handle);
+	AssetManager::Instance().StopTrackingAsset<MeshData>(handle);
+	ProxyHandler::Revoke(handle);
 }

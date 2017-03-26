@@ -12,7 +12,7 @@ struct Transform
 	DirectX::XMFLOAT4X4 matrix;
 };
 
-class TransformData : public Asset<Transform, TransformData>
+class TransformData : public ProxyHandler<Transform, TransformData>
 {
 public:
 	TransformData() {};

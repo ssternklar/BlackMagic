@@ -4,21 +4,20 @@
 #include "dear imgui\imgui_impl_dx11.h"
 
 #include "Input.h"
+#include "Assets.h"
 
-bool comboPaths(void* data, int idx, const char** out_text)
+// TODO make this generic, somehow
+
+bool MeshNames(void* data, int idx, const char** out_text)
 {
-	std::vector<std::string>* vec = reinterpret_cast<std::vector<std::string>*>(data);
-	if (idx < 0 || idx >= (int)vec->size())
+	if (idx < 0 || idx >= (int)AssetManager::Instance().GetAssetCount<MeshData>())
 		return false;
-	*out_text = vec->at(idx).c_str();
+	*out_text = AssetManager::Instance().GetAsset<MeshData>(idx).name.c_str();
 	return true;
 }
 
-void Tool::invokeGUI()
+void Tool::InvokeGUI()
 {
-	if (Input::WasControlPressed("Quit"))
-		Quit();
-
 	ImGui::ShowTestWindow(NULL);
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -33,17 +32,48 @@ void Tool::invokeGUI()
 		if (ImGui::BeginMenu("Import"))
 		{
 			if (ImGui::MenuItem("Mesh"))
-				meshImporter = true;
+				gui.meshImporter = true;
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();
 	}
 
+	PromptImport();
+
+	// status info window
+	ImGui::SetNextWindowPos(ImVec2((float)graphics->GetWidth() - 309, 19));
+	if (ImGui::Begin("Stats Bar", NULL, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs))
+	{
+		ImGui::Text("Res: %.0fx%.0f\tFPS: %.0f Delta: %.5f", io.DisplaySize.x, io.DisplaySize.y, io.Framerate, io.DeltaTime * 1000);
+	}
+	ImGui::End();
+
+	// entity editor
+	ImGui::SetNextWindowPos(ImVec2((float)graphics->GetWidth() - 309, 51));
+	ImGui::SetNextWindowSize(ImVec2(309, (float)graphics->GetHeight() - 51));
+	if (ImGui::Begin("EntityEditor", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+	{
+		if (ImGui::Button("Spawn"))
+			SelectEntity(EntityData::Instance().Get());
+
+		if (selectedEntity.ptr())
+		{
+			// TODO fix this
+			ImGui::DragFloat3("Position", &selectedEntity->transform->pos.x, 0.005f);
+			ImGui::Combo("Mesh", &gui.meshIndex, MeshNames, NULL, AssetManager::Instance().GetAssetCount<MeshData>());
+			selectedEntity->mesh = AssetManager::Instance().GetAsset<MeshData>(gui.meshIndex).handle;
+		}
+	}
+	ImGui::End();
+}
+
+void Tool::PromptImport()
+{
 	// mesh import
-	if (meshImporter)
+	if (gui.meshImporter)
 	{
 		ImGui::OpenPopup("Import a new Mesh file");
-		meshImporter = false;
+		gui.meshImporter = false;
 	}
 	if (ImGui::BeginPopupModal("Import a new Mesh file", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
@@ -79,29 +109,4 @@ void Tool::invokeGUI()
 			ImGui::CloseCurrentPopup();
 		ImGui::EndPopup();
 	}
-
-	// status info window
-	ImGui::SetNextWindowPos(ImVec2((float)graphics->GetWidth() - 309, 19));
-	if (ImGui::Begin("Stats Bar", NULL, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs))
-	{
-		ImGui::Text("Res: %.0fx%.0f\tFPS: %.0f Delta: %.5f", io.DisplaySize.x, io.DisplaySize.y, io.Framerate, io.DeltaTime * 1000);
-	}
-	ImGui::End();
-
-	// entity editor
-	ImGui::SetNextWindowPos(ImVec2((float)graphics->GetWidth() - 309, 51));
-	ImGui::SetNextWindowSize(ImVec2(309, (float)graphics->GetHeight() - 51));
-	if (ImGui::Begin("EntityEditor", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
-	{
-		if (ImGui::Button("Spawn"))
-			SelectEntity(EntityData::Instance().Get());
-
-		if (selectedEntity.ptr())
-		{
-			ImGui::DragFloat3("Position", &selectedEntity->transform->pos.x, 0.005f);
-			ImGui::Combo("Mesh", &meshIndex, comboPaths, reinterpret_cast<void*>(&MeshData::Instance().filePaths), MeshData::Instance().filePaths.size());
-			selectedEntity->mesh = MeshData::Instance().Get(MeshData::Instance().filePaths[meshIndex]);
-		}
-	}
-	ImGui::End();
 }

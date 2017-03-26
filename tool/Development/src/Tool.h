@@ -21,7 +21,6 @@ public:
 	void Quit();
 	
 private:
-	void invokeGUI();
 	void OnResize(unsigned int width, unsigned int height);
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 
@@ -34,8 +33,13 @@ private:
 	void SelectEntity(EntityData::Handle ent);
 	EntityData::Handle selectedEntity;
 
-	// imgui
-	bool meshImporter = false;
-	int meshIndex = -1;
+	// dear ImGui
+	void InvokeGUI();
+	void PromptImport();
+	struct guiData
+	{
+		bool meshImporter = false;
+		int meshIndex = -1;
+	}gui;
 };
 

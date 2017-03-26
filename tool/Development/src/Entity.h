@@ -10,7 +10,7 @@ struct Entity
 	MeshData::Handle mesh;
 };
 
-class EntityData : public Asset<Entity, EntityData>
+class EntityData : public ProxyHandler<Entity, EntityData>
 {
 public:
 	EntityData() {};

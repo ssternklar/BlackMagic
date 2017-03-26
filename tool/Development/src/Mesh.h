@@ -4,8 +4,7 @@
 #include <DirectXCollision.h>
 #include <d3d11.h>
 #include <DirectXMath.h>
-#include <map>
-#include <vector>
+#include <string>
 
 #include "Patterns.h"
 
@@ -29,11 +28,9 @@ struct Mesh
 
 	DirectX::BoundingOrientedBox obb;
 	DirectX::BoundingSphere sphere;
-
-	std::string path;
 };
 
-class MeshData : public Asset<Mesh, MeshData>
+class MeshData : public ProxyHandler<Mesh, MeshData>
 {
 public:
 	MeshData() {};
@@ -45,9 +42,9 @@ public:
 	void Revoke(Handle handle);
 
 	const std::string root = "assets/models/";
-	std::vector<std::string> filePaths;
 
 private:
+	Handle LoadMesh(std::string modelPath);
+
 	ID3D11Device* device;
-	std::map<std::string, Handle> handles;
 };

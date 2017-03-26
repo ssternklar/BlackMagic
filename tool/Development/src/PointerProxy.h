@@ -10,7 +10,8 @@ struct proxy_ctr
 		proxy_ptr(proxy_ctr<T>* c):ctr(c) {}
 		T* ptr() { return ctr ? ctr->ptr : nullptr; }
 		T* operator->() { return ctr ? ctr->ptr : nullptr; }
-		T& operator *() { return *(ctr ? ctr->ptr : nullptr); } // are additional operators actually a bad idea?
+		T& operator *() { return *(ctr ? ctr->ptr : nullptr); }
+		bool operator==(proxy_ptr& other) { return ctr == other.ctr; }
 	private:
 		proxy_ctr<T>* ctr = nullptr;
 	};
