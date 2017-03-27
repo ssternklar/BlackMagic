@@ -28,15 +28,6 @@ MeshData::~MeshData()
 void MeshData::Init(ID3D11Device* device)
 {
 	this->device = device;
-	// TODO move default loading to asset manager
-	Handle h = LoadMesh("assets/defaults/teapot.obj");
-	AssetManager::Instance().SetDefault<MeshData>(h);
-	Asset<MeshData> asset = {
-		h,
-		"assets/defaults/teapot.obj",
-		"default"
-	};
-	AssetManager::Instance().TrackAsset<MeshData>(asset);
 }
 
 MeshData::Handle MeshData::Get(std::string modelPath)
@@ -52,10 +43,18 @@ MeshData::Handle MeshData::Get(std::string modelPath)
 	if (!h.ptr())
 		return h;
 
-	// TODO parse the name out
-	AssetManager::Instance().TrackAsset<MeshData>({ h, fullPath, fullPath });
+	AssetManager::Instance().TrackAsset<MeshData>(h, fullPath);
 
 	return h;
+}
+
+MeshData::Handle MeshData::GetDirect(std::string modelPath)
+{
+	Handle h = AssetManager::Instance().GetHandle<MeshData>(modelPath);
+	if (h.ptr())
+		return h;
+
+	return LoadMesh(modelPath);
 }
 
 MeshData::Handle MeshData::LoadMesh(std::string modelPath)

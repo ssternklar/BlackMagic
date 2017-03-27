@@ -17,6 +17,7 @@ public:
 
 	HRESULT Init(HINSTANCE hInstance);
 	void Resize(unsigned int width, unsigned int height);
+	void Clear();
 	void Draw(Camera* camera, float deltaTime);
 	void Present();
 
@@ -26,6 +27,8 @@ public:
 	D3D_FEATURE_LEVEL GetFeatureLevel();
 	unsigned int GetWidth();
 	unsigned int GetHeight();
+
+	DirectX::XMFLOAT4 color;
 
 private:
 	HRESULT InitWindow(HINSTANCE hInstance);

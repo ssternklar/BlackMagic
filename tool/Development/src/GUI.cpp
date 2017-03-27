@@ -16,10 +16,26 @@ bool MeshNames(void* data, int idx, const char** out_text)
 	return true;
 }
 
+void Tool::helloGUI()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	
+	ImGui::OpenPopup("Create or Load a Project");
+
+	if (ImGui::BeginPopupModal("Create or Load a Project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (ImGui::Button("New Project", ImVec2(120, 0)))
+			printf("new project\n");
+		ImGui::SameLine();
+		if (ImGui::Button("Load Project", ImVec2(120, 0)))
+			AssetManager::Instance().LoadProject("");
+
+		ImGui::EndPopup();
+	}
+}
+
 void Tool::InvokeGUI()
 {
-	ImGui::ShowTestWindow(NULL);
-
 	ImGuiIO& io = ImGui::GetIO();
 
 	// menu bar
@@ -58,7 +74,6 @@ void Tool::InvokeGUI()
 
 		if (selectedEntity.ptr())
 		{
-			// TODO fix this
 			ImGui::DragFloat3("Position", &selectedEntity->transform->pos.x, 0.005f);
 			ImGui::Combo("Mesh", &gui.meshIndex, MeshNames, NULL, AssetManager::Instance().GetAssetCount<MeshData>());
 			selectedEntity->mesh = AssetManager::Instance().GetAsset<MeshData>(gui.meshIndex).handle;

@@ -46,6 +46,8 @@ HRESULT Graphics::Init(HINSTANCE hInstance)
 	
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	color = { 0.4f, 0.6f, 0.75f, 0.0f };
+
 	return hr;
 }
 
@@ -243,10 +245,15 @@ void Graphics::Resize(unsigned int width, unsigned int height)
 	context->RSSetViewports(1, &viewport);
 }
 
+void Graphics::Clear()
+{
+	context->ClearRenderTargetView(backBufferRTV, &color.x);
+	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+}
+
 void Graphics::Draw(Camera* camera, float deltaTime)
 {
-	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
-	context->ClearRenderTargetView(backBufferRTV, color);
+	context->ClearRenderTargetView(backBufferRTV, &color.x);
 	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	
 	UINT stride = sizeof(Vertex);

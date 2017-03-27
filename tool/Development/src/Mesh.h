@@ -39,6 +39,7 @@ public:
 	void Init(ID3D11Device* device);
 
 	Handle Get(std::string modelPath);
+	Handle GetDirect(std::string modelPath);
 	void Revoke(Handle handle);
 
 	const std::string root = "assets/models/";

@@ -19,26 +19,26 @@
     <Filter Include="Source Files\dear imgui">
       <UniqueIdentifier>{511b6194-8ad2-45ec-9aab-401a12adaa10}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\systems">
+      <UniqueIdentifier>{be0cad34-870e-4d66-ae7d-f8dbf9fa8dcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\data">
+      <UniqueIdentifier>{59489590-5962-4a9f-8125-9e7f56ba6059}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\systems">
+      <UniqueIdentifier>{19dbcffa-1fdf-414c-a69c-9e9c09ed51ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\data">
+      <UniqueIdentifier>{87e36b5f-db0e-42dc-8713-00288924b41e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\util">
+      <UniqueIdentifier>{0fe599ca-4a22-463e-b4b7-acc3d8cff532}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{c8efee94-adda-43f6-88be-c53c395aeee2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SimpleShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Tool.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\dear imgui\imgui.cpp">
       <Filter>Source Files\dear imgui</Filter>
     </ClCompile>
@@ -51,38 +51,50 @@
     <ClCompile Include="src\dear imgui\imgui_impl_dx11.cpp">
       <Filter>Source Files\dear imgui</Filter>
     </ClCompile>
-    <ClCompile Include="src\Transform.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>Source Files\systems</Filter>
     </ClCompile>
-    <ClCompile Include="src\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Entity.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Shaders.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Graphics.cpp">
+      <Filter>Source Files\systems</Filter>
     </ClCompile>
     <ClCompile Include="src\GUI.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input.cpp">
+      <Filter>Source Files\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Source Files\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Tool.cpp">
+      <Filter>Source Files\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assets.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Entity.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Shaders.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Transform.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SimpleShader.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileUtil.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringManip.cpp">
+      <Filter>Source Files\util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\SimpleShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Tool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\dear imgui\imconfig.h">
       <Filter>Header Files\dear imgui</Filter>
     </ClInclude>
@@ -104,26 +116,47 @@
     <ClInclude Include="src\dear imgui\imgui_impl_dx11.h">
       <Filter>Header Files\dear imgui</Filter>
     </ClInclude>
-    <ClInclude Include="src\PointerProxy.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Input.h">
+      <Filter>Header Files\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Tool.h">
+      <Filter>Header Files\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics.h">
+      <Filter>Header Files\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.h">
+      <Filter>Header Files\systems</Filter>
     </ClInclude>
     <ClInclude Include="src\Transform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Entity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Shaders.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Patterns.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\data</Filter>
     </ClInclude>
     <ClInclude Include="src\Assets.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Entity.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Shaders.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Patterns.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PointerProxy.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SimpleShader.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileUtil.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StringManip.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

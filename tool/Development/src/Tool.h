@@ -34,6 +34,7 @@ private:
 	EntityData::Handle selectedEntity;
 
 	// dear ImGui
+	void helloGUI();
 	void InvokeGUI();
 	void PromptImport();
 	struct guiData

@@ -5,6 +5,7 @@
 
 #include "Patterns.h"
 #include "Mesh.h"
+#include "StringManip.h"
 
 template<class T>
 struct Asset
@@ -34,6 +35,8 @@ struct DefaultAssets :
 class AssetManager : public Singleton<AssetManager>
 {
 public:
+	AssetManager();
+
 	template<class T>
 	void SetDefault(typename T::Handle handle); // make private once loading is in, or remove
 
@@ -49,17 +52,19 @@ public:
 	typename T::Handle GetHandle(std::string path);
 
 	template<class T>
-	void TrackAsset(Asset<T> asset);
+	void TrackAsset(typename T::Handle handle, std::string fullPath);
 	template<class T>
 	void StopTrackingAsset(typename T::Handle handle);
 
-	//void CreateProject(std::string folder); // given an empty folder, populates it
-	//void LoadProject(std::string folder); // loads all assets in the manifest save file (auto-called after CreateProject)
+	bool IsReady();
+	void CreateProject(std::string folder);
+	void LoadProject(std::string folder);
 
 	DefaultAssets defaults;
 
 private:
 	AssetTrackers trackers;
+	bool ready;
 };
 
 template<class T>
@@ -110,10 +115,16 @@ typename T::Handle AssetManager::GetHandle(std::string path)
 }
 
 template<class T>
-void AssetManager::TrackAsset(Asset<T> asset)
+void AssetManager::TrackAsset(typename T::Handle handle, std::string fullPath)
 {
 	Tracker<T> &tracker = trackers;
-	tracker.paths[asset.path] = tracker.assets.size();
+	tracker.paths[fullPath] = tracker.assets.size();
+
+	Asset<T> asset;
+	asset.handle = handle;
+	asset.path = fullPath;
+	asset.name = StringManip::FileName(fullPath); // manage better later?
+
 	tracker.assets.push_back(asset);
 }
 

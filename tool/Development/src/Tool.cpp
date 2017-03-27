@@ -65,20 +65,29 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 				Quit();
 
 			ImGui_ImplDX11_NewFrame();
-
-			float delta = ImGui::GetIO().DeltaTime;
-			InvokeGUI();
-
-			ImGuiIO& io = ImGui::GetIO();
-			if (!io.WantCaptureKeyboard && !io.WantCaptureMouse && !io.WantTextInput)
+			
+			if (AssetManager::Instance().IsReady())
 			{
-				camera->Update(delta);
-				if (io.MouseClicked[0])
-					ScanEntities(io.MousePos.x, io.MousePos.y);
+				float delta = ImGui::GetIO().DeltaTime;
+				InvokeGUI();
+
+				ImGuiIO& io = ImGui::GetIO();
+				if (!io.WantCaptureKeyboard && !io.WantCaptureMouse && !io.WantTextInput)
+				{
+					camera->Update(delta);
+					if (io.MouseClicked[0])
+						ScanEntities(io.MousePos.x, io.MousePos.y);
+				}
+
+				TransformData::Instance().UpdateTransforms();
+				graphics->Draw(camera, delta);
+			}
+			else
+			{
+				graphics->Clear();
+				helloGUI();
 			}
 
-			TransformData::Instance().UpdateTransforms();
-			graphics->Draw(camera, delta);
 			ImGui::Render();
 			Input::UpdateControlStates();
 			graphics->Present();
