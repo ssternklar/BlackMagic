@@ -84,4 +84,23 @@ namespace StringManip
 		size_t start = path.rfind('/');
 		return path.substr(start + 1, path.rfind('.') - start - 1);
 	}
+
+	string FilePath(string path)
+	{
+		char slash = '/';
+		if (path.find('\\'))
+			slash = '\\';
+
+		size_t index = path.rfind(slash);
+		size_t index2;
+		path = path.substr(0, index + 1);
+
+		while ((index = path.find("..")) != -1)
+		{
+			index2 = path.rfind(slash, index - 2); // will break on '/' potentially
+			path = path.erase(index2, index - index2 + 2);
+		}
+
+		return path;
+	}
 }

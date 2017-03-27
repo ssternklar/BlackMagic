@@ -10,4 +10,6 @@ namespace FileUtil
 	int CopyBytes(FILE* fromFile, FILE* toFile, size_t count);
 	bool DoesfileExist(string path);
 	void CreateDirectoryRecursive(string filePath);
+	string BrowseFolder();
+	string getexepath();
 }

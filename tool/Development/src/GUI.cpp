@@ -5,9 +5,9 @@
 
 #include "Input.h"
 #include "Assets.h"
+#include "FileUtil.h"
 
 // TODO make this generic, somehow
-
 bool MeshNames(void* data, int idx, const char** out_text)
 {
 	if (idx < 0 || idx >= (int)AssetManager::Instance().GetAssetCount<MeshData>())
@@ -25,10 +25,24 @@ void Tool::helloGUI()
 	if (ImGui::BeginPopupModal("Create or Load a Project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		if (ImGui::Button("New Project", ImVec2(120, 0)))
-			printf("new project\n");
+		{
+			string folder = FileUtil::BrowseFolder();
+			if (folder.length() != 0)
+			{
+				AssetManager::Instance().CreateProject(folder);
+				ImGui::CloseCurrentPopup();
+			}
+		}
 		ImGui::SameLine();
 		if (ImGui::Button("Load Project", ImVec2(120, 0)))
-			AssetManager::Instance().LoadProject("");
+		{
+			string folder = FileUtil::BrowseFolder();
+			if (folder.length() != 0)
+			{
+				AssetManager::Instance().LoadProject(folder);
+				ImGui::CloseCurrentPopup();
+			}
+		}
 
 		ImGui::EndPopup();
 	}

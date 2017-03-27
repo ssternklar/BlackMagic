@@ -14,4 +14,5 @@ namespace StringManip
 	string ReplaceAll(string& source, const string& from, const string& to);
 	string FileExtension(string path);
 	string FileName(string path);
+	string FilePath(string path);
 }

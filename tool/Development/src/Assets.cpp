@@ -20,14 +20,16 @@ void AssetManager::CreateProject(std::string folder)
 void AssetManager::LoadProject(std::string folder)
 {
 	// read manifest
-	// load files
-	// set defaults
 
-	// path will be taken from manifest file
+	// set defaults
 	MeshData::Handle h = MeshData::Instance().GetDirect("assets/defaults/teapot.obj");
 	SetDefault<MeshData>(h);
 	TrackAsset<MeshData>(h, "assets/defaults/teapot.obj");
 	GetAsset<MeshData>(0).name = "default";
+
+	// load remaining files
+
+	// scenes?...
 
 	ready = true;
 }

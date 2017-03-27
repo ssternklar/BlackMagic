@@ -5,6 +5,9 @@
 #include <Windows.h>
 //#include <fstream>
 #include <Shlwapi.h>
+#include <shlobj.h>
+//#include <iostream>
+//#include <sstream>
 
 namespace FileUtil
 {
@@ -156,5 +159,67 @@ namespace FileUtil
 			CreateDirectoryRecursive(filePath);
 			CreateDirectoryA(filePath.c_str(), NULL);
 		}
+	}
+
+	// http://stackoverflow.com/questions/12034943/win32-select-directory-dialog-from-c-c
+
+	static int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
+	{
+
+		if (uMsg == BFFM_INITIALIZED)
+		{
+			string tmp = (const char *)lpData;
+			SendMessage(hwnd, BFFM_SETSELECTION, TRUE, lpData);
+		}
+
+		return 0;
+	}
+
+	string BrowseFolder()
+	{
+		static string saved_path = "";
+
+		if (saved_path.length() == 0)
+			saved_path = getexepath();
+
+		TCHAR path[MAX_PATH];
+
+		const char * path_param = saved_path.c_str();
+
+		BROWSEINFO bi = { 0 };
+		bi.lpszTitle = ("Browse for folder...");
+		bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+		bi.lpfn = BrowseCallbackProc;
+		bi.lParam = (LPARAM)path_param;
+
+		LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
+
+		if (pidl != 0)
+		{
+			//get the name of the folder and put it in path
+			SHGetPathFromIDList(pidl, path);
+
+			//free memory used
+			IMalloc * imalloc = 0;
+			if (SUCCEEDED(SHGetMalloc(&imalloc)))
+			{
+				imalloc->Free(pidl);
+				imalloc->Release();
+			}
+
+			saved_path = path;
+			return StringManip::ReplaceAll(saved_path,"\\", "/");
+		}
+
+		return "";
+	}
+
+	// http://stackoverflow.com/questions/143174/how-do-i-get-the-directory-that-a-program-is-running-from
+
+	string getexepath()
+	{
+		char result[MAX_PATH];
+		string path = string(result, GetModuleFileName(NULL, result, MAX_PATH));
+		return StringManip::FilePath(path);
 	}
 }
