@@ -621,18 +621,18 @@ void DX11Renderer::RenderSkybox(const Camera& cam)
 	_context->RSSetState(lastRasterState);
 }
 
-GraphicsTexture DX11Renderer::CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type)
+GraphicsTexture DX11Renderer::CreateTexture(BlackMagic::byte* memory, size_t memorySize, GraphicsTexture::TextureType type)
 {
 	ID3D11ShaderResourceView* srv = nullptr;
 	HRESULT result;
 	switch(type)
 	{
 		case GraphicsTexture::TextureType::FLAT:
-			result = DirectX::CreateWICTextureFromFile(_device.Get(), texturePath, nullptr, &srv);
+			result = DirectX::CreateWICTextureFromMemory(_device.Get(), memory, memorySize, nullptr, &srv);
 			break;
 	
 		case GraphicsTexture::TextureType::CUBEMAP:
-			result = DirectX::CreateDDSTextureFromFile(_device.Get(), _context.Get(), texturePath, nullptr, &srv);
+			result = DirectX::CreateDDSTextureFromMemory(_device.Get(), _context.Get(), memory, memorySize, nullptr, &srv);
 			break;
 	}
 	

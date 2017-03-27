@@ -33,7 +33,7 @@ bool PlatformBase::BlackMagicInit()
 
 	contentManager = new (contentManager) ContentManager(
 		renderer,
-		L"./assets/",
+		(const char*)L"./assets/",
 		contentAllocator
 	);
 	

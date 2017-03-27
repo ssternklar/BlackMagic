@@ -10,7 +10,7 @@ namespace BlackMagic
 	{
 	public:
 		Mesh();
-		Mesh(const std::wstring& file, Renderer* device);
+		Mesh(byte* vertexData, int vertexCount, byte* indexData, int indexCount, Renderer* device);
 		~Mesh();
 
 		GraphicsBuffer VertexBuffer() const;

@@ -30,7 +30,7 @@ namespace BlackMagic {
 		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) override;
 		virtual void RenderSkybox(const Camera& cam) override;
 		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
-		virtual GraphicsTexture CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type) override;
+		virtual GraphicsTexture CreateTexture(byte* memory, size_t memorySize, GraphicsTexture::TextureType type) override;
 		virtual void ReleaseTexture(GraphicsTexture texture) override;
 		virtual void ReleaseRenderTarget(GraphicsRenderTarget renderTarget) override;
 	private:

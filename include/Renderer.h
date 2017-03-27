@@ -24,7 +24,7 @@ namespace BlackMagic
 		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) = 0;
 		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) = 0;
 		virtual void RenderSkybox(const Camera& cam) = 0;
-		virtual GraphicsTexture CreateTexture(const wchar_t* texturePath, GraphicsTexture::TextureType type) = 0;
+		virtual GraphicsTexture CreateTexture(byte* memory, size_t memorySize, GraphicsTexture::TextureType type) = 0;
 		virtual void ReleaseTexture(GraphicsTexture texture) = 0;
 		virtual void ReleaseRenderTarget(GraphicsRenderTarget renderTarget) = 0;
 		/*virtual GraphicsShader CreateShader(GraphicsShader::ShaderType shaderType, const char* shaderPath);

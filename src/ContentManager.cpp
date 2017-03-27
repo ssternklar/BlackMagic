@@ -5,6 +5,8 @@
 #include <fstream>
 #include <functional>
 
+#include "PlatformBase.h"
+#include "GraphicsTypes.h"
 #include "Texture.h"
 #include "Mesh.h"
 #include "DX11Renderer.h"
@@ -12,50 +14,135 @@
 
 using namespace BlackMagic;
 
-#if defined(_WIN32) || defined(_WIN64)
-using namespace DirectX;
-
-ContentManager::ContentManager(Renderer* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
-	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator))), renderer(device)
+ContentManager::ContentManager(Renderer* device, const char* assetDirectory, BlackMagic::BestFitAllocator* allocator)
 {
+	renderer = device;
+	directory = assetDirectory;
+	_allocator = allocator;
 }
 
 ContentManager::~ContentManager()
 {
-	_resources.clear();
+}
+
+
+template<typename T>
+T* ContentManager::load_Internal(ManifestEntry* manifest)
+{
+	static_assert(false,
+		"Invalid or unsupported content type provided. Supported types are:\n"
+		"Mesh\n"
+		"Texture\n"
+		"VertexShader\n"
+		"PixelShader\n"
+		"Spline\n"
+		);
+}
+
+template<typename T>
+T ContentManager::loadHandle_Internal(ManifestEntry* manifest)
+{
+	static_assert(false,
+		"Invalid or unsupported content type provided. Supported types are:\n"
+		"GraphicsShader\n"
+		);
+}
+
+#define LOAD_FILE(X) \
+char path[256]; \
+memset(path, 0, 256); \
+strcpy_s(path, directory); \
+strcat_s(path, manifest->resourceName); \
+byte* ##X = (byte*)_allocator->allocate(manifest->size); \
+if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, manifest->size)) \
+{ \
+	throw "Failed to load file into memory"; \
+} \
+(void)(sizeof(0))
+
+#define UNLOAD_FILE(X) _allocator->deallocate(##X); \
+(void)(sizeof(0))
+
+struct MeshHeader
+{
+	int offsetToVertexData;
+	int vertexDataCount;
+	int offsetToIndexData;
+	int indexDataCount;
+};
+
+template<>
+Mesh* ContentManager::load_Internal(ManifestEntry* manifest)
+{
+	LOAD_FILE(meshSpace);
+	MeshHeader* header = (MeshHeader*)meshSpace;
+	Mesh* ret = AllocateAndConstruct<BestFitAllocator, Mesh>(_allocator, 1, &meshSpace[header->offsetToVertexData], header->vertexDataCount, &meshSpace[header->offsetToIndexData], header->indexDataCount, renderer);
+	UNLOAD_FILE(meshSpace);
+	return ret;
+	
 }
 
 template<>
-std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
+Texture* ContentManager::load_Internal(ManifestEntry* manifest)
 {
-	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::allocate_shared<Mesh>(ContentAllocatorAdapter(_allocator), fullPath, renderer);
-	_resources[name] = ptr;
+	LOAD_FILE(textureSpace);
+	GraphicsTexture tex = renderer->CreateTexture(textureSpace, manifest->size, GraphicsTexture::TextureType::FLAT);
+	Texture* ret = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, renderer, tex, nullptr);
+	UNLOAD_FILE(textureSpace);
+}
+
+template<>
+Cubemap* ContentManager::load_Internal(ManifestEntry* manifest)
+{
+	LOAD_FILE(textureSpace);
+	GraphicsTexture tex = renderer->CreateTexture(textureSpace, manifest->size, GraphicsTexture::TextureType::CUBEMAP);
+	Texture* ret = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, renderer, tex, nullptr);
+	UNLOAD_FILE(textureSpace);
+}
+
+/*template<>
+GraphicsShader ContentManager::loadHandle_Internal(ManifestEntry* manifest)
+{
+	LOAD_FILE(shaderSpace);
+	UNLOAD_FILE(shaderSpace);
+}*/
+
+#if defined(_WIN32) || defined(_WIN64)
+using namespace DirectX;
+
+template<>
+VertexShader* ContentManager::load_Internal(ManifestEntry* manifest)
+{
+	char path[256];
+	memset(path, 0, 256);
+	strcpy_s(path, directory);
+	strcat_s(path, manifest->resourceName);
+	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
+	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
+	auto ptr = AllocateAndConstruct<BestFitAllocator, VertexShader>(_allocator, 1, device.Get(), context.Get());
+	ptr->LoadShaderFile((LPCWSTR)path);
+	manifest->resource = ptr;
 	return ptr;
 }
 
 template<>
-std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
+PixelShader* ContentManager::load_Internal(ManifestEntry* manifest)
 {
-	auto fullPath = _assetDirectory + L"/" + name;
-	GraphicsTexture tex = renderer->CreateTexture(fullPath.c_str(), GraphicsTexture::TextureType::FLAT);
-	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator), renderer, tex, GraphicsRenderTarget(nullptr));
-	_resources[name] = ptr;
+	char path[256];
+	memset(path, 0, 256);
+	strcpy_s(path, directory);
+	strcat_s(path, manifest->resourceName);
+	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
+	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
+	auto ptr = AllocateAndConstruct<BestFitAllocator, PixelShader>(_allocator, 1, device.Get(), context.Get());
+	ptr->LoadShaderFile((LPCWSTR)path);
+	manifest->resource = ptr;
 	return ptr;
 }
 
+/*
 template<>
-std::shared_ptr<Cubemap> ContentManager::load_Internal(const std::wstring& name)
-{
-	auto fullPath = _assetDirectory + L"/" + name;
-	auto tex = renderer->CreateTexture(fullPath.c_str(), GraphicsTexture::TextureType::CUBEMAP);
-	auto ptr = std::allocate_shared<Cubemap>(AllocatorSTLAdapter<Cubemap, BestFitAllocator>(_allocator), renderer, tex, GraphicsRenderTarget(nullptr));;
-	_resources[name] = ptr;
-	return ptr;
-}
-
-template<>
-std::shared_ptr<VertexShader> ContentManager::load_Internal(const std::wstring& name)
+std::shared_ptr<VertexShader> ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
@@ -117,11 +204,11 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 
 	//_resources[name] = ret;
 	return ret;
-}
-*/
+}*/
+
 
 #endif
-
+/*
 template<typename T>
 std::shared_ptr<T> ContentManager::load_Internal(const std::wstring& name)
 {
@@ -133,4 +220,4 @@ std::shared_ptr<T> ContentManager::load_Internal(const std::wstring& name)
 		"PixelShader\n"
 		"Spline\n"
 		);
-}
+}*/
