@@ -76,6 +76,7 @@ void DX11Renderer::Clear(XMFLOAT4 color)
 	_context->ClearRenderTargetView(_roughnessMap->GetRenderTarget(), black);
 	_context->ClearRenderTargetView(_normalMap->GetRenderTarget(), black);
 	_context->ClearRenderTargetView(_positionMap->GetRenderTarget(), black);
+	_context->ClearRenderTargetView(_metalMap->GetRenderTarget(), black);
 	_context->ClearRenderTargetView(_lightMap->GetRenderTarget(), black);
 	_context->ClearDepthStencilView(_depthStencil.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -589,7 +590,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetShaderResourceView("roughnessMap", _roughnessMap->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("positionMap", _positionMap->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("normalMap", _normalMap->GetShaderResource());
-	_lightPassPS->SetShaderResourceView("metalMap", _metalMap->GetShaderResource());
+	_lightPassPS->SetShaderResourceView("metalnessMap", _metalMap->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("cavityMap", _cavityMap->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("shadowMap", _shadowMapSRV.Get());
 	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture.Get());

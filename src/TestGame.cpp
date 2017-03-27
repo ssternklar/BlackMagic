@@ -49,35 +49,91 @@ void TestGame::LoadContent()
 	auto gPassVS = content->Load<VertexShader>(L"/shaders/GBufferVS.cso");
 	auto gPassPS = content->Load<PixelShader>(L"/shaders/GBufferPS.cso");
 	auto sphereTex = content->Load<Texture>(L"/textures/test_texture.png");
-	auto sphereNormals = content->Load<Texture>(L"/textures/test_normals.png");
-
-	unsigned int roughness = 127;
-	TextureDesc desc = { 0 };
-	desc.Width = 1;
-	desc.Height = 1;
-	desc.InitialData = &roughness;
-	desc.Format = Texture::Format::R8_UNORM;
-	desc.GPUUsage = Texture::Usage::READ;
-	desc.Type = Texture::FLAT_2D;
-	
-	auto rTex = platform->GetRenderer()->CreateTexture(desc);
-	auto roughnessTex = std::make_shared<Texture>(rTex);
+	auto sphereNormals = content->Load<Texture>(L"/textures/blank_normals.png");
 
 	auto sampler = platform->GetRenderer()->CreateSampler();
 	auto mat = Material(
 		allocator,
 		gPassVS, gPassPS
 	);
-	mat.SetResource("albedoMap", Material::ResourceStage::PS, sphereTex, Material::ResourceStorageType::Static);
+
 	mat.SetResource("normalMap", Material::ResourceStage::PS, sphereNormals, Material::ResourceStorageType::Static);
 	mat.SetResource("mainSampler", Material::ResourceStage::PS, sampler, Material::ResourceStorageType::Static);
-
+	
 	for(float y = 0; y < 11; y++)
 	{
+		unsigned int metalness = 255;
+		XMFLOAT4 albedo = { 0, 0, 0, 1.0f };
+		TextureDesc desc;
+		desc = { 0 };
+
+		switch (static_cast<unsigned int>(y))
+		{
+			case 0:
+				albedo = { 0.56f, 0.57f, 0.58f, 1.0f };
+				break;
+			case 1:
+				albedo = { 0.972f, 0.960f, 0.915f, 1.0f };
+				break;
+			case 2:
+				albedo = { 0.913f, 0.921f, 0.925f, 1.0f };
+				break;
+			case 3:
+				albedo = { 1.000f, 0.766f, 0.336f, 1.0f };
+				break;
+			case 4:
+				albedo = { 0.955f, 0.637f, 0.538f, 1.0f };
+				break;
+			case 5:
+				albedo = { 0.550f, 0.556f, 0.554f, 1.0f };
+				break;
+			case 6:
+				albedo = { 0.660f, 0.609f, 0.526f, 1.0f };
+				break;
+			case 7:
+				albedo = { 0.542f, 0.497f, 0.449f, 1.0f };
+				break;
+			case 8:
+				albedo = { 0.662f, 0.655f, 0.634f, 1.0f };
+				break;
+			case 9:
+				albedo = { 0.672f, 0.637f, 0.585f, 1.0f };
+				break;
+			case 10:
+				albedo = { 0.02f, 0.02f, 0.02f, 1.0f };
+				metalness = 0;
+				break;
+			case 11:
+				albedo = { 0.81f, 0.81f, 0.81f, 1.0f };
+				metalness = 0;
+				break;
+		}
+
+		desc.Format = Texture::Format::R8G8B8A8_UNORM;
+		desc.Width = 1;
+		desc.Height = 1;
+		desc.GPUUsage = Texture::Usage::READ;
+		desc.InitialData = &albedo;
+		desc.Type = Texture::Type::FLAT_2D;
+		auto albedoTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));
+
+		desc.Format = Texture::Format::R8_UNORM;
+		desc.InitialData = &metalness;
+		auto metalnessTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));
+
+		auto rowMaterial = mat;
+		rowMaterial.SetResource("albedoMap", Material::ResourceStage::PS, albedoTex, Material::ResourceStorageType::Static);
+		rowMaterial.SetResource("metalnessMap", Material::ResourceStage::PS, metalnessTex, Material::ResourceStorageType::Static);
+
 		for (float x = 0; x < 11; x++)
 		{
+			unsigned int roughness = (x / 10.0f) * 255;
+			desc.InitialData = &roughness;
+			desc.Format = Texture::Format::R8_UNORM;
+			auto roughnessTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));
+
 			auto mem = allocator.allocate<Entity>();
-			auto matInstance = mat;
+			auto matInstance = rowMaterial;
 			matInstance.SetResource("roughnessMap", Material::ResourceStage::PS, roughnessTex, Material::ResourceStorageType::Instance);
 			_objects.push_back(new (mem) Entity(XMFLOAT3{ x, y, 0 }, XMFLOAT4{ 0, 0, 0, 1 }, sphere, matInstance));
 		}
