@@ -158,7 +158,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
     <ClInclude Include="src\Assets.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\dear imgui\imconfig.h" />

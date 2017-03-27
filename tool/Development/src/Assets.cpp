@@ -35,8 +35,8 @@ bool AssetManager::CreateProject(std::string folder)
 	fwrite(defaultMeshPath, strlen(defaultMeshPath) + 1, 1, projFile);
 
 	fclose(projFile);
-
-	FileUtil::WriteResourceToDisk("default assets/defaultMesh.obj", "mesh", "assets/defaults/defaultMesh.obj");
+	// IDR_MESH1               mesh                    "default assets\\defaultMesh.obj"
+	FileUtil::WriteResourceToDisk("IDR_MESH1", "mesh", "assets/defaults/defaultMesh.obj");
 
 	// TODO uncomment once creating a project also writes asset files
 	// LoadProject(folder);
