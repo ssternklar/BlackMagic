@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
-#include "IResource.h"
+#include "Resource.h"
 
 // --------------------------------------------------------
 // Used by simple shaders to store information about
@@ -58,7 +58,7 @@ struct SimpleSampler
 // --------------------------------------------------------
 // Base abstract class for simplifying shader handling
 // --------------------------------------------------------
-class ISimpleShader : public BlackMagic::IResource
+class ISimpleShader : public BlackMagic::Resource
 {
 public:
 	ISimpleShader(ID3D11Device* device, ID3D11DeviceContext* context);

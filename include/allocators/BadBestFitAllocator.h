@@ -175,7 +175,7 @@ namespace BlackMagic
 			{
 				for (int i = 0; i < n; i++)
 				{
-					dealloc[i]->~T();
+					dealloc[i].~T();
 				}
 			}
 			deallocate((void*)dealloc, sizeof(T), n);

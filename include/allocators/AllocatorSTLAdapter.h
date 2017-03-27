@@ -27,7 +27,7 @@ namespace BlackMagic
 			return nullptr;
 		}
 
-		void deallocate(pointer p, std::size_t n)
+		void deallocate(pointer p, std::size_t n = 1)
 		{
 			if(allocator)
 				allocator->deallocate((void*)p, sizeof(T), n);

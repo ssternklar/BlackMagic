@@ -16,7 +16,8 @@ using namespace BlackMagic;
 using namespace DirectX;
 
 ContentManager::ContentManager(Renderer* device, const std::wstring& assetDirectory, BlackMagic::BestFitAllocator* allocator)
-	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator))), renderer(device)
+	: _assetDirectory(assetDirectory), _allocator(allocator), _resources(ContentMap(ContentAllocatorAdapter(allocator))), renderer(device),
+	_adapter(_allocator)
 {
 }
 
@@ -29,7 +30,7 @@ template<>
 std::shared_ptr<Mesh> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto ptr = std::allocate_shared<Mesh>(ContentAllocatorAdapter(_allocator), fullPath, renderer);
+	auto ptr = std::allocate_shared<Mesh>(AllocatorSTLAdapter<Mesh, BestFitAllocator>(_allocator), fullPath, renderer);
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -38,8 +39,8 @@ template<>
 std::shared_ptr<Texture> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	GraphicsTexture tex = renderer->CreateTexture(fullPath.c_str(), GraphicsTexture::TextureType::FLAT);
-	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator), renderer, tex, GraphicsRenderTarget(nullptr));
+	auto tex = renderer->CreateTexture(fullPath.c_str(), Texture::Type::FLAT_2D, Texture::Usage::READ);
+	auto ptr = std::allocate_shared<Texture>(AllocatorSTLAdapter<Texture, BestFitAllocator>(_allocator),  tex);
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -48,8 +49,8 @@ template<>
 std::shared_ptr<Cubemap> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto tex = renderer->CreateTexture(fullPath.c_str(), GraphicsTexture::TextureType::CUBEMAP);
-	auto ptr = std::allocate_shared<Cubemap>(AllocatorSTLAdapter<Cubemap, BestFitAllocator>(_allocator), renderer, tex, GraphicsRenderTarget(nullptr));;
+	auto tex = renderer->CreateTexture(fullPath.c_str(), Texture::Type::CUBEMAP, Texture::Usage::READ);
+	auto ptr = std::allocate_shared<Cubemap>(AllocatorSTLAdapter<Cubemap, BestFitAllocator>(_allocator), tex);
 	_resources[name] = ptr;
 	return ptr;
 }
@@ -58,11 +59,11 @@ template<>
 std::shared_ptr<VertexShader> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
-	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
+	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device().Get();
+	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context().Get();
 	auto ptr = std::allocate_shared<VertexShader>(ContentAllocatorAdapter(_allocator), 
-		device.Get(),
-		context.Get());
+		device,
+		context);
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
@@ -72,11 +73,11 @@ template<>
 std::shared_ptr<PixelShader> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto fullPath = _assetDirectory + L"/" + name;
-	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
-	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
+	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device().Get();
+	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context().Get();
 	auto ptr = std::allocate_shared<PixelShader>(ContentAllocatorAdapter(_allocator), 
-		device.Get(),
-		context.Get());
+		device,
+		context);
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;

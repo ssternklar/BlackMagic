@@ -3,25 +3,39 @@
 
 using namespace BlackMagic;
 
-Texture::Texture(Renderer* device, GraphicsTexture srView, GraphicsRenderTarget rtView)
+Texture::Texture(Renderer* renderer, ResourceHandle* tex, ShaderResource* srView, RenderTarget* rtView)
 	: _rtView(rtView),
 	_srView(srView),
-	IResource(device)
+	Resource(renderer, tex)
+{}
+
+Texture::Texture(const Texture& t)
 {
+	*this = t;
 }
 
 Texture::~Texture()
 {
-	device->ReleaseTexture(_srView);
-	device->ReleaseRenderTarget(_rtView);
+	_renderer->ReleaseResource(_srView);
+	_renderer->ReleaseResource(_rtView);
 }
 
-GraphicsTexture Texture::GetGraphicsTexture() const
+Texture& Texture::operator=(const Texture& t)
+{
+	Resource::operator=(t);	
+	_srView = t._srView;
+	_rtView = t._rtView;
+	_renderer->AddResourceRef(_srView);
+	_renderer->AddResourceRef(_rtView);
+	return *this;
+}
+
+ShaderResource* Texture::GetShaderResource() const
 {
 	return _srView;
 }
 
-GraphicsRenderTarget Texture::GetGraphicsRenderTarget() const
+RenderTarget* Texture::GetRenderTarget() const
 {
 	return _rtView;
 }

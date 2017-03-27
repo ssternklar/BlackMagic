@@ -1,6 +1,8 @@
 #pragma once
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
+#include <Windows.h>
+
 #include "Transform.h"
 
 #define CAM_FOV (0.4f*3.14f)
@@ -17,12 +19,12 @@ public:
 
 	DirectX::XMFLOAT3 Position() const;
 	DirectX::BoundingFrustum Frustum() const;
-	void Update(Transform* transform);
+	void Update(Transform& transform);
 
 	//Updates this camera's projection matrix to match a new window size
-	void UpdateProjectionMatrix(int width, int height);
+	void UpdateProjectionMatrix(UINT width, UINT height);
 
-private:
+protected:
 	DirectX::BoundingFrustum _frustum;
 	DirectX::XMFLOAT3 pos, offset;
 	DirectX::XMFLOAT4X4 _viewMat, _projMat;

@@ -20,7 +20,7 @@ namespace BlackMagic
 		void DeallocateTransform(TransformID);
 
 		void UpdateTransforms();
-		const DirectX::XMFLOAT4X4* GetMatrix(TransformID id);
+		DirectX::XMFLOAT4X4* GetMatrix(TransformID id);
 	private:
 		FixedBlockAllocator matrixAllocator;
 		DirectX::XMFLOAT4X4 _matrices[400];

@@ -3,6 +3,7 @@
 #define ZNEAR 0.1f
 #define ZFAR 100.0f
 #define SPLIT_SIZE ((ZFAR - ZNEAR)/NUM_SHADOW_CASCADES)
+#define GEN_SHADOW_MAPS 0
 
 struct DirectionalLight
 {
@@ -15,10 +16,12 @@ struct DirectionalLight
 
 struct GBuffer
 {
-	float4 diffuse;
-	float4 specular;
+	float4 albedo;
 	float3 position;
+	float roughness;
 	float3 normal;
+	float cavity;
+	float metal;
 };
 
 struct VertexToPixel
@@ -35,20 +38,22 @@ cbuffer perFrame : register(b0)
 	float3 cameraPosition;
 };
 
-Texture2D diffuseMap : register(t0);
-Texture2D specularMap : register(t1);
-Texture2D positionMap : register(t2);
+Texture2D albedoMap : register(t0);
+Texture2D positionMap : register(t1);
+Texture2D roughnessMap: register(t2);
 Texture2D normalMap : register(t3);
 Texture2DArray shadowMap : register(t4);
 Texture2D depth : register(t5);
+Texture2D metalMap : register(t6);
+Texture2D cavityMap : register(t7);
 SamplerState mainSampler : register(s0);
 SamplerComparisonState shadowSampler : register(s1);
 
 
 float3 colorFromScenelight(GBuffer input)
 {
-	float3 ambient, diffuse, specular;
-	ambient = diffuse = specular = float3(0, 0, 0);
+	float3 ambient, diffuse;
+	ambient = diffuse = float3(0, 0, 0);
 
 	float3 v = normalize(cameraPosition - input.position);
 	
@@ -56,14 +61,10 @@ float3 colorFromScenelight(GBuffer input)
 	float nDotL = saturate(dot(input.normal, l));
 	diffuse += nDotL * sceneLight.DiffuseColor.xyz;
 
-	float3 h = normalize(l + v);
-	float spec = pow(max(dot(input.normal, h), 0), 32);
-	specular += spec * input.specular.rgb;
-
 	ambient += sceneLight.AmbientColor.xyz;
 
-	float3 texColor = input.diffuse.rgb;
-	return pow((ambient + diffuse + specular) * texColor, 1 / 2.2);
+	float3 texColor = input.albedo.rgb;
+	return pow((ambient + diffuse)*texColor, 1 / 2.2);
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
@@ -71,7 +72,7 @@ float3 decompressNormal(float2 compressedNormal)
 {
 	float n = dot(compressedNormal, compressedNormal) / 4;
 	float s = sqrt(1 - n);
-	return float3(s * compressedNormal, n * 2 - 1);
+	return normalize(float3(s * compressedNormal, n * 2 - 1));
 }
 
 float linearizeDepth(float logDepth, float n, float f)
@@ -105,14 +106,14 @@ float sampleShadowMap(float3 pos, float cascade)
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	GBuffer buffer;
-	buffer.diffuse = diffuseMap.Sample(mainSampler, input.uv);
-	buffer.specular = specularMap.Sample(mainSampler, input.uv);
+	buffer.albedo = albedoMap.Sample(mainSampler, input.uv);
 	buffer.normal = decompressNormal(normalMap.Sample(mainSampler, input.uv).xy);
 	buffer.position = positionMap.Sample(mainSampler, input.uv);
 
 	float linearDepth = linearizeDepth((depth.Sample(mainSampler, input.uv).r), ZNEAR, ZFAR);
 	float depthID = floor(linearDepth * NUM_SHADOW_CASCADES);
 
+#if GEN_SHADOW_MAPS == 1
 	//Based on MJP's CSM blending implementation
 	float distToNextCascade = (ZNEAR + (depthID+1) * SPLIT_SIZE)/ZFAR-linearDepth;
 	float shadow = sampleShadowMap(buffer.position, depthID);
@@ -123,6 +124,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 		float t = smoothstep(0.0f, 0.1f, distToNextCascade);
 		shadow = lerp(nextShadow, shadow, t);
 	}
-	
-	return float4(shadow*colorFromScenelight(buffer) , 1.0f);
+#endif
+	return float4(colorFromScenelight(buffer) , 1.0f);
 }
