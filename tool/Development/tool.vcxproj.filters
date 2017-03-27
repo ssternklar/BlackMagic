@@ -171,6 +171,8 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Object Include="default assets\defaultMesh.obj" />
+    <None Include="default assets\defaultMesh.crap">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

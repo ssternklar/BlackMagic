@@ -185,7 +185,7 @@
     <ResourceCompile Include="tool.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Object Include="default assets\defaultMesh.obj" />
+    <None Include="default assets\defaultMesh.crap" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

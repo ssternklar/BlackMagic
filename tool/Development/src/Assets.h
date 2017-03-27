@@ -59,6 +59,7 @@ public:
 	bool IsReady();
 	bool CreateProject(std::string folder);
 	bool LoadProject(std::string folder);
+	void SaveProject();
 
 	DefaultAssets defaults;
 

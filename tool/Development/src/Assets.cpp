@@ -1,5 +1,6 @@
 #include "Assets.h"
 #include "FileUtil.h"
+#include "../resource.h"
 
 AssetManager::AssetManager()
 {
@@ -35,11 +36,10 @@ bool AssetManager::CreateProject(std::string folder)
 	fwrite(defaultMeshPath, strlen(defaultMeshPath) + 1, 1, projFile);
 
 	fclose(projFile);
-	// IDR_MESH1               mesh                    "default assets\\defaultMesh.obj"
-	FileUtil::WriteResourceToDisk("IDR_MESH1", "mesh", "assets/defaults/defaultMesh.obj");
+	
+	FileUtil::WriteResourceToDisk(IDR_MESH1, "mesh", "assets/defaults/defaultMesh.obj");
 
-	// TODO uncomment once creating a project also writes asset files
-	// LoadProject(folder);
+	LoadProject(folder);
 
 	return true;
 }
@@ -80,4 +80,7 @@ bool AssetManager::LoadProject(std::string folder)
 	return true;
 }
 
-// save project
+void AssetManager::SaveProject()
+{
+
+}

@@ -231,10 +231,10 @@ namespace FileUtil
 	// adapted from
 	// http://stackoverflow.com/questions/2933295/embed-text-file-in-a-resource-in-a-native-windows-application
 
-	bool WriteResourceToDisk(const char* resourceName, const char* resourceType, const char* filePath)
+	bool WriteResourceToDisk(const int resourceName, const char* resourceType, const char* filePath)
 	{
 		HMODULE handle = GetModuleHandle(NULL);
-		HRSRC rc = FindResource(handle, resourceName, resourceType);
+		HRSRC rc = FindResource(handle, MAKEINTRESOURCE(resourceName), resourceType);
 		HGLOBAL rcData = LoadResource(handle, rc);
 		size_t fileSize = SizeofResource(handle, rc);
 		const unsigned char* data = nullptr;
@@ -242,6 +242,17 @@ namespace FileUtil
 
 		if (!data)
 			return false;
+
+		FILE* resourceFile;
+		fopen_s(&resourceFile, filePath, "wb");
+		if (!resourceFile)
+		{
+			printf("failed to write resource '' to disk\n", filePath);
+			return false;
+		}
+
+		fwrite(data, fileSize, 1, resourceFile);
+		fclose(resourceFile);
 
 		return true;
 	}

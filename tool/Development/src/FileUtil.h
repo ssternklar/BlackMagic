@@ -13,5 +13,5 @@ namespace FileUtil
 	string BrowseFolder();
 	string getexepath();
 	bool IsFolderEmpty(string folder);
-	bool WriteResourceToDisk(const char* resourceName, const char* resourceType, const char* filePath);
+	bool WriteResourceToDisk(const int resourceName, const char* resourceType, const char* filePath);
 }
