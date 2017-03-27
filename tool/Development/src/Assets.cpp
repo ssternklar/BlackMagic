@@ -1,4 +1,5 @@
 #include "Assets.h"
+#include "FileUtil.h"
 
 AssetManager::AssetManager()
 {
@@ -10,26 +11,73 @@ bool AssetManager::IsReady()
 	return ready;
 }
 
-void AssetManager::CreateProject(std::string folder)
+bool AssetManager::CreateProject(std::string folder)
 {
-	// create folders
-	// write files
-	LoadProject(folder);
+	if (!FileUtil::IsFolderEmpty(folder))
+		return false;
+
+	SetCurrentDirectoryA(folder.c_str());
+
+	FileUtil::CreateDirectoryRecursive("assets/defaults/");
+	FileUtil::CreateDirectoryRecursive("assets/models/");
+	FileUtil::CreateDirectoryRecursive("assets/shaders/");
+	FileUtil::CreateDirectoryRecursive("assets/scenes/");
+
+	FILE* projFile;
+	fopen_s(&projFile, "churo.proj", "wb");
+	if (!projFile)
+	{
+		printf("failed to create project: could not create churo.proj\n");
+		return false;
+	}
+
+	const char* defaultMeshPath = "assets/defaults/defaultMesh.obj";
+	fwrite(defaultMeshPath, strlen(defaultMeshPath) + 1, 1, projFile);
+
+	fclose(projFile);
+
+	FileUtil::WriteResourceToDisk("default assets/defaultMesh.obj", "mesh", "assets/defaults/defaultMesh.obj");
+
+	// TODO uncomment once creating a project also writes asset files
+	// LoadProject(folder);
+
+	return true;
 }
 
-void AssetManager::LoadProject(std::string folder)
+bool AssetManager::LoadProject(std::string folder)
 {
-	// read manifest
+	if (FileUtil::IsFolderEmpty(folder))
+		return false;
 
-	// set defaults
-	MeshData::Handle h = MeshData::Instance().GetDirect("assets/defaults/teapot.obj");
+	// TODO
+	// if i add loading mid-usage of the tool, track which assets are not used and revoke them
+
+	SetCurrentDirectoryA(folder.c_str());
+
+	FILE* projFile;
+	fopen_s(&projFile, "churo.proj", "rb");
+	if (!projFile)
+	{
+		printf("failed to load project: could not open churo.proj\n");
+		return false;
+	}
+
+	string defaultMeshPath = FileUtil::GetStringInFile(projFile);
+
+	fclose(projFile);
+
+	MeshData::Handle h = MeshData::Instance().GetDirect(defaultMeshPath);
 	SetDefault<MeshData>(h);
-	TrackAsset<MeshData>(h, "assets/defaults/teapot.obj");
-	GetAsset<MeshData>(0).name = "default";
+	TrackAsset<MeshData>(h, defaultMeshPath);
+	GetAsset<MeshData>(0).name = "default"; // TODO won't work with mid-usage loading
 
-	// load remaining files
+	// load all files in
 
-	// scenes?...
+	// scene...stuff.....hotswappable scenes?
 
 	ready = true;
+
+	return true;
 }
+
+// save project

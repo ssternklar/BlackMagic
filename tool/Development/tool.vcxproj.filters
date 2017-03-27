@@ -158,5 +158,22 @@
     <ClInclude Include="src\StringManip.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="src\FileFormats.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="tool.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="default assets\defaultMesh.obj" />
   </ItemGroup>
 </Project>

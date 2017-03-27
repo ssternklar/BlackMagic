@@ -157,6 +157,8 @@
     <ClCompile Include="src\Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
     <ClInclude Include="src\Assets.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\dear imgui\imconfig.h" />
@@ -167,6 +169,7 @@
     <ClInclude Include="src\dear imgui\stb_textedit.h" />
     <ClInclude Include="src\dear imgui\stb_truetype.h" />
     <ClInclude Include="src\Entity.h" />
+    <ClInclude Include="src\FileFormats.h" />
     <ClInclude Include="src\FileUtil.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\Mesh.h" />
@@ -178,6 +181,12 @@
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="src\SimpleShader.h" />
     <ClInclude Include="src\Transform.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="tool.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="default assets\defaultMesh.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

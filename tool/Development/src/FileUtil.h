@@ -12,4 +12,6 @@ namespace FileUtil
 	void CreateDirectoryRecursive(string filePath);
 	string BrowseFolder();
 	string getexepath();
+	bool IsFolderEmpty(string folder);
+	bool WriteResourceToDisk(const char* resourceName, const char* resourceType, const char* filePath);
 }

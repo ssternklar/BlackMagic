@@ -57,8 +57,8 @@ public:
 	void StopTrackingAsset(typename T::Handle handle);
 
 	bool IsReady();
-	void CreateProject(std::string folder);
-	void LoadProject(std::string folder);
+	bool CreateProject(std::string folder);
+	bool LoadProject(std::string folder);
 
 	DefaultAssets defaults;
 

@@ -50,6 +50,7 @@ MeshData::Handle MeshData::Get(std::string modelPath)
 
 MeshData::Handle MeshData::GetDirect(std::string modelPath)
 {
+	// TODO determine if checking for an asset is needed, if not, make LoadMesh public
 	Handle h = AssetManager::Instance().GetHandle<MeshData>(modelPath);
 	if (h.ptr())
 		return h;

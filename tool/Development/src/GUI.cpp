@@ -24,24 +24,46 @@ void Tool::helloGUI()
 
 	if (ImGui::BeginPopupModal("Create or Load a Project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
+		static string folder;
+		static bool newButton;
 		if (ImGui::Button("New Project", ImVec2(120, 0)))
 		{
-			string folder = FileUtil::BrowseFolder();
+			folder = FileUtil::BrowseFolder();
 			if (folder.length() != 0)
-			{
-				AssetManager::Instance().CreateProject(folder);
-				ImGui::CloseCurrentPopup();
-			}
+				if (AssetManager::Instance().CreateProject(folder))
+				{
+					ImGui::CloseCurrentPopup();
+				}
+				else
+				{
+					newButton = true;
+					ImGui::OpenPopup("Invalid folder");
+				}
 		}
+
 		ImGui::SameLine();
 		if (ImGui::Button("Load Project", ImVec2(120, 0)))
 		{
-			string folder = FileUtil::BrowseFolder();
+			folder = FileUtil::BrowseFolder();
 			if (folder.length() != 0)
-			{
-				AssetManager::Instance().LoadProject(folder);
+				if (AssetManager::Instance().LoadProject(folder))
+				{
+					ImGui::CloseCurrentPopup();
+				}
+				else
+				{
+					newButton = false;
+					ImGui::OpenPopup("Invalid folder");
+				}
+		}
+
+		if (ImGui::BeginPopupModal("Invalid folder"))
+		{
+			ImGui::Text("The folder '%s' %s.", folder.c_str(), newButton ? "is not empty" : "does not contain a project");
+			if (ImGui::Button("OK", ImVec2(120, 0)))
 				ImGui::CloseCurrentPopup();
-			}
+
+			ImGui::EndPopup();
 		}
 
 		ImGui::EndPopup();

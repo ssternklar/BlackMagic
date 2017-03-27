@@ -222,4 +222,27 @@ namespace FileUtil
 		string path = string(result, GetModuleFileName(NULL, result, MAX_PATH));
 		return StringManip::FilePath(path);
 	}
+
+	bool IsFolderEmpty(string folder)
+	{
+		return PathIsDirectoryEmptyA(folder.c_str()) == TRUE;
+	}
+
+	// adapted from
+	// http://stackoverflow.com/questions/2933295/embed-text-file-in-a-resource-in-a-native-windows-application
+
+	bool WriteResourceToDisk(const char* resourceName, const char* resourceType, const char* filePath)
+	{
+		HMODULE handle = GetModuleHandle(NULL);
+		HRSRC rc = FindResource(handle, resourceName, resourceType);
+		HGLOBAL rcData = LoadResource(handle, rc);
+		size_t fileSize = SizeofResource(handle, rc);
+		const unsigned char* data = nullptr;
+		data = static_cast<const unsigned char*>(LockResource(rcData));
+
+		if (!data)
+			return false;
+
+		return true;
+	}
 }
