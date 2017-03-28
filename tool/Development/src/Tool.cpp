@@ -62,7 +62,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 		else
 		{
 			if (Input::WasControlPressed("Quit"))
-				Quit();
+				PostMessage(graphics->GetHandle(), WM_CLOSE, NULL, NULL);
 
 			ImGui_ImplDX11_NewFrame();
 			
@@ -280,8 +280,12 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 
 	case WM_CLOSE:
-		gui.exitTool = true;
-		return 0;
+		if (AssetManager::Instance().IsReady())
+		{
+			gui.exitTool = true;
+			return 0;
+		}
+		break;
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);

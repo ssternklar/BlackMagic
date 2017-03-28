@@ -7,15 +7,6 @@
 #include "Assets.h"
 #include "FileUtil.h"
 
-// TODO make this generic, somehow
-bool MeshNames(void* data, int idx, const char** out_text)
-{
-	if (idx < 0 || idx >= (int)AssetManager::Instance().GetAssetCount<MeshData>())
-		return false;
-	*out_text = AssetManager::Instance().GetAsset<MeshData>(idx).name.c_str();
-	return true;
-}
-
 void Tool::HelloGUI()
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -116,7 +107,7 @@ void Tool::InvokeGUI()
 		if (selectedEntity.ptr())
 		{
 			ImGui::DragFloat3("Position", &selectedEntity->transform->pos.x, 0.005f);
-			ImGui::Combo("Mesh", &gui.meshIndex, MeshNames, NULL, AssetManager::Instance().GetAssetCount<MeshData>());
+			ImGui::Combo("Mesh", &gui.meshIndex, ComboAssetNames<MeshData>, NULL, AssetManager::Instance().GetAssetCount<MeshData>());
 			selectedEntity->mesh = AssetManager::Instance().GetAsset<MeshData>(gui.meshIndex).handle;
 		}
 	}

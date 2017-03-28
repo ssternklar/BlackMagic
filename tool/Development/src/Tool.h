@@ -46,3 +46,11 @@ private:
 	}gui;
 };
 
+template<typename T>
+bool ComboAssetNames(void* data, int idx, const char** out_text)
+{
+	if (idx < 0 || idx >= (int)AssetManager::Instance().GetAssetCount<T>())
+		return false;
+	*out_text = AssetManager::Instance().GetAsset<T>(idx).name.c_str();
+	return true;
+}

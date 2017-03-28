@@ -21,7 +21,6 @@ bool AssetManager::CreateProject(std::string folder)
 
 	FileUtil::CreateDirectoryRecursive("assets/defaults/");
 	FileUtil::CreateDirectoryRecursive("assets/models/");
-	FileUtil::CreateDirectoryRecursive("assets/shaders/");
 	FileUtil::CreateDirectoryRecursive("assets/scenes/");
 
 	FILE* projFile;
@@ -82,8 +81,6 @@ bool AssetManager::LoadProject(std::string folder)
 	}
 
 	fclose(projFile);
-
-	// scene...stuff.....hotswappable scenes?
 
 	ready = true;
 
