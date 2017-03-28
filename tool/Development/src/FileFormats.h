@@ -10,11 +10,23 @@ namespace proj
 	struct meta
 	{
 		size_t numMeshes;
-		size_t* l_meshPathIndexes;
 	};
 
-	struct paths
+	struct asset
 	{
-		char* l_meshPaths;
+		char* path;
+		char* name;
+	};
+
+	struct assets
+	{
+		asset* l_meshes;
+	};
+
+	struct file
+	{
+		defaults defaultAssets;
+		meta metaData;
+		assets assetData;
 	};
 }

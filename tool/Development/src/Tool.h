@@ -34,13 +34,15 @@ private:
 	EntityData::Handle selectedEntity;
 
 	// dear ImGui
-	void helloGUI();
+	void HelloGUI();
+	void ExitToolGUI();
 	void InvokeGUI();
 	void PromptImport();
 	struct guiData
 	{
 		bool meshImporter = false;
 		int meshIndex = -1;
+		bool exitTool = false;
 	}gui;
 };
 

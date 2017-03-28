@@ -16,7 +16,7 @@ bool MeshNames(void* data, int idx, const char** out_text)
 	return true;
 }
 
-void Tool::helloGUI()
+void Tool::HelloGUI()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	
@@ -79,6 +79,11 @@ void Tool::InvokeGUI()
 	{
 		if (ImGui::BeginMenu("File"))
 		{
+			if (ImGui::MenuItem("Save"))
+			{
+				AssetManager::Instance().SaveProject();
+				printf("saved\n");
+			}
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("Import"))
@@ -115,6 +120,9 @@ void Tool::InvokeGUI()
 			selectedEntity->mesh = AssetManager::Instance().GetAsset<MeshData>(gui.meshIndex).handle;
 		}
 	}
+
+	ExitToolGUI();
+
 	ImGui::End();
 }
 
@@ -126,6 +134,7 @@ void Tool::PromptImport()
 		ImGui::OpenPopup("Import a new Mesh file");
 		gui.meshImporter = false;
 	}
+
 	if (ImGui::BeginPopupModal("Import a new Mesh file", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::Text("Please specify which model you would like to load.\n");
@@ -158,6 +167,38 @@ void Tool::PromptImport()
 		ImGui::SameLine();
 		if (ImGui::Button("Cancel", ImVec2(120, 0)))
 			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+	}
+}
+
+void Tool::ExitToolGUI()
+{
+	if (gui.exitTool)
+	{
+		ImGui::OpenPopup("Save changes before quitting?");
+		gui.exitTool = false;
+	}
+
+	if (ImGui::BeginPopupModal("Save changes before quitting?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (ImGui::Button("Yes", ImVec2(60, 0)))
+		{
+			AssetManager::Instance().SaveProject();
+			Quit();
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("No", ImVec2(60, 0)))
+		{
+			Quit();
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(60, 0)))
+			ImGui::CloseCurrentPopup();
+
 		ImGui::EndPopup();
 	}
 }

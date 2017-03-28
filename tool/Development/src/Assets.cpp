@@ -34,10 +34,12 @@ bool AssetManager::CreateProject(std::string folder)
 
 	const char* defaultMeshPath = "assets/defaults/defaultMesh.obj";
 	fwrite(defaultMeshPath, strlen(defaultMeshPath) + 1, 1, projFile);
+	size_t zero = 0;
+	fwrite(&zero, sizeof(size_t), 1, projFile);
 
 	fclose(projFile);
 	
-	FileUtil::WriteResourceToDisk(IDR_MESH1, "mesh", "assets/defaults/defaultMesh.obj");
+	FileUtil::WriteResourceToDisk(IDR_MESH1, "mesh", defaultMeshPath);
 
 	LoadProject(folder);
 
@@ -62,16 +64,24 @@ bool AssetManager::LoadProject(std::string folder)
 		return false;
 	}
 
+	// load defaults
 	string defaultMeshPath = FileUtil::GetStringInFile(projFile);
-
-	fclose(projFile);
-
 	MeshData::Handle h = MeshData::Instance().GetDirect(defaultMeshPath);
 	SetDefault<MeshData>(h);
-	TrackAsset<MeshData>(h, defaultMeshPath);
-	GetAsset<MeshData>(0).name = "default"; // TODO won't work with mid-usage loading
+	TrackAsset<MeshData>(h, defaultMeshPath).name = "default";
 
-	// load all files in
+	// load mesh assets
+	size_t meshCount;
+	string meshPath;
+	fread_s(&meshCount, sizeof(size_t), sizeof(size_t), 1, projFile);
+	for (size_t i = 0; i < meshCount; ++i)
+	{
+		meshPath = FileUtil::GetStringInFile(projFile);
+		h = MeshData::Instance().GetDirect(meshPath);
+		TrackAsset<MeshData>(h, meshPath).name = FileUtil::GetStringInFile(projFile);
+	}
+
+	fclose(projFile);
 
 	// scene...stuff.....hotswappable scenes?
 
@@ -82,5 +92,34 @@ bool AssetManager::LoadProject(std::string folder)
 
 void AssetManager::SaveProject()
 {
+	Tracker<MeshData>& meshTracker = trackers;
+	MeshData::Handle& defaultMesh = defaults;
+	Asset<MeshData>& defaultMeshAsset = GetAsset<MeshData>(defaultMesh);
 
+	FILE* projFile;
+	fopen_s(&projFile, "churo.proj", "wb");
+	if (!projFile)
+	{
+		printf("failed to save project: could not write to churo.proj\n");
+		return;
+	}
+
+	// save defaults
+	fwrite(defaultMeshAsset.path.c_str(), defaultMeshAsset.path.length() + 1, 1, projFile);
+	
+	// save metadata
+	size_t meshCount = meshTracker.assets.size() - 1;
+	fwrite(&meshCount, sizeof(size_t), 1, projFile);
+
+	// save mesh assets
+	for (size_t i = 0; i < meshTracker.assets.size(); ++i)
+	{
+		if (meshTracker.assets[i].handle != defaultMesh)
+		{
+			fwrite(meshTracker.assets[i].path.c_str(), meshTracker.assets[i].path.length() + 1, 1, projFile);
+			fwrite(meshTracker.assets[i].name.c_str(), meshTracker.assets[i].name.length() + 1, 1, projFile);
+		}
+	}
+
+	fclose(projFile);
 }

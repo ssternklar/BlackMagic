@@ -20,7 +20,8 @@ struct Asset
 template<class T>
 struct Tracker
 {
-	std::map<std::string, size_t> paths;
+	std::map<std::string, size_t> fullPaths;
+	std::map<typename T::Handle, size_t> handles;
 	std::vector<Asset<T>> assets;
 };
 
@@ -43,16 +44,16 @@ public:
 	template<class T>
 	Asset<T>& GetAsset(size_t index);
 	template<class T>
+	Asset<T>& GetAsset(typename T::Handle handle);
+	template<class T>
 	size_t GetAssetCount();
 	template<class T>
 	size_t GetIndex(typename T::Handle handle);
-
+	template<class T>
+	typename T::Handle GetHandle(std::string fullPath);
 
 	template<class T>
-	typename T::Handle GetHandle(std::string path);
-
-	template<class T>
-	void TrackAsset(typename T::Handle handle, std::string fullPath);
+	Asset<T>& TrackAsset(typename T::Handle handle, std::string fullPath);
 	template<class T>
 	void StopTrackingAsset(typename T::Handle handle);
 
@@ -71,55 +72,57 @@ private:
 template<class T>
 void AssetManager::SetDefault(typename T::Handle handle)
 {
-	T::Handle &h = defaults;
+	T::Handle& h = defaults;
 	h = handle;
 }
 
 template<class T>
 Asset<T>& AssetManager::GetAsset(size_t index)
 {
-	Tracker<T> &tracker = trackers;
+	Tracker<T>& tracker = trackers;
 	return tracker.assets[index];
+}
+
+template<class T>
+Asset<T>& AssetManager::GetAsset(typename T::Handle handle)
+{
+	Tracker<T>& tracker = trackers;
+	return tracker.assets[tracker.handles[handle]];
 }
 
 template<class T>
 size_t AssetManager::GetAssetCount()
 {
-	Tracker<T> &tracker = trackers;
+	Tracker<T>& tracker = trackers;
 	return tracker.assets.size();
 }
 
 template<class T>
 size_t AssetManager::GetIndex(typename T::Handle handle)
 {
-	Tracker<T> &tracker = trackers;
-	size_t i = 0;
-
-	for (; i < tracker.assets.size(); ++i)
-		if (tracker.assets[i].handle == handle)
-			break;
-
-	return i;
+	Tracker<T>& tracker = trackers;
+	return tracker.handles[handle];
 }
 
 template<class T>
-typename T::Handle AssetManager::GetHandle(std::string path)
+typename T::Handle AssetManager::GetHandle(std::string fullPath)
 {
-	Tracker<T> &tracker = trackers;
+	Tracker<T>& tracker = trackers;
 	T::Handle handle;
 
-	auto check = tracker.paths.find(path);
-	if (check != tracker.paths.end())
+	auto check = tracker.fullPaths.find(fullPath);
+	if (check != tracker.fullPaths.end())
 		handle = tracker.assets[check->second].handle;
 
 	return handle;
 }
 
 template<class T>
-void AssetManager::TrackAsset(typename T::Handle handle, std::string fullPath)
+Asset<T>& AssetManager::TrackAsset(typename T::Handle handle, std::string fullPath)
 {
-	Tracker<T> &tracker = trackers;
-	tracker.paths[fullPath] = tracker.assets.size();
+	Tracker<T>& tracker = trackers;
+	tracker.fullPaths[fullPath] = tracker.assets.size();
+	tracker.handles[handle] = tracker.assets.size();
 
 	Asset<T> asset;
 	asset.handle = handle;
@@ -127,18 +130,17 @@ void AssetManager::TrackAsset(typename T::Handle handle, std::string fullPath)
 	asset.name = StringManip::FileName(fullPath); // manage better later?
 
 	tracker.assets.push_back(asset);
+	return tracker.assets.back();
 }
 
 template<class T>
 void AssetManager::StopTrackingAsset(typename T::Handle handle)
 {
-	Tracker<T> &tracker = trackers;
+	Tracker<T>& tracker = trackers;
 
-	for (size_t i = 0; i < tracker.assets.size(); ++i)
-		if (tracker.assets[i].handle == handle)
-		{
-			tracker.paths.erase(tracker.paths.find(tracker.assets[i].path));
-			tracker.assets.erase(tracker.assets.begin() + i);
-			break;
-		}
+	size_t index = tracker.handles[handle];
+
+	tracker.fullPaths.erase(tracker.fullPaths.find(tracker.assets[index].path));
+	tracker.handles.erase(tracker.handles.find(handle));
+	tracker.assets.erase(tracker.assets.begin() + index);
 }

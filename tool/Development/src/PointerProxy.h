@@ -1,6 +1,6 @@
 #pragma once
 
-template <typename T>
+template<typename T>
 struct proxy_ctr
 {
 	T* ptr = nullptr;
@@ -11,7 +11,9 @@ struct proxy_ctr
 		T* ptr() { return ctr ? ctr->ptr : nullptr; }
 		T* operator->() { return ctr ? ctr->ptr : nullptr; }
 		T& operator *() { return *(ctr ? ctr->ptr : nullptr); }
-		bool operator==(proxy_ptr& other) { return ctr == other.ctr; }
+		bool operator==(const proxy_ptr& other) const { return ctr == other.ctr; }
+		bool operator!=(const proxy_ptr& other) const { return ctr != other.ctr; }
+		bool operator<(const proxy_ptr& other) const { return ctr < other.ctr; }
 	private:
 		proxy_ctr<T>* ctr = nullptr;
 	};

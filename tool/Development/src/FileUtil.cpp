@@ -247,7 +247,7 @@ namespace FileUtil
 		fopen_s(&resourceFile, filePath, "wb");
 		if (!resourceFile)
 		{
-			printf("failed to write resource '' to disk\n", filePath);
+			printf("failed to write resource '%s' to disk\n", filePath);
 			return false;
 		}
 

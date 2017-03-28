@@ -281,8 +281,8 @@ void Graphics::Present()
 
 void Graphics::LoadShaders()
 {
-	vertexShader = ShaderData::Instance().LoadShader<SimpleVertexShader>(L"assets/shaders/VertexShader.hlsl");
-	pixelShader = ShaderData::Instance().LoadShader<SimplePixelShader>(L"assets/shaders/PixelShader.hlsl");
+	vertexShader = ShaderData::Instance().LoadShader<SimpleVertexShader>(L"shaders/VertexShader.hlsl");
+	pixelShader = ShaderData::Instance().LoadShader<SimplePixelShader>(L"shaders/PixelShader.hlsl");
 }
 
 HWND Graphics::GetHandle()

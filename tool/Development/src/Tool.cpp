@@ -85,7 +85,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 			else
 			{
 				graphics->Clear();
-				helloGUI();
+				HelloGUI();
 			}
 
 			ImGui::Render();
@@ -99,7 +99,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 
 void Tool::Quit()
 {
-	PostQuitMessage(0);
+	DestroyWindow(graphics->GetHandle());
 }
 
 void Tool::ScanEntities(float x, float y)
@@ -278,6 +278,10 @@ LRESULT Tool::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	}
+
+	case WM_CLOSE:
+		gui.exitTool = true;
+		return 0;
 	}
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
