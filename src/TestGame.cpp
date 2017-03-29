@@ -63,7 +63,7 @@ void TestGame::LoadContent()
 	for(float y = 0; y < 11; y++)
 	{
 		unsigned int metalness = 255;
-		XMFLOAT4 albedo = { 0, 0, 0, 1.0f };
+		XMVECTOR albedo = XMVectorSet(0, 0, 0, 1.0f);
 		TextureDesc desc;
 		desc = { 0 };
 
@@ -108,12 +108,14 @@ void TestGame::LoadContent()
 				metalness = 0;
 				break;
 		}
+		albedo *= 255.0f;
+		XMVectorFloor(albedo);
 
 		desc.Format = Texture::Format::R8G8B8A8_UNORM;
 		desc.Width = 1;
 		desc.Height = 1;
 		desc.GPUUsage = Texture::Usage::READ;
-		desc.InitialData = &albedo;
+		desc.InitialData = &albedo.m128_f32;
 		desc.Type = Texture::Type::FLAT_2D;
 		auto albedoTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));
 

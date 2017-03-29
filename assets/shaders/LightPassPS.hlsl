@@ -58,7 +58,7 @@ float3 DiffuseBRDF(float3 albedo)
 float GGX_TR_D(float3 n, float3 h, float r)
 {
 	float a = pow(r, 4);
-	return a / PI*pow(pow(dot(n, h), 2) * (a - 1) + 1, 2);
+	return a / (PI*pow(pow(saturate(dot(n, h)), 2) * (a - 1) + 1, 2));
 }
 
 float SchlickG1(float3 n, float3 v, float k)
@@ -104,7 +104,7 @@ float3 colorFromScenelight(GBuffer input)
 	float3 h = normalize((l + v) / 2);
 	float len = length(input.albedo);
 
-	return CT_BRDF(v, l, input.normal, input.roughness);
+	return CT_BRDF(v, l, input.normal, input.roughness) * input.albedo;
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals

@@ -818,14 +818,12 @@ unsigned int BytesPerPixel(Texture::Format f)
 		case Texture::Format::R32_FLOAT:
 		case Texture::Format::R32_UINT:
 		case Texture::Format::R32_SINT:
-			return 4;
-
 		case Texture::Format::R8G8B8A8_UNORM:
 		case Texture::Format::R8G8B8A8_UNORM_SRGB:
 		case Texture::Format::R8G8B8A8_UINT:
 		case Texture::Format::R8G8B8A8_SNORM:
 		case Texture::Format::R8G8B8A8_SINT:
-			return 3;
+			return 4;
 		
 		case Texture::Format::R8G8_UNORM:
 		case Texture::Format::R8G8_UINT:
@@ -869,6 +867,9 @@ Texture DX11Renderer::CreateTexture(const TextureDesc& desc)
 			d3dDesc.MiscFlags = (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ? 
 				D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
 
+			D3D11_SUBRESOURCE_DATA subDat = { 0 };
+			subDat.pSysMem = desc.InitialData;
+
 			ID3D11Texture1D* tex;
 			ID3D11ShaderResourceView* srv = nullptr;
 			ID3D11RenderTargetView* rtv = nullptr;
@@ -905,11 +906,15 @@ Texture DX11Renderer::CreateTexture(const TextureDesc& desc)
 			d3dDesc.SampleDesc.Count = 1;
 			d3dDesc.SampleDesc.Quality = 0;
 
+			D3D11_SUBRESOURCE_DATA subDat = { 0 };
+			subDat.pSysMem = desc.InitialData;
+			subDat.SysMemPitch = bpp * desc.Width;
+
 			ID3D11Texture2D* tex;
 			ID3D11ShaderResourceView* srv = nullptr;
 			ID3D11RenderTargetView* rtv = nullptr;
-			_device->CreateTexture2D(&d3dDesc, nullptr, &tex);
-			_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, bpp * desc.Width * desc.Height);
+			_device->CreateTexture2D(&d3dDesc, &subDat, &tex);
+			//_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, bpp * desc.Width * desc.Height);
 
 			if (desc.GPUUsage & Texture::Usage::READ)
 			{
@@ -936,6 +941,11 @@ Texture DX11Renderer::CreateTexture(const TextureDesc& desc)
 			d3dDesc.Format = TranslateTextureFormat(desc.Format);
 			d3dDesc.MiscFlags = (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ?
 				D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
+
+			D3D11_SUBRESOURCE_DATA subDat = { 0 };
+			subDat.pSysMem = desc.InitialData;
+			subDat.SysMemPitch = bpp * desc.Width;
+			subDat.SysMemSlicePitch = bpp * desc.Width * desc.Height;
 
 			ID3D11Texture3D* tex;
 			ID3D11ShaderResourceView* srv = nullptr;
