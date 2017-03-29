@@ -33,19 +33,16 @@ struct Mesh
 class MeshData : public ProxyHandler<Mesh, MeshData>
 {
 public:
-	MeshData() {};
 	~MeshData();
 
 	void Init(ID3D11Device* device);
 
 	Handle Get(std::string modelPath);
-	Handle GetDirect(std::string modelPath);
 	void Revoke(Handle handle);
 
+	Handle LoadMesh(std::string modelPath);
 	const std::string root = "assets/models/";
 
 private:
-	Handle LoadMesh(std::string modelPath);
-
 	ID3D11Device* device;
 };

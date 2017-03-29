@@ -8,17 +8,18 @@
 
 #include "SimpleShader.h"
 #include "Camera.h"
+#include "Patterns.h"
 
-class Graphics
+class Graphics : public Singleton<Graphics>
 {
 public:
-	Graphics(unsigned int windowWidth, unsigned int windowHeight);
+	Graphics();
 	~Graphics();
 
-	HRESULT Init(HINSTANCE hInstance);
+	HRESULT Init(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight);
 	void Resize(unsigned int width, unsigned int height);
 	void Clear();
-	void Draw(Camera* camera, float deltaTime);
+	void Draw(float deltaTime);
 	void Present();
 
 	HWND GetHandle();

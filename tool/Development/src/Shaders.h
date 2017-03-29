@@ -12,9 +12,6 @@ struct ShaderTypeString
 class ShaderData : public Singleton<ShaderData>
 {
 public:
-	ShaderData() {};
-	~ShaderData() {};
-
 	void Init(ID3D11Device* device, ID3D11DeviceContext* context);
 
 	template<typename T>

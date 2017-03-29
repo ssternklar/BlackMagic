@@ -5,8 +5,9 @@
 #include <Windows.h>
 
 #include "Transform.h"
+#include "Patterns.h"
 
-class Camera
+class Camera : public Singleton<Camera>
 {
 public:
 	Camera();

@@ -13,10 +13,6 @@ struct Entity
 class EntityData : public ProxyHandler<Entity, EntityData>
 {
 public:
-	EntityData() {};
-	~EntityData() {};
-
 	Handle Get();
 	void Revoke(Handle entity);
-	Entity* Entities();
 };

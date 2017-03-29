@@ -2,14 +2,12 @@
 #include "Tool.h"
 #include "Mesh.h"
 #include "Shaders.h"
+#include "Scene.h"
 
 using namespace DirectX;
 
-Graphics::Graphics(unsigned int windowWidth, unsigned int windowHeight)
+Graphics::Graphics()
 {
-	width = windowWidth;
-	height = windowHeight;
-
 	device = nullptr;
 	context = nullptr;
 	swapChain = nullptr;
@@ -33,8 +31,11 @@ Graphics::~Graphics()
 	delete pixelShader;
 }
 
-HRESULT Graphics::Init(HINSTANCE hInstance)
+HRESULT Graphics::Init(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
 {
+	width = windowWidth;
+	height = windowHeight;
+
 	HRESULT hr = S_OK;
 	hr = InitWindow(hInstance);
 	if (FAILED(hr)) return hr;
@@ -251,26 +252,30 @@ void Graphics::Clear()
 	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
-void Graphics::Draw(Camera* camera, float deltaTime)
+void Graphics::Draw(float deltaTime)
 {
 	context->ClearRenderTargetView(backBufferRTV, &color.x);
 	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	SceneData::Handle scene = SceneData::Instance().CurrentScene();
+
+	if (!scene.ptr())
+		return;
 	
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
-	Entity* entities = EntityData::Instance().Entities();
 
-	for (size_t i = 0; i < EntityData::Instance().Size(); ++i)
+	for (size_t i = 0; i < scene->entities.size(); ++i)
 	{
-		vertexShader->SetMatrix4x4("world", entities[i].transform->matrix);
-		vertexShader->SetMatrix4x4("view", camera->ViewMatrix());
-		vertexShader->SetMatrix4x4("projection", camera->ProjectionMatrix());
+		vertexShader->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
+		vertexShader->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
+		vertexShader->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
 		vertexShader->CopyAllBufferData();
 		vertexShader->SetShader();
 		pixelShader->SetShader();
-		context->IASetVertexBuffers(0, 1, &entities[i].mesh->vertexBuffer, &stride, &offset);
-		context->IASetIndexBuffer(entities[i].mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-		context->DrawIndexed(entities[i].mesh->faceCount, 0, 0);
+		context->IASetVertexBuffers(0, 1, &scene->entities[i]->mesh->vertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(scene->entities[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		context->DrawIndexed(scene->entities[i]->mesh->faceCount, 0, 0);
 	}
 }
 

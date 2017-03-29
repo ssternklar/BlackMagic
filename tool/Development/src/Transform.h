@@ -8,16 +8,13 @@ struct Transform
 {
 	DirectX::XMFLOAT4 rot;
 	DirectX::XMFLOAT3 pos;
-	DirectX::XMFLOAT3 scale;
+	float scale;
 	DirectX::XMFLOAT4X4 matrix;
 };
 
 class TransformData : public ProxyHandler<Transform, TransformData>
 {
 public:
-	TransformData() {};
-	~TransformData() {};
-
 	Handle Get();
 	void Revoke(Handle handle);
 	void UpdateTransforms();

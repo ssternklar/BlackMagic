@@ -10,7 +10,7 @@ TransformData::Handle TransformData::Get()
 
 	h->pos = { 0, 0, 0 };
 	h->rot = { 0, 0, 0, 1 };
-	h->scale = { 1, 1, 1 };
+	h->scale = 1;
 	XMStoreFloat4x4(&h->matrix, XMMatrixIdentity());
 
 	return h;
@@ -27,7 +27,7 @@ void TransformData::UpdateTransforms()
 	{
 		XMVECTOR r = XMLoadFloat4(&data[i].rot);
 		XMVECTOR p = XMLoadFloat3(&data[i].pos);
-		XMVECTOR s = XMLoadFloat3(&data[i].scale);
+		XMVECTOR s = XMLoadFloat3(&XMFLOAT3(data[i].scale, data[i].scale, data[i].scale)); // TODO did this work?
 
 		XMMATRIX mat = XMMatrixAffineTransformation(s, XMVectorZero(), r, p);
 		XMStoreFloat4x4(&data[i].matrix, XMMatrixTranspose(mat));

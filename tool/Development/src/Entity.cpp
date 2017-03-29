@@ -16,8 +16,3 @@ void EntityData::Revoke(Handle handle)
 	TransformData::Instance().Revoke(handle->transform);
 	ProxyHandler::Revoke(handle);
 }
-
-Entity* EntityData::Entities()
-{
-	return data;
-}

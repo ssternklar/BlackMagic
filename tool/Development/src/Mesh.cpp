@@ -5,15 +5,6 @@
 #include "Mesh.h"
 #include "Assets.h"
 
-static float distanceSquared(float a[3], float b[3])
-{
-	float xx = a[0] - b[0];
-	float yy = a[1] - b[1];
-	float zz = a[2] - b[2];
-
-	return xx*xx + yy*yy + zz*zz;
-}
-
 MeshData::~MeshData()
 {
 	for (size_t i = 0; i < size; ++i)
@@ -46,16 +37,6 @@ MeshData::Handle MeshData::Get(std::string modelPath)
 	AssetManager::Instance().TrackAsset<MeshData>(h, fullPath);
 
 	return h;
-}
-
-MeshData::Handle MeshData::GetDirect(std::string modelPath)
-{
-	// TODO determine if checking for an asset is needed, if not, make LoadMesh public
-	Handle h = AssetManager::Instance().GetHandle<MeshData>(modelPath);
-	if (h.ptr())
-		return h;
-
-	return LoadMesh(modelPath);
 }
 
 MeshData::Handle MeshData::LoadMesh(std::string modelPath)

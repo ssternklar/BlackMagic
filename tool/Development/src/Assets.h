@@ -3,9 +3,9 @@
 #include <map>
 #include <vector>
 
-#include "Patterns.h"
-#include "Mesh.h"
 #include "StringManip.h"
+#include "Mesh.h"
+#include "Scene.h"
 
 template<class T>
 struct Asset
@@ -26,11 +26,13 @@ struct Tracker
 };
 
 struct AssetTrackers :
-	Tracker<MeshData>
+	Tracker<MeshData>,
+	Tracker<SceneData>
 {};
 
 struct DefaultAssets :
-	MeshData::Handle
+	MeshData::Handle,
+	SceneData::Handle
 {};
 
 class AssetManager : public Singleton<AssetManager>
@@ -127,7 +129,7 @@ Asset<T>& AssetManager::TrackAsset(typename T::Handle handle, std::string fullPa
 	Asset<T> asset;
 	asset.handle = handle;
 	asset.path = fullPath;
-	asset.name = StringManip::FileName(fullPath); // manage better later?
+	asset.name = StringManip::FileName(fullPath); // TODO manage better later? IE no duplicates
 
 	tracker.assets.push_back(asset);
 	return tracker.assets.back();

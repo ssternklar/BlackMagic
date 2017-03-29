@@ -14,7 +14,6 @@ Camera::Camera()
 	fpsPos = { 0, 0 };
 
 	transform = TransformData::Instance().Get();
-	TransformData::Instance().Move(transform, {0, 0, -3});
 
 	Input::BindToControl("camForward", 'W');
 	Input::BindToControl("camLeft", 'A');

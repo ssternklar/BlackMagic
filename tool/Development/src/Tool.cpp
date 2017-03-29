@@ -20,34 +20,36 @@ Tool::Tool()
 	DXCoreInstance = this;
 	resizing = false;
 
+	gui.entityData.meshIndex = -1;
+	gui.meshImporter = false;
+	gui.sceneCreate = false;
+	gui.sceneIndex = -1;
+	gui.exitTool = false;
+
 	CreateConsoleWindow(500, 120, 32, 120);
 }
 
 Tool::~Tool()
 {
 	ImGui_ImplDX11_Shutdown();
-	delete camera;
-	delete graphics;
 }
 
 HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
 {
-	camera = new Camera();
-
-	graphics = new Graphics(windowWidth, windowHeight);
-	HRESULT hr = graphics->Init(hInstance);
+	HRESULT hr = Graphics::Instance().Init(hInstance, windowWidth, windowHeight);
 	if (FAILED(hr)) return hr;
 
-	MeshData::Instance().Init(graphics->GetDevice());
+	MeshData::Instance().Init(Graphics::Instance().GetDevice());
+	SceneData::Instance().Init(&gui.entityData);
 
 	RAWINPUTDEVICE Rid[1];
 	Rid[0].usUsagePage = 0x01;
 	Rid[0].usUsage = 0x02;
 	Rid[0].dwFlags = RIDEV_INPUTSINK;
-	Rid[0].hwndTarget = graphics->GetHandle();
+	Rid[0].hwndTarget = Graphics::Instance().GetHandle();
 	RegisterRawInputDevices(Rid, 1, sizeof(Rid[0]));
 
-	ImGui_ImplDX11_Init(graphics->GetHandle(), graphics->GetDevice(), graphics->GetContext());
+	ImGui_ImplDX11_Init(Graphics::Instance().GetHandle(), Graphics::Instance().GetDevice(), Graphics::Instance().GetContext());
 
 	Input::BindToControl("Quit", VK_ESCAPE);
 
@@ -62,7 +64,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 		else
 		{
 			if (Input::WasControlPressed("Quit"))
-				PostMessage(graphics->GetHandle(), WM_CLOSE, NULL, NULL);
+				PostMessage(Graphics::Instance().GetHandle(), WM_CLOSE, NULL, NULL);
 
 			ImGui_ImplDX11_NewFrame();
 			
@@ -74,23 +76,23 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 				ImGuiIO& io = ImGui::GetIO();
 				if (!io.WantCaptureKeyboard && !io.WantCaptureMouse && !io.WantTextInput)
 				{
-					camera->Update(delta);
+					Camera::Instance().Update(delta);
 					if (io.MouseClicked[0])
 						ScanEntities(io.MousePos.x, io.MousePos.y);
 				}
 
 				TransformData::Instance().UpdateTransforms();
-				graphics->Draw(camera, delta);
+				Graphics::Instance().Draw(delta);
 			}
 			else
 			{
-				graphics->Clear();
+				Graphics::Instance().Clear();
 				HelloGUI();
 			}
 
 			ImGui::Render();
 			Input::UpdateControlStates();
-			graphics->Present();
+			Graphics::Instance().Present();
 		}
 	}
 
@@ -99,38 +101,41 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 
 void Tool::Quit()
 {
-	DestroyWindow(graphics->GetHandle());
+	DestroyWindow(Graphics::Instance().GetHandle());
 }
 
 void Tool::ScanEntities(float x, float y)
 {
+	SceneData::Handle scene = SceneData::Instance().CurrentScene();
+
+	if (!scene.ptr())
+		return;
+
 	BoundingFrustum camFrustum;
-	camera->frustum.Transform(camFrustum, XMMatrixTranspose(XMLoadFloat4x4(&camera->transform->matrix)));
+	Camera::Instance().frustum.Transform(camFrustum, XMMatrixTranspose(XMLoadFloat4x4(&Camera::Instance().transform->matrix)));
 
 	XMFLOAT4X4 proj;
-	XMStoreFloat4x4(&proj, XMMatrixTranspose(XMLoadFloat4x4(&camera->ProjectionMatrix())));
+	XMStoreFloat4x4(&proj, XMMatrixTranspose(XMLoadFloat4x4(&Camera::Instance().ProjectionMatrix())));
 
 	XMFLOAT3 tempRayDir;
-	tempRayDir.x = (((2 * x) / graphics->GetWidth()) - 1) / proj._11;
-	tempRayDir.y = -(((2 * y) / graphics->GetHeight()) - 1) / proj._22;
+	tempRayDir.x = (((2 * x) / Graphics::Instance().GetWidth()) - 1) / proj._11;
+	tempRayDir.y = -(((2 * y) / Graphics::Instance().GetHeight()) - 1) / proj._22;
 	tempRayDir.z = 1.0f;
 
-	XMMATRIX view = XMMatrixInverse(NULL, XMMatrixTranspose(XMLoadFloat4x4(&camera->ViewMatrix())));
+	XMMATRIX view = XMMatrixInverse(NULL, XMMatrixTranspose(XMLoadFloat4x4(&Camera::Instance().ViewMatrix())));
 	XMVECTOR rayDir = XMVector3TransformNormal(XMVector3Normalize(XMLoadFloat3(&tempRayDir)), view);
-	XMVECTOR rayPos = XMLoadFloat3(&camera->transform->pos);
+	XMVECTOR rayPos = XMLoadFloat3(&Camera::Instance().transform->pos);
 
-	Entity* entities = EntityData::Instance().Entities();
-	size_t count = EntityData::Instance().Size();
 	BoundingOrientedBox entBox;
 	float distance;
 	std::vector<EntityData::Handle> entityQueue;
 
-	for (size_t i = 0; i < count; ++i)
+	for (size_t i = 0; i < scene->entities.size(); ++i)
 	{
-		entities[i].mesh->obb.Transform(entBox, XMMatrixTranspose(XMLoadFloat4x4(&entities[i].transform->matrix)));
+		scene->entities[i]->mesh->obb.Transform(entBox, XMMatrixTranspose(XMLoadFloat4x4(&scene->entities[i]->transform->matrix)));
 		if (camFrustum.Contains(entBox) != ContainmentType::DISJOINT)
 			if (entBox.Intersects(rayPos, rayDir, distance))
-				entityQueue.push_back(EntityData::Instance().Recover(entities + i));
+				entityQueue.push_back(scene->entities[i]);
 	}
 	
 	EntityData::Handle nearestEntity;
@@ -158,21 +163,7 @@ void Tool::ScanEntities(float x, float y)
 		}
 	}
 
-	SelectEntity(nearestEntity);
-}
-
-void Tool::SelectEntity(EntityData::Handle ent)
-{
-	selectedEntity = ent;
-
-	if (ent.ptr())
-	{
-		gui.meshIndex = (int)AssetManager::Instance().GetIndex<MeshData>(ent->mesh);
-	}
-	else
-	{
-		gui.meshIndex = -1;
-	}
+	SceneData::Instance().SelectEntity(nearestEntity);
 }
 
 void Tool::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns)
@@ -205,8 +196,8 @@ void Tool::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLin
 void Tool::OnResize(unsigned int width, unsigned int height)
 {
 	ImGui_ImplDX11_InvalidateDeviceObjects();
-	camera->Resize(width, height);
-	graphics->Resize(width, height);
+	Camera::Instance().Resize(width, height);
+	Graphics::Instance().Resize(width, height);
 	ImGui_ImplDX11_CreateDeviceObjects();
 }
 

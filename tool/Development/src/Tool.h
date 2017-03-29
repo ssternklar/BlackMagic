@@ -4,7 +4,18 @@
 #include "dear imgui\imgui_impl_dx11.h"
 
 #include "Graphics.h"
-#include "Entity.h"
+
+struct GuiData
+{
+	struct EntityEditorData
+	{
+		int meshIndex;
+	}entityData;
+	bool meshImporter;
+	bool sceneCreate;
+	int sceneIndex;
+	bool exitTool;
+};
 
 class Tool
 {
@@ -23,27 +34,17 @@ public:
 private:
 	void OnResize(unsigned int width, unsigned int height);
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
-
-	Graphics* graphics;
-	Camera* camera;
+	
+	void ScanEntities(float x, float y);
 
 	bool resizing;
-
-	void ScanEntities(float x, float y);
-	void SelectEntity(EntityData::Handle ent);
-	EntityData::Handle selectedEntity;
 
 	// dear ImGui
 	void HelloGUI();
 	void ExitToolGUI();
 	void InvokeGUI();
 	void PromptImport();
-	struct guiData
-	{
-		bool meshImporter = false;
-		int meshIndex = -1;
-		bool exitTool = false;
-	}gui;
+	GuiData gui;
 };
 
 template<typename T>
