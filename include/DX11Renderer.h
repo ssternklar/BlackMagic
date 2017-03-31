@@ -55,6 +55,7 @@ namespace BlackMagic {
 		std::shared_ptr<PixelShader> _lightPassPS;
 		std::shared_ptr<VertexShader> _fxaaVS;
 		std::shared_ptr<PixelShader> _fxaaPS;
+		std::shared_ptr<PixelShader> _mergePS;
 		Sampler _gBufferSampler;
 		ComPtr<ID3D11Buffer> _quad;
 

@@ -110,12 +110,18 @@ void TestGame::LoadContent()
 		}
 		albedo *= 255.0f;
 		XMVectorFloor(albedo);
+		unsigned char c[4] = { static_cast<unsigned char>(albedo.m128_f32[0]), 
+			static_cast<unsigned char>(albedo.m128_f32[1]), 
+			static_cast<unsigned char>(albedo.m128_f32[2]), 
+			static_cast<unsigned char>(albedo.m128_f32[3])
+		};
+
 
 		desc.Format = Texture::Format::R8G8B8A8_UNORM;
 		desc.Width = 1;
 		desc.Height = 1;
 		desc.GPUUsage = Texture::Usage::READ;
-		desc.InitialData = &albedo.m128_f32;
+		desc.InitialData = c;
 		desc.Type = Texture::Type::FLAT_2D;
 		auto albedoTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));
 
@@ -127,9 +133,9 @@ void TestGame::LoadContent()
 		rowMaterial.SetResource("albedoMap", Material::ResourceStage::PS, albedoTex, Material::ResourceStorageType::Static);
 		rowMaterial.SetResource("metalnessMap", Material::ResourceStage::PS, metalnessTex, Material::ResourceStorageType::Static);
 
-		for (float x = 0; x < 11; x++)
+		for (float x = 1; x < 12; x++)
 		{
-			unsigned int roughness = (x / 10.0f) * 255;
+			unsigned int roughness = (x/ 11.0f) * 255;
 			desc.InitialData = &roughness;
 			desc.Format = Texture::Format::R8_UNORM;
 			auto roughnessTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));

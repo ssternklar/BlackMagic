@@ -47,6 +47,7 @@ Texture2DArray shadowMap : register(t4);
 Texture2D depth : register(t5);
 Texture2D metalnessMap : register(t6);
 Texture2D cavityMap : register(t7);
+TextureCube skybox : register(t8);
 SamplerState mainSampler : register(s0);
 SamplerComparisonState shadowSampler : register(s1);
 
@@ -63,12 +64,12 @@ float GGX_TR_D(float3 n, float3 h, float r)
 
 float SchlickG1(float3 n, float3 v, float k)
 {
-	return 1 / (saturate(dot(n, v))*(1 - k) + k);
+	return 1.0 / (saturate(dot(n, v))*(1 - k) + k);
 }
 
 float SchlickG(float3 n, float3 v, float3 l, float r)
 {
-	float k = pow(r + 1, 2) / 8;
+	float k = pow(r+1, 2) / 8;
 	return SchlickG1(n, v, k) * SchlickG1(n, l, k);
 }
 
@@ -78,11 +79,67 @@ float SchlickGaussianF(float3 v, float3 h, float f0)
 	return f0 + (1 - f0)*pow(2, (-5.55473*vh - 6.98316)*vh);
 }
 
-float CT_BRDF(float3 v, float3 l, float3 n, float r)
+float CT_BRDF(float3 v, float3 l, float3 n, float r, float m)
 {
 	float3 h = normalize((l + v) / 2);
-	return GGX_TR_D(n, h, r)*SchlickGaussianF(v, h, 0.5)*SchlickG(n, v, l, r) /
-		(4);// * saturate(dot(n, v)) * saturate(dot(n, l)));
+	float D = GGX_TR_D(n, h, r);
+	float F = SchlickGaussianF(v, h, lerp(0.04, 0.5, m));
+	float G = SchlickG(n, v, l, r);
+	return D * F * G / 4.0;
+}
+
+//Magic from http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
+float2 Hammersley(uint i, uint n)
+{
+	return float2(float(i) / float(n), float(reversebits(i) * 2.3283064365386963e-10));
+}
+
+//UE4 IBL
+float3 ImportanceSampleGGX(float2 Xi, float r, float3 n)
+{
+	float a = pow(r, 2);
+
+	float phi = 2 * PI * Xi.x;
+	float cosTheta = sqrt((1 - Xi.y) / (1 + (a * a - 1) * Xi.y));
+	float sinTheta = sqrt(1 - cosTheta * cosTheta);
+
+	float3 h;
+	h.x = sinTheta * cos(phi);
+	h.y = sinTheta * sin(phi);
+	h.z = cosTheta;
+
+	float3 up = abs(n.z) < 0.999 ? float3(0, 0, 1) : float3(1, 0, 0);
+	float3 tx = normalize(cross(up, n));
+	float3 ty = cross(n, tx);
+	return tx * h.x + ty * h.y + n * h.z;
+}
+
+float3 SpecularIBL(float3 specColor, float r, float3 n, float3 v)
+{
+	float3 specLighting = 0;
+	const uint samples = 32;
+	for (uint i = 0; i < samples; i++)
+	{
+		float2 xi = Hammersley(i, samples);
+		float3 h = ImportanceSampleGGX(xi, r, n);
+		float3 l = 2 * dot(v, h) * h - v;
+
+		float nDotV = saturate(dot(n, v));
+		float nDotL = saturate(dot(n, l));
+		float nDotH = saturate(dot(n, h));
+		float vDotH = saturate(dot(v, h));
+
+		if (nDotL > 0)
+		{
+			float3 sampleColor = skybox.SampleLevel(mainSampler, l, 0).rgb;
+			float G = SchlickG(n, v, l, r);
+			float Fc = pow(1 - vDotH, 5);
+			float F = (1 - Fc) * specColor + Fc;
+			specLighting += sampleColor * F * G * vDotH / (nDotH * nDotV);
+		}
+	}
+
+	return specLighting / samples;
 }
 
 float3 colorFromScenelight(GBuffer input)
@@ -104,7 +161,10 @@ float3 colorFromScenelight(GBuffer input)
 	float3 h = normalize((l + v) / 2);
 	float len = length(input.albedo);
 
-	return CT_BRDF(v, l, input.normal, input.roughness) * input.albedo;
+	float spec = CT_BRDF(v, l, input.normal, input.roughness, input.metal);
+	float diff = lerp(1 - spec, 0, input.metal);
+	return diff * DiffuseBRDF(input.albedo.rgb) + spec * input.albedo.rgb * SpecularIBL(input.albedo.rgb, input.roughness, input.normal, v);;
+
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
@@ -167,5 +227,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 		shadow = lerp(nextShadow, shadow, t);
 	}
 #endif
-	return float4(colorFromScenelight(buffer), 1.0) * (depth.Sample(mainSampler, input.uv).r < 1);
+	return float4(pow(colorFromScenelight(buffer), 1/2.2), linearDepth < 1);
 }
