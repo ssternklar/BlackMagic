@@ -1,9 +1,9 @@
 #pragma once
 #include "Camera.h"
-#include "ECS.h"
-#include "Renderable.h"
 #include "ContentManager.h"
+#include "Entity.h"
 #include "GraphicsTypes.h"
+#include "Renderable.h"
 #include "Projector.h"
 #define NUM_SHADOW_CASCADES 5
 #define SHADOWMAP_DIM 1025
@@ -18,15 +18,16 @@ namespace BlackMagic
 		virtual void Init(ContentManager* content) = 0;
 		virtual void OnResize(unsigned int width, unsigned int height) = 0;
 		virtual void Present(unsigned int interval, unsigned int flags) = 0;
-		virtual GraphicsBuffer CreateBuffer(GraphicsBuffer::BufferType bufferType, void* data, size_t bufferSize) = 0;
-		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) = 0;
-		virtual void CleanupBuffer(GraphicsBuffer buffer) = 0;
-		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) = 0;
-		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) = 0;
+		virtual Buffer CreateBuffer(Buffer::Type bufferType, void* data, size_t bufferSize) = 0;
+		virtual void ModifyBuffer(Buffer& buffer, Buffer::Type bufferType, void* newData, size_t newBufferSize) = 0;
+		virtual void Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything = false) = 0;
+		virtual void Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight) = 0;
 		virtual void RenderSkybox(const Camera& cam) = 0;
-		virtual GraphicsTexture CreateTexture(byte* memory, size_t memorySize, GraphicsTexture::TextureType type) = 0;
-		virtual void ReleaseTexture(GraphicsTexture texture) = 0;
-		virtual void ReleaseRenderTarget(GraphicsRenderTarget renderTarget) = 0;
+		virtual Texture CreateTexture(BlackMagic::byte* data, size_t size, Texture::Type type, Texture::Usage usage) = 0;
+		virtual Texture CreateTexture(const TextureDesc& desc) = 0;
+		virtual void AddResourceRef(void*) = 0;
+		virtual void ReleaseResource(void*) = 0;
+		virtual Sampler CreateSampler() = 0;
 		/*virtual GraphicsShader CreateShader(GraphicsShader::ShaderType shaderType, const char* shaderPath);
 		virtual void CleanupShader(GraphicsShader::ShaderType shaderType, GraphicsShader shader);
 		*/

@@ -148,10 +148,13 @@
     <ClCompile Include="src\ContentJob.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
     <ClCompile Include="src\DirectXAudioManager.cpp" />
+    <ClCompile Include="src\Entity.cpp" />
+    <ClCompile Include="src\FirstPersonCamera.cpp" />
     <ClCompile Include="src\GameAbstraction.cpp" />
+    <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\GenericJob.cpp" />
     <ClCompile Include="src\InputData.cpp" />
-    <ClCompile Include="src\IResource.cpp" />
+    <ClCompile Include="src\Resource.cpp" />
     <ClCompile Include="src\LinkedList.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Material.cpp" />
@@ -182,7 +185,8 @@
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />
     <ClInclude Include="include\DirectXAudioManager.h" />
-    <ClInclude Include="include\ECS.h" />
+    <ClInclude Include="include\Entity.h" />
+    <ClInclude Include="include\FirstPersonCamera.h" />
     <ClInclude Include="include\GameAbstraction.h" />
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\GenericJob.h" />
@@ -198,9 +202,10 @@
     <ClInclude Include="include\Renderable.h" />
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\Mesh.h" />
-    <ClInclude Include="include\IResource.h" />
+    <ClInclude Include="include\Resource.h" />
     <ClInclude Include="include\RenderJob.h" />
     <ClInclude Include="include\DX11Renderer.h" />
+    <ClInclude Include="include\PlatformResourceTypes.h" />
     <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\StdThreadManager.h" />
@@ -214,6 +219,9 @@
     <ClInclude Include="include\WindowsPlatform.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="assets\shaders\FinalMerge.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="assets\shaders\FXAA_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -249,7 +257,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="assets\shaders\LightPassVS.hlsl">
+    <FxCompile Include="assets\shaders\QuadVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

@@ -29,9 +29,15 @@ Transform::~Transform()
 void Transform::Move(XMFLOAT3 dp)
 {
 	auto& ptr = TransformData::GetSingleton()->_positions[_id];
-	ptr.x += dp.x;
-	ptr.y += dp.y;
-	ptr.z += dp.z;
+
+	auto v = XMLoadFloat3(&dp);
+	auto q = XMLoadFloat4(&TransformData::GetSingleton()->_rotations[_id]);
+	XMFLOAT3 rotated;
+	XMStoreFloat3(&rotated, XMVector3Rotate(v, q));
+
+	ptr.x += rotated.x;
+	ptr.y += rotated.y;
+	ptr.z += rotated.z;
 }
 
 void Transform::MoveTo(XMFLOAT3 pos)
@@ -46,7 +52,7 @@ void Transform::Rotate(XMFLOAT4 quaternion)
 {
 	auto current = XMLoadFloat4(&TransformData::GetSingleton()->_rotations[_id]);
 	auto quat = XMLoadFloat4(&quaternion);
-	XMStoreFloat4(&TransformData::GetSingleton()->_rotations[_id], XMQuaternionMultiply(current, quat));
+	XMStoreFloat4(&TransformData::GetSingleton()->_rotations[_id], XMQuaternionMultiply(quat, current));
 }
 
 void Transform::Rotate(XMFLOAT3 axis, float angle)
@@ -67,7 +73,7 @@ void Transform::SetScale(XMFLOAT3 scale)
 	TransformData::GetSingleton()->_scales[_id] = scale;
 }
 
-const DirectX::XMFLOAT4X4* Transform::Matrix()
+DirectX::XMFLOAT4X4* Transform::Matrix()
 {
 	return TransformData::GetSingleton()->GetMatrix(_id);
 }

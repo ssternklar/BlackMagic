@@ -17,6 +17,8 @@ namespace BlackMagic
 		float deltaTime;
 		__int64 currentTime;
 		__int64 previousTime;
+		DirectX::XMFLOAT2 lastMousePos;
+		DirectX::XMFLOAT2 currentMousePos;
 		void HandleMouseMovement(WPARAM param, int x, int y);
 	public:
 		virtual bool InitWindow() override;
@@ -36,6 +38,7 @@ namespace BlackMagic
 			WPARAM wParam, // Message's first parameter
 			LPARAM lParam // Message's second parameter
 		);
+		static WindowsPlatform* GetInstance();
 		WindowsPlatform(HINSTANCE instance);
 		~WindowsPlatform();
 		HINSTANCE GetHINSTANCE();

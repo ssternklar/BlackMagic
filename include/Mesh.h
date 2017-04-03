@@ -1,26 +1,26 @@
 #pragma once
 
 #include <string>
-#include "IResource.h"
 #include "GraphicsTypes.h"
+
 namespace BlackMagic
 {
 	class Renderer;
-	class Mesh : public IResource
+	class Mesh : public Resource
 	{
 	public:
 		Mesh();
 		Mesh(byte* vertexData, int vertexCount, byte* indexData, int indexCount, Renderer* device);
 		~Mesh();
 
-		GraphicsBuffer VertexBuffer() const;
-		GraphicsBuffer IndexBuffer() const;
+		const Buffer& VertexBuffer();
+		const Buffer& IndexBuffer();
 
 		size_t IndexCount() const;
-		void Set(GraphicsBuffer vertexBuffer, GraphicsBuffer indexBuffer, size_t numIndices);
+		void Set(const Buffer& vertexBuffer, const Buffer& indexBuffer, size_t numIndices);
 
 	private:
-		GraphicsBuffer _vBuf, _iBuf;
+		Buffer _vBuf, _iBuf;
 		size_t _numIndices;
 	};
 }

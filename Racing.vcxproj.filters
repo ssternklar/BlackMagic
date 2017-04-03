@@ -3,11 +3,41 @@
   <ItemGroup>
     <FxCompile Include="assets\shaders\FXAA_PS.hlsl" />
     <FxCompile Include="assets\shaders\FXAA_VS.hlsl" />
+    <ClCompile Include="src\GameObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FirstPersonCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Resource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="include\FirstPersonCamera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PlatformResourceTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <FxCompile Include="assets\shaders\GBufferPS.hlsl" />
     <FxCompile Include="assets\shaders\LightPassPS.hlsl" />
     <FxCompile Include="assets\shaders\GBufferVS.hlsl" />
     <FxCompile Include="assets\shaders\LightPassVS.hlsl" />
-    <FxCompile Include="assets\shaders\ProjectorPS.hlsl" />
+    <FxCompile Include="assets\shaders\LightPassPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\QuadVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\FinalMerge.hlsl" />
     <FxCompile Include="assets\shaders\ShadowMapVS.hlsl" />
     <FxCompile Include="assets\shaders\SkyboxPS.hlsl" />
     <FxCompile Include="assets\shaders\SkyboxVS.hlsl" />

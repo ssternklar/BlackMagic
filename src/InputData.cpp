@@ -23,12 +23,12 @@ void InputData::SetButton(int buttonID, bool on)
 	}
 }
 
-float InputData::GetAxis(int axisID)
+float InputData::GetAxis(InputData::Axis axisID)
 {
 	return axes[axisID];
 }
 
-void InputData::SetAxis(int axisID, float axis)
+void InputData::SetAxis(InputData::Axis axisID, float axis)
 {
 	axes[axisID] = axis;
 }

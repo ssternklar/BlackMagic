@@ -15,10 +15,8 @@
 using namespace BlackMagic;
 
 ContentManager::ContentManager(Renderer* device, const char* assetDirectory, BlackMagic::BestFitAllocator* allocator)
+	: directory(assetDirectory), _allocator(allocator), renderer(device)
 {
-	renderer = device;
-	directory = assetDirectory;
-	_allocator = allocator;
 }
 
 ContentManager::~ContentManager()
@@ -36,15 +34,6 @@ T* ContentManager::load_Internal(ManifestEntry* manifest)
 		"VertexShader\n"
 		"PixelShader\n"
 		"Spline\n"
-		);
-}
-
-template<typename T>
-T ContentManager::loadHandle_Internal(ManifestEntry* manifest)
-{
-	static_assert(false,
-		"Invalid or unsupported content type provided. Supported types are:\n"
-		"GraphicsShader\n"
 		);
 }
 
@@ -86,8 +75,7 @@ template<>
 Texture* ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	LOAD_FILE(textureSpace);
-	GraphicsTexture tex = renderer->CreateTexture(textureSpace, manifest->size, GraphicsTexture::TextureType::FLAT);
-	Texture* ret = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, renderer, tex, nullptr);
+	Texture tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::FLAT_2D, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
 }
 
@@ -95,8 +83,7 @@ template<>
 Cubemap* ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	LOAD_FILE(textureSpace);
-	GraphicsTexture tex = renderer->CreateTexture(textureSpace, manifest->size, GraphicsTexture::TextureType::CUBEMAP);
-	Texture* ret = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, renderer, tex, nullptr);
+	Texture tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::CUBEMAP, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
 }
 
@@ -144,12 +131,12 @@ PixelShader* ContentManager::load_Internal(ManifestEntry* manifest)
 template<>
 std::shared_ptr<VertexShader> ContentManager::load_Internal(ManifestEntry* manifest)
 {
-	auto fullPath = _assetDirectory + L"/" + name;
-	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
-	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
+	auto fullPath = directory + L"/" + name;
+	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device().Get();
+	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context().Get();
 	auto ptr = std::allocate_shared<VertexShader>(ContentAllocatorAdapter(_allocator), 
-		device.Get(),
-		context.Get());
+		device,
+		context);
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
@@ -158,12 +145,12 @@ std::shared_ptr<VertexShader> ContentManager::load_Internal(ManifestEntry* manif
 template<>
 std::shared_ptr<PixelShader> ContentManager::load_Internal(const std::wstring& name)
 {
-	auto fullPath = _assetDirectory + L"/" + name;
-	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
-	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
+	auto fullPath = directory + L"/" + name;
+	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device().Get();
+	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context().Get();
 	auto ptr = std::allocate_shared<PixelShader>(ContentAllocatorAdapter(_allocator), 
-		device.Get(),
-		context.Get());
+		device,
+		context);
 	ptr->LoadShaderFile(fullPath.c_str());
 	_resources[name] = ptr;
 	return ptr;
@@ -174,7 +161,7 @@ template<>
 std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 {
 	auto alloc = _resources.get_allocator();
-	auto fullPath = _assetDirectory + L"/" + name;
+	auto fullPath = directory + L"/" + name;
 	std::ifstream in(fullPath, std::ios::binary);
 	unsigned int pieces = 0;
 	size_t memorySize = 0;

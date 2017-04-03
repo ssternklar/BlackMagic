@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 #include "Renderer.h"
-#include "Projector.h"
 
 namespace BlackMagic {
 	class DX11Renderer : public Renderer
@@ -23,16 +22,18 @@ namespace BlackMagic {
 		virtual void OnResize(UINT width, UINT height) override;
 		virtual void Present(UINT interval, UINT flags) override;
 
-		ComPtr<ID3D11SamplerState> CreateSamplerState(D3D11_SAMPLER_DESC& desc);
-		virtual GraphicsBuffer CreateBuffer(GraphicsBuffer::BufferType desc, void* data, size_t bufferSize) override;
-		virtual void ModifyBuffer(GraphicsBuffer& buffer, GraphicsBuffer::BufferType bufferType, void* newData, size_t newBufferSize) override;
-		virtual void CleanupBuffer(GraphicsBuffer buffer);
-		virtual void Render(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight) override;
+		virtual Sampler CreateSampler() override;
+		Sampler CreateSampler(D3D11_SAMPLER_DESC desc);
+		virtual Buffer CreateBuffer(Buffer::Type desc, void* data, size_t bufferSize) override;
+		virtual void ModifyBuffer(Buffer& buffer, Buffer::Type bufferType, void* newData, size_t newBufferSize) override;
+		virtual void Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
+		virtual void Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight) override;
 		virtual void RenderSkybox(const Camera& cam) override;
-		virtual void Cull(const Camera& cam, ECS::World* gameWorld, std::vector<ECS::Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
-		virtual GraphicsTexture CreateTexture(byte* memory, size_t memorySize, GraphicsTexture::TextureType type) override;
-		virtual void ReleaseTexture(GraphicsTexture texture) override;
-		virtual void ReleaseRenderTarget(GraphicsRenderTarget renderTarget) override;
+		virtual Texture CreateTexture(BlackMagic::byte* data, size_t size, Texture::Type type, Texture::Usage usage) override;
+		virtual Texture CreateTexture(const TextureDesc& desc) override;
+		virtual void ReleaseResource(void* resource) override;
+		virtual void AddResourceRef(void* resource) override;
+
 	private:
 		ComPtr<ID3D11Device> _device;
 		ComPtr<ID3D11DeviceContext> _context;
@@ -43,8 +44,10 @@ namespace BlackMagic {
 
 		//Resources for deferred rendering	
 		ComPtr<ID3D11ShaderResourceView> _depthStencilTexture;
-		Texture* _diffuseMap;
-		Texture* _specularMap;
+		Texture* _albedoMap;
+		Texture* _roughnessMap;
+		Texture* _metalMap;
+		Texture* _cavityMap;
 		Texture* _normalMap; 
 		Texture* _positionMap;
 		Texture* _lightMap;
@@ -52,8 +55,10 @@ namespace BlackMagic {
 		std::shared_ptr<PixelShader> _lightPassPS;
 		std::shared_ptr<VertexShader> _fxaaVS;
 		std::shared_ptr<PixelShader> _fxaaPS;
-		ComPtr<ID3D11SamplerState> _gBufferSampler;
+		std::shared_ptr<PixelShader> _mergePS;
+		Sampler _gBufferSampler;
 		ComPtr<ID3D11Buffer> _quad;
+        std::shared_ptr<Texture> _cosLookup;
 
 		D3D_FEATURE_LEVEL _featureLevel;
 		UINT _width, _height;
@@ -62,7 +67,7 @@ namespace BlackMagic {
 		//Shadow mapping
 		std::shared_ptr<VertexShader> _shadowMapVS;
 		ComPtr<ID3D11RasterizerState> _shadowRS;
-		ComPtr<ID3D11SamplerState>_shadowSampler;
+		Sampler _shadowSampler;
 		DirectX::XMFLOAT4X4 _shadowMatrices[NUM_SHADOW_CASCADES];
 		DirectX::XMFLOAT4X4 _shadowViews[NUM_SHADOW_CASCADES];
 		DirectX::XMFLOAT4X4 _shadowProjections[NUM_SHADOW_CASCADES];
@@ -72,19 +77,21 @@ namespace BlackMagic {
 		//Skybox
 		std::shared_ptr<Mesh> _skybox;
 		std::shared_ptr<Cubemap> _skyboxTex;
+        std::shared_ptr<Cubemap> _skyboxEnvMap;
+        std::shared_ptr<Cubemap> _skyboxIrradiance;
 		std::shared_ptr<VertexShader> _skyboxVS;
 		std::shared_ptr<PixelShader> _skyboxPS;
-		ComPtr<ID3D11SamplerState> _skyboxSampler;
+		Sampler _skyboxSampler;
 		ComPtr<ID3D11DepthStencilState> _skyboxDS;
 		ComPtr<ID3D11RasterizerState> _skyboxRS;
 
 		//Projected Textures
 		std::shared_ptr<PixelShader> _projectionPS;
-		ComPtr<ID3D11SamplerState> _projectionSampler;
+		Sampler _projectionSampler;
 		ComPtr<ID3D11BlendState> _projectionBlend;
 
 		void InitBuffers();
 		Texture* createEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
-		void RenderShadowMaps(const Camera& cam, const std::vector<ECS::Entity*>& objects, const DirectionalLight& sceneLight);
+		void RenderShadowMaps(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight);
 	};
 }

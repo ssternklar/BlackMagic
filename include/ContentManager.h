@@ -14,9 +14,10 @@ using VertexShader = SimpleVertexShader;
 using PixelShader = SimplePixelShader;
 #endif
 
-using BlackMagic::IResource;
-using ContentAllocatorAdapter = BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, std::shared_ptr<IResource>>, BlackMagic::BestFitAllocator>;
-using ContentMap = std::unordered_map<std::wstring, std::shared_ptr<IResource>, std::hash<std::wstring>, std::equal_to<std::wstring>, ContentAllocatorAdapter>;
+using BlackMagic::Resource;
+using ValueType = std::shared_ptr<Resource>;
+using ContentAllocatorAdapter = BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, ValueType>, BlackMagic::BestFitAllocator>;
+using ContentMap = std::unordered_map<std::wstring, ValueType, std::hash<std::wstring>, std::equal_to<std::wstring>, ContentAllocatorAdapter>;
 namespace BlackMagic
 {
 	class Renderer;
@@ -62,7 +63,7 @@ namespace BlackMagic
 					}
 				}
 			}
-			throw "No file found";
+			assert(false, "No file found");
 		}
 
 		template<typename T>
@@ -82,19 +83,19 @@ namespace BlackMagic
 					}
 				}
 			}
-			throw "No file found";
+			assert(false, "No file found");
 		}
 
 		//for compatibility, will be removed later
 
 		template<typename T>
-		std::shared_ptr<T> Load(std::wstring str)
+		std::shared_ptr<T> Load(std::string str)
 		{
 			BestFitAllocator* allocLocal = _allocator;
-			T* retLocal = Load<T>((const char*)str.c_str());
-			std::shared_ptr<T> ret(retLocal, 
-				[allocLocal, retLocal](){
-				DestructAndDeallocate<BestFitAllocator, T>(allocLocal, retLocal, 1);
+			T* retLocal = Load<T>(str.c_str());
+			std::shared_ptr<T> ret(retLocal,
+				[allocLocal](T* foo) {
+				DestructAndDeallocate<BestFitAllocator, T>(allocLocal, foo, 1);
 			});
 			return ret;
 		}
@@ -103,5 +104,6 @@ namespace BlackMagic
 		{
 			return _allocator;
 		}
+		ContentAllocatorAdapter _adapter;
 	};
 }

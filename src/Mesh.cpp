@@ -10,6 +10,27 @@
 using namespace BlackMagic;
 using namespace DirectX;
 
+void OrthonormalizeTB(Vertex& v, XMVECTOR tO, XMVECTOR uO)
+{
+	XMVECTOR n = XMLoadFloat3(&v.Normal);
+	XMVECTOR t = tO - XMVector3Dot(tO, n)*n;
+	XMVECTOR u = uO - XMVector3Dot(uO, n)*n - XMVector3Dot(uO, t)*t;
+
+	XMVector3Normalize(t);
+	XMVector3Normalize(u);
+
+	if (XMVector3Dot(XMVector3Cross(n, t), u).m128_f32[0] < 0.0f)
+		XMVectorNegate(t);
+
+
+	XMFLOAT3 tangent, binormal;
+	XMStoreFloat3(&tangent, t);
+	XMStoreFloat3(&binormal, u);
+
+	v.Tangent = tangent;
+	v.Binormal = binormal;
+}
+
 void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 {
 	XMVECTOR p1 = XMLoadFloat3(&v1.Position);
@@ -28,51 +49,40 @@ void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 	XMVECTOR b = t3 - t1;
 
 	float det = 1 / (a.m128_f32[0] * b.m128_f32[1] - a.m128_f32[1] * b.m128_f32[0]);
-	XMVECTOR t = (x * b.m128_f32[1] - y*a.m128_f32[1])*det;
-	XMVECTOR u = (y*a.m128_f32[0] - x*b.m128_f32[0])*det;
+	XMVECTOR t = (x * b.m128_f32[1] - y * a.m128_f32[1])*det;
+	XMVECTOR u = (y * a.m128_f32[0] - x * b.m128_f32[0])*det;
 
-	t = t - XMVector3Dot(t, n)*n;
-	u = u - XMVector3Dot(u, n)*n - XMVector3Dot(u, t)*t;
-
-	XMVector3Normalize(t);
-	XMVector3Normalize(u);
-
-	XMFLOAT3 tangent, binormal;
-	XMStoreFloat3(&tangent, t);
-	XMStoreFloat3(&binormal, u);
-
-	v1.Tangent = v2.Tangent = v3.Tangent = tangent;
-	v1.Binormal = v2.Binormal = v3.Binormal = binormal;
+	OrthonormalizeTB(v1, t, u);
+	OrthonormalizeTB(v2, t, u);
+	OrthonormalizeTB(v3, t, u);
 }
 
-Mesh::Mesh() :
-	IResource(nullptr),
-	_vBuf(nullptr),
-	_iBuf(nullptr),
+Mesh::Mesh() : Resource(),
+	_vBuf(nullptr, nullptr),
+	_iBuf(nullptr, nullptr),
 	_numIndices(0)
 {}
 
 
-Mesh::Mesh(BlackMagic::byte* vertexData, int vertexCount, BlackMagic::byte* indexData, int indexCount, Renderer* device) : IResource(device)
+Mesh::Mesh(BlackMagic::byte* vertexData, int vertexCount, BlackMagic::byte* indexData, int indexCount, Renderer* device) 
+	: Resource()
 {
 	_numIndices = indexCount;
-	_vBuf = device->CreateBuffer(GraphicsBuffer::BufferType::VERTEX_BUFFER, vertexData, static_cast<UINT>(vertexCount * sizeof(Vertex)));
-	_iBuf = device->CreateBuffer(GraphicsBuffer::BufferType::INDEX_BUFFER, indexData, static_cast<UINT>(indexCount * sizeof(UINT)));
+	_vBuf = device->CreateBuffer(Buffer::Type::VERTEX_BUFFER, vertexData, static_cast<UINT>(vertexCount * sizeof(Vertex)));
+	_iBuf = device->CreateBuffer(Buffer::Type::INDEX_BUFFER, indexData, static_cast<UINT>(indexCount * sizeof(UINT)));
 }
 
 
 Mesh::~Mesh()
 {
-	device->CleanupBuffer(_vBuf);
-	device->CleanupBuffer(_iBuf);
 }
 
-GraphicsBuffer Mesh::VertexBuffer() const
+const Buffer& Mesh::VertexBuffer()
 {
 	return _vBuf;
 }
 
-GraphicsBuffer Mesh::IndexBuffer() const
+const Buffer& Mesh::IndexBuffer()
 {
 	return _iBuf;
 }
@@ -82,12 +92,11 @@ size_t Mesh::IndexCount() const
 	return _numIndices;
 }
 
-void Mesh::Set(GraphicsBuffer vertexBuffer, GraphicsBuffer indexBuffer, size_t numIndices)
+void Mesh::Set(const Buffer& vertexBuffer, const Buffer& indexBuffer, size_t numIndices)
 {
-	device->CleanupBuffer(_vBuf);
-	device->CleanupBuffer(_iBuf);
+	_vBuf.~Buffer();
+	_iBuf.~Buffer();
 	_vBuf = vertexBuffer;
 	_iBuf = indexBuffer;
 	_numIndices = numIndices;
 }
-

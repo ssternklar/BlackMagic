@@ -70,7 +70,7 @@ void TransformData::UpdateTransforms()
 	}
 }
 
-const DirectX::XMFLOAT4X4* TransformData::GetMatrix(TransformID id)
+DirectX::XMFLOAT4X4* TransformData::GetMatrix(TransformID id)
 {
 	return &_matrices[id];
 }

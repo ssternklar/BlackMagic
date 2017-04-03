@@ -1,14 +1,18 @@
 
-Texture2D mainTex : register(t0);
+Texture2D albedoMap : register(t0);
 Texture2D normalMap : register(t1);
-SamplerState mainSampler : register(s0);
+Texture2D roughnessMap : register(t2);
+Texture2D metalnessMap : register(t3);
+SamplerState mainSampler: register(s0);
 
 struct GBuffer
 {
-	float4 diffuse : SV_TARGET0;
-	float4 specular : SV_TARGET1;
-	float3 position : SV_TARGET2;
+	float4 albedo : SV_TARGET0;
+	float3 position : SV_TARGET1;
+	float roughness : SV_TARGET2;
 	float2 normal : SV_TARGET3;
+	float cavity : SV_TARGET4;
+	float metal : SV_TARGET5;
 };
 
 struct VertexToPixel
@@ -24,22 +28,23 @@ struct VertexToPixel
 GBuffer main(VertexToPixel input)
 {
 	GBuffer output;
-
-	output.diffuse = float4(mainTex.Sample(mainSampler, input.uv).rgb, 1.0);
-
+	output.albedo = float4(albedoMap.Sample(mainSampler, input.uv).rgb, 1.0);
 
 	float3x3 tbn = float3x3(
 		normalize(input.tangent), 
 		normalize(input.binormal), 
 		normalize(input.normal));
 	input.normal = normalMap.Sample(mainSampler, input.uv) * 2 - 1;
-	input.normal = normalize(mul(input.normal, tbn));
-	output.specular = float4(1, 1, 1, dot(input.normal.g, input.normal.g)*64);
+	input.normal = normalize(mul(normalize(input.normal), tbn));
 
 	float f = sqrt(2 / (1 - input.normal.z));
 	output.normal = input.normal.xy * f;
 
 	output.position = input.worldPos;
+
+	output.roughness = roughnessMap.Sample(mainSampler, input.uv);
+	output.cavity = 1.0f;
+	output.metal = metalnessMap.Sample(mainSampler, input.uv);
 
 	return output;
 }
