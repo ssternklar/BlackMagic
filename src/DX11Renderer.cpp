@@ -262,6 +262,9 @@ void DX11Renderer::Init(ContentManager* content)
 
 	_skybox = content->Load<Mesh>(L"/models/skybox.obj");
 	_skyboxTex = content->Load<Cubemap>(L"/textures/skybox_tex.dds");
+    _skyboxEnvMap = content->Load<Cubemap>(L"/textures/skybox_env_filter.dds");
+    _skyboxIrradiance = content->Load<Cubemap>(L"/textures/skybox_irradiance.dds");
+    _cosLookup = content->Load<Cubemap>(L"/textures/cosLUT.png");
 
 	//Load device-specific shaders
 	_lightPassVS = content->Load<VertexShader>(L"/shaders/QuadVS.cso");
@@ -594,6 +597,9 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetShaderResourceView("cavityMap", _cavityMap->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("shadowMap", _shadowMapSRV.Get());
 	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture.Get());
+    _lightPassPS->SetShaderResourceView("envMap", _skyboxEnvMap->GetShaderResource());
+    _lightPassPS->SetShaderResourceView("irradianceMap", _skyboxIrradiance->GetShaderResource());
+    _lightPassPS->SetShaderResourceView("cosLookup", _cosLookup->GetShaderResource());
 	_lightPassPS->CopyAllBufferData();
 
 	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
@@ -608,15 +614,15 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_context->OMGetBlendState(&oldBlendState, blendFac, &sampleMask);
 	_context->OMSetBlendState(_projectionBlend.Get(), blendFac, sampleMask);
 	_mergePS->SetShader();
-	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
-	_lightPassPS->SetShaderResourceView("albedoMap", _albedoMap->GetShaderResource());
-	_lightPassPS->SetShaderResourceView("roughnessMap", _roughnessMap->GetShaderResource());
-	_lightPassPS->SetShaderResourceView("positionMap", _positionMap->GetShaderResource());
-	_lightPassPS->SetShaderResourceView("normalMap", _normalMap->GetShaderResource());
-	_lightPassPS->SetShaderResourceView("metalnessMap", _metalMap->GetShaderResource());
-	_lightPassPS->SetShaderResourceView("cavityMap", _cavityMap->GetShaderResource());
-	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture.Get());
-	_lightPassPS->SetShaderResourceView("skybox", _skyboxTex->GetShaderResource());
+	_mergePS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
+	_mergePS->SetShaderResourceView("albedoMap", _albedoMap->GetShaderResource());
+	_mergePS->SetShaderResourceView("roughnessMap", _roughnessMap->GetShaderResource());
+	_mergePS->SetShaderResourceView("positionMap", _positionMap->GetShaderResource());
+	_mergePS->SetShaderResourceView("normalMap", _normalMap->GetShaderResource());
+	_mergePS->SetShaderResourceView("metalnessMap", _metalMap->GetShaderResource());
+	_mergePS->SetShaderResourceView("cavityMap", _cavityMap->GetShaderResource());
+	_mergePS->SetShaderResourceView("depth", _depthStencilTexture.Get());
+	_mergePS->SetShaderResourceView("skybox", _skyboxTex->GetShaderResource());
 	_mergePS->CopyAllBufferData();
 	_context->Draw(6, 0);
 	_context->OMSetBlendState(oldBlendState, blendFac, sampleMask);

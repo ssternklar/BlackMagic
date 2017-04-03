@@ -58,6 +58,7 @@ namespace BlackMagic {
 		std::shared_ptr<PixelShader> _mergePS;
 		Sampler _gBufferSampler;
 		ComPtr<ID3D11Buffer> _quad;
+        std::shared_ptr<Texture> _cosLookup;
 
 		D3D_FEATURE_LEVEL _featureLevel;
 		UINT _width, _height;
@@ -76,6 +77,8 @@ namespace BlackMagic {
 		//Skybox
 		std::shared_ptr<Mesh> _skybox;
 		std::shared_ptr<Cubemap> _skyboxTex;
+        std::shared_ptr<Cubemap> _skyboxEnvMap;
+        std::shared_ptr<Cubemap> _skyboxIrradiance;
 		std::shared_ptr<VertexShader> _skyboxVS;
 		std::shared_ptr<PixelShader> _skyboxPS;
 		Sampler _skyboxSampler;

@@ -48,6 +48,9 @@ Texture2D depth : register(t5);
 Texture2D metalnessMap : register(t6);
 Texture2D cavityMap : register(t7);
 TextureCube skybox : register(t8);
+TextureCube envMap : register(t9);
+TextureCube irradianceMap : register(t10);
+Texture2D cosLookup : register(t11);
 SamplerState mainSampler : register(s0);
 SamplerComparisonState shadowSampler : register(s1);
 
@@ -142,6 +145,13 @@ float3 SpecularIBL(float3 specColor, float r, float3 n, float3 v)
 	return specLighting / samples;
 }
 
+float3 ApproximateIBL(float3 specColor, float r, float3 n, float3 v)
+{
+    float nDotV = saturate(dot(n, v));
+    float3 dir = 2 * dot(n, v) * n - v;
+
+}
+
 float3 colorFromScenelight(GBuffer input)
 {
 	float3 v = normalize(cameraPosition - input.position);
@@ -154,7 +164,7 @@ float3 colorFromScenelight(GBuffer input)
 	float specIntensity = CT_BRDF(v, l, input.normal, input.roughness, f0);
 	float diffuseIntensity = 1 - specIntensity;
 
-	return saturate(dot(input.normal, l)) * (diffuseIntensity * DiffuseBRDF(diffuseColor) + specIntensity * SpecularIBL(specColor, input.roughness, input.normal, v));
+    return saturate(dot(input.normal, l)) * (diffuseIntensity * DiffuseBRDF(diffuseColor) + specIntensity * specColor);
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
