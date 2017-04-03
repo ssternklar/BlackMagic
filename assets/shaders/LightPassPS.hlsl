@@ -79,11 +79,11 @@ float SchlickGaussianF(float3 v, float3 h, float f0)
 	return f0 + (1 - f0)*pow(2, (-5.55473*vh - 6.98316)*vh);
 }
 
-float CT_BRDF(float3 v, float3 l, float3 n, float r, float m)
+float CT_BRDF(float3 v, float3 l, float3 n, float r, float f0)
 {
 	float3 h = normalize((l + v) / 2);
 	float D = GGX_TR_D(n, h, r);
-	float F = SchlickGaussianF(v, h, lerp(0.04, 0.5, m));
+	float F = SchlickGaussianF(v, h, f0);
 	float G = SchlickG(n, v, l, r);
 	return D * F * G / 4.0;
 }
@@ -135,7 +135,7 @@ float3 SpecularIBL(float3 specColor, float r, float3 n, float3 v)
 			float G = SchlickG(n, v, l, r);
 			float Fc = pow(1 - vDotH, 5);
 			float F = (1 - Fc) * specColor + Fc;
-			specLighting += sampleColor * F * G * vDotH / (nDotH * nDotV);
+			specLighting += sampleColor * F * G * vDotH / 4;
 		}
 	}
 
@@ -144,27 +144,17 @@ float3 SpecularIBL(float3 specColor, float r, float3 n, float3 v)
 
 float3 colorFromScenelight(GBuffer input)
 {
-	float3 ambient, diffuse;
-	ambient = diffuse = float3(0, 0, 0);
-
 	float3 v = normalize(cameraPosition - input.position);
-	
 	float3 l = -normalize(sceneLight.Direction);
-	float nDotL = saturate(dot(input.normal, l));
-	diffuse += nDotL * sceneLight.DiffuseColor.xyz;
+	
 
-	ambient += sceneLight.AmbientColor.xyz;
+	float3 diffuseColor = lerp(input.albedo.rgb, 0, input.metal);
+	float3 specColor = lerp(0.04, input.albedo.rgb, input.metal);
+	float f0 = lerp(0.04, length(input.albedo.rgb), input.metal);
+	float specIntensity = CT_BRDF(v, l, input.normal, input.roughness, f0);
+	float diffuseIntensity = 1 - specIntensity;
 
-	float3 texColor = input.albedo.rgb;
-	//return pow((ambient + diffuse)*texColor, 1 / 2.2);
-
-	float3 h = normalize((l + v) / 2);
-	float len = length(input.albedo);
-
-	float spec = CT_BRDF(v, l, input.normal, input.roughness, input.metal);
-	float diff = lerp(1 - spec, 0, input.metal);
-	return diff * DiffuseBRDF(input.albedo.rgb) + spec * input.albedo.rgb * SpecularIBL(input.albedo.rgb, input.roughness, input.normal, v);;
-
+	return saturate(dot(input.normal, l)) * (diffuseIntensity * DiffuseBRDF(diffuseColor) + specIntensity * SpecularIBL(specColor, input.roughness, input.normal, v));
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
