@@ -34,6 +34,7 @@ namespace BlackMagic
 		};
 		BlackMagic::BestFitAllocator* _allocator;
 		Renderer* renderer;
+		char* manifestStrings;
 		ManifestEntry* entries;
 		int entryCount;
 		const char* directory;
@@ -44,6 +45,8 @@ namespace BlackMagic
 	public:
 		ContentManager(Renderer* device, const char* assetDirectory, BlackMagic::BestFitAllocator* allocator);
 		~ContentManager();
+
+		void ProcessManifestFile(void* manifestFileLocation);
 
 		template<typename T>
 		T* Load(const char* resourceName)
@@ -79,7 +82,8 @@ namespace BlackMagic
 					}
 					else
 					{
-						return load_Internal(&entries[i]);
+						entries[i].resource = load_Internal<T>(&entries[i]);
+						return (T*)entries[i].resource;
 					}
 				}
 			}

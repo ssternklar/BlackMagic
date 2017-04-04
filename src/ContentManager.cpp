@@ -23,6 +23,36 @@ ContentManager::~ContentManager()
 {
 }
 
+struct Asset
+{
+	uint16_t uid;
+	uint16_t useCount;
+	uint16_t fileSize;
+	uint16_t filePathIndex;
+};
+
+struct ManifestFileHeader
+{
+	uint16_t numAssets;
+	uint16_t pathsSize;
+};
+
+void BlackMagic::ContentManager::ProcessManifestFile(void* manifestFileLocation)
+{
+	ManifestFileHeader* header = (ManifestFileHeader*)manifestFileLocation;
+	Asset* assets = (Asset*)&header[1];
+	char* firstString = ((char*)(assets + header->numAssets)) + 1;
+	manifestStrings = (char*)_allocator->allocate(header->pathsSize, 1);
+	memcpy_s(manifestStrings, header->pathsSize, firstString, header->pathsSize);
+	entries = _allocator->allocate<ManifestEntry>(header->numAssets);
+	for (int i = 0; i < header->numAssets; i++)
+	{
+		entries[i].resourceName = &manifestStrings[assets[i].filePathIndex];
+		entries[i].uid = assets[i].uid;
+		entries[i].size = assets[i].fileSize;
+	}
+}
+
 
 template<typename T>
 T* ContentManager::load_Internal(ManifestEntry* manifest)

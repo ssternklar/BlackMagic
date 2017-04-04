@@ -30,6 +30,7 @@ namespace BlackMagic
 		virtual bool ShouldExit() override;
 		virtual float GetDeltaTime() override;
 		virtual void ReturnSystemMemory(byte* memory) override;
+		virtual const char* GetAssetDirectory() override;
 		virtual bool ReadFileIntoMemory(char* fileName, byte* fileBuffer, size_t bufferSize) override;
 		virtual unsigned int GetFileSize(char* fileName) override;
 		static LRESULT CALLBACK WindowProc(

@@ -303,6 +303,11 @@ void WindowsPlatform::ReturnSystemMemory(BlackMagic::byte* memory)
 	}
 }
 
+const char * BlackMagic::WindowsPlatform::GetAssetDirectory()
+{
+	return "./assets/";
+}
+
 bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileBuffer, size_t bufferSize)
 {
 	std::ifstream file(fileName, std::ios::binary);

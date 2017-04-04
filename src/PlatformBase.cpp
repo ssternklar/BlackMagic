@@ -28,16 +28,27 @@ bool PlatformBase::BlackMagicInit()
 	BestFitAllocator* contentAllocator = new (contentMemory) BestFitAllocator(32, 1024 * 1024 * 256);
 
 	contentManager = allocatorAllocator->allocate<ContentManager>();
+
 	InitWindow();
 	InitPlatformRenderer();
 
 	contentManager = new (contentManager) ContentManager(
 		renderer,
-		(const char*)L"./assets/",
+		GetAssetDirectory(),
 		contentAllocator
 	);
 	
 	renderer->Init(contentManager);
+	
+	//Content manager manifest setup
+	char path[256];
+	memset(path, 0, 256);
+	strcpy_s(path, GetAssetDirectory());
+	strcat_s(path, "manifest.bm");
+	unsigned int fileSize = GetFileSize(path);
+	void* manifestFile = allocatorAllocator->allocate(fileSize, 1);
+	contentManager->ProcessManifestFile(manifestFile);
+	allocatorAllocator->deallocate(manifestFile, fileSize, 1);
 
 	InitPlatformAudioManager();
 	InitPlatformThreadManager();
