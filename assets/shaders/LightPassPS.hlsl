@@ -47,12 +47,13 @@ Texture2DArray shadowMap : register(t4);
 Texture2D depth : register(t5);
 Texture2D metalnessMap : register(t6);
 Texture2D cavityMap : register(t7);
-TextureCube skybox : register(t8);
-TextureCube envMap : register(t9);
-TextureCube irradianceMap : register(t10);
+TextureCube skyboxEnvMap : register(t8);
+TextureCube skyboxRadianceMap : register(t9);
+TextureCube skyboxIrradianceMap : register(t10);
 Texture2D cosLookup : register(t11);
 SamplerState mainSampler : register(s0);
 SamplerComparisonState shadowSampler : register(s1);
+SamplerState envSampler : register(s2);
 
 float3 DiffuseBRDF(float3 albedo)
 {
@@ -82,7 +83,7 @@ float SchlickGaussianF(float3 v, float3 h, float f0)
 	return f0 + (1 - f0)*pow(2, (-5.55473*vh - 6.98316)*vh);
 }
 
-float CT_BRDF(float3 v, float3 l, float3 n, float r, float f0)
+float3 CT_BRDF(float3 v, float3 l, float3 n, float r, float f0)
 {
 	float3 h = normalize((l + v) / 2);
 	float D = GGX_TR_D(n, h, r);
@@ -91,80 +92,35 @@ float CT_BRDF(float3 v, float3 l, float3 n, float r, float f0)
 	return D * F * G / 4.0;
 }
 
-//Magic from http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
-float2 Hammersley(uint i, uint n)
-{
-	return float2(float(i) / float(n), float(reversebits(i) * 2.3283064365386963e-10));
-}
-
-//UE4 IBL
-float3 ImportanceSampleGGX(float2 Xi, float r, float3 n)
-{
-	float a = pow(r, 2);
-
-	float phi = 2 * PI * Xi.x;
-	float cosTheta = sqrt((1 - Xi.y) / (1 + (a * a - 1) * Xi.y));
-	float sinTheta = sqrt(1 - cosTheta * cosTheta);
-
-	float3 h;
-	h.x = sinTheta * cos(phi);
-	h.y = sinTheta * sin(phi);
-	h.z = cosTheta;
-
-	float3 up = abs(n.z) < 0.999 ? float3(0, 0, 1) : float3(1, 0, 0);
-	float3 tx = normalize(cross(up, n));
-	float3 ty = cross(n, tx);
-	return tx * h.x + ty * h.y + n * h.z;
-}
-
-float3 SpecularIBL(float3 specColor, float r, float3 n, float3 v)
-{
-	float3 specLighting = 0;
-	const uint samples = 32;
-	for (uint i = 0; i < samples; i++)
-	{
-		float2 xi = Hammersley(i, samples);
-		float3 h = ImportanceSampleGGX(xi, r, n);
-		float3 l = 2 * dot(v, h) * h - v;
-
-		float nDotV = saturate(dot(n, v));
-		float nDotL = saturate(dot(n, l));
-		float nDotH = saturate(dot(n, h));
-		float vDotH = saturate(dot(v, h));
-
-		if (nDotL > 0)
-		{
-			float3 sampleColor = skybox.SampleLevel(mainSampler, l, 0).rgb;
-			float G = SchlickG(n, v, l, r);
-			float Fc = pow(1 - vDotH, 5);
-			float F = (1 - Fc) * specColor + Fc;
-			specLighting += sampleColor * F * G * vDotH / 4;
-		}
-	}
-
-	return specLighting / samples;
-}
-
 float3 ApproximateIBL(float3 specColor, float r, float3 n, float3 v)
 {
-    float nDotV = saturate(dot(n, v));
-    float3 dir = 2 * dot(n, v) * n - v;
-
+	float nDotV = saturate(dot(n, v));
+	float3 dir = 2 * dot(n, v) * n - v;
+	uint numLevels = 0;
+	uint _ = 0;
+	skyboxRadianceMap.GetDimensions(0, _, _, numLevels);
+	float2 brdf = cosLookup.Sample(mainSampler, float2(nDotV, r)).rg;
+	float3 filteredEnvColor = skyboxRadianceMap.SampleLevel(envSampler, dir, r * numLevels);
+	return filteredEnvColor * (specColor * brdf.r + brdf.g);
 }
 
 float3 colorFromScenelight(GBuffer input)
 {
 	float3 v = normalize(cameraPosition - input.position);
 	float3 l = -normalize(sceneLight.Direction);
-	
+	float3 dir = 2 * dot(input.normal, v) * input.normal - v;
 
 	float3 diffuseColor = lerp(input.albedo.rgb, 0, input.metal);
 	float3 specColor = lerp(0.04, input.albedo.rgb, input.metal);
-	float f0 = lerp(0.04, length(input.albedo.rgb), input.metal);
-	float specIntensity = CT_BRDF(v, l, input.normal, input.roughness, f0);
+	float specIntensity = CT_BRDF(v, l, input.normal, input.roughness, 0.5);
 	float diffuseIntensity = 1 - specIntensity;
 
-    return saturate(dot(input.normal, l)) * (diffuseIntensity * DiffuseBRDF(diffuseColor) + specIntensity * specColor);
+	float3 directDiffuse = DiffuseBRDF(diffuseColor) * diffuseIntensity;
+	float3 directSpecular = specColor * specIntensity;
+	float3 indirectDiffuse = DiffuseBRDF(skyboxIrradianceMap.Sample(envSampler, dir).rgb * diffuseColor);
+	float3 indirectSpecular = ApproximateIBL(specColor, input.roughness, input.normal, v);
+
+	return indirectSpecular + directSpecular; //pow(directDiffuse + directSpecular + indirectDiffuse + indirectSpecular, 1);
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals

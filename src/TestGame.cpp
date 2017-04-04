@@ -60,7 +60,7 @@ void TestGame::LoadContent()
 	mat.SetResource("normalMap", Material::ResourceStage::PS, sphereNormals, Material::ResourceStorageType::Static);
 	mat.SetResource("mainSampler", Material::ResourceStage::PS, sampler, Material::ResourceStorageType::Static);
 	
-	for(float y = 0; y < 11; y++)
+	for(float y = 0; y < 12; y++)
 	{
 		unsigned int metalness = 255;
 		XMVECTOR albedo = XMVectorSet(0, 0, 0, 1.0f);
@@ -135,7 +135,7 @@ void TestGame::LoadContent()
 
 		for (float x = 1; x < 12; x++)
 		{
-			unsigned int roughness = (x/ 11.0f) * 255;
+			unsigned int roughness = ((x-1.0f)/ 11.0f) * 255;
 			desc.InitialData = &roughness;
 			desc.Format = Texture::Format::R8_UNORM;
 			auto roughnessTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));
