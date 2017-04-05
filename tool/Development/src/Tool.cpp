@@ -25,6 +25,7 @@ Tool::Tool()
 	gui.sceneCreate = false;
 	gui.sceneIndex = -1;
 	gui.exitTool = false;
+	gui.exportPrompt = false;
 
 	CreateConsoleWindow(500, 120, 32, 120);
 }
@@ -154,7 +155,7 @@ void Tool::ScanEntities(float x, float y)
 
 		for (size_t j = 0; j < entity->mesh->faceCount; j += 3)
 		{
-			if (TriangleTests::Intersects(rayPosLocal, rayDirLocal, XMLoadFloat3(&verts[faces[j]].Position), XMLoadFloat3(&verts[faces[j + 1]].Position), XMLoadFloat3(&verts[faces[j + 2]].Position), distance))
+			if (TriangleTests::Intersects(rayPosLocal, rayDirLocal, XMLoadFloat3(&verts[faces[j]].position), XMLoadFloat3(&verts[faces[j + 1]].position), XMLoadFloat3(&verts[faces[j + 2]].position), distance))
 				if (distance < filterDistance)
 				{
 					filterDistance = distance;

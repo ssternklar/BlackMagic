@@ -51,7 +51,7 @@ void Tool::HelloGUI()
 		if (ImGui::BeginPopupModal("Invalid folder"))
 		{
 			ImGui::Text("The folder '%s' %s.", folder.c_str(), newButton ? "is not empty" : "does not contain a project");
-			if (ImGui::Button("OK", ImVec2(120, 0)))
+			if (ImGui::Button("OK", ImVec2(60, 0)))
 				ImGui::CloseCurrentPopup();
 
 			ImGui::EndPopup();
@@ -71,10 +71,11 @@ void Tool::InvokeGUI()
 		if (ImGui::BeginMenu("File"))
 		{
 			if (ImGui::MenuItem("Save"))
-			{
 				AssetManager::Instance().SaveProject();
-				printf("saved\n");
-			}
+
+			if (ImGui::MenuItem("Export"))
+				gui.exportPrompt = true;
+
 			ImGui::EndMenu();
 		}
 
@@ -137,6 +138,7 @@ void Tool::InvokeGUI()
 		ImGui::End();
 	}
 
+	PromptExport();
 	ExitToolGUI();
 }
 
@@ -161,7 +163,7 @@ void Tool::PromptImport()
 		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
 			ImGui::SetKeyboardFocusHere(0);
 
-		if (ImGui::InputText("", path, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Load", ImVec2(120, 0)))
+		if (ImGui::InputText("", path, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Load", ImVec2(60, 0)))
 		{
 			if (strnlen_s(path, 128) > 0)
 			{
@@ -176,13 +178,13 @@ void Tool::PromptImport()
 		if (ImGui::BeginPopupModal("Bad mesh path"))
 		{
 			ImGui::Text("The path '%s%s' is invalid.", MeshData::Instance().root.c_str(), path);
-			if (ImGui::Button("OK", ImVec2(120, 0)))
+			if (ImGui::Button("OK", ImVec2(60, 0)))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		if (ImGui::Button("Cancel", ImVec2(60, 0)))
 			ImGui::CloseCurrentPopup();
 		ImGui::EndPopup();
 	}
@@ -206,7 +208,7 @@ void Tool::PromptImport()
 		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
 			ImGui::SetKeyboardFocusHere(0);
 
-		if (ImGui::InputText("", name, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Create", ImVec2(120, 0)))
+		if (ImGui::InputText("", name, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Create", ImVec2(60, 0)))
 		{
 			if (strnlen_s(name, 128) > 0)
 			{
@@ -229,7 +231,7 @@ void Tool::PromptImport()
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		if (ImGui::Button("Cancel", ImVec2(60, 0)))
 			ImGui::CloseCurrentPopup();
 		ImGui::EndPopup();
 	}
@@ -263,6 +265,65 @@ void Tool::ExitToolGUI()
 		if (ImGui::Button("Cancel", ImVec2(60, 0)))
 			ImGui::CloseCurrentPopup();
 
+		ImGui::EndPopup();
+	}
+}
+
+// TODO support scene selection
+void Tool::PromptExport()
+{
+	if (gui.exportPrompt)
+	{
+		ImGui::OpenPopup("Export your project");
+		gui.exportPrompt = false;
+	}
+
+	if (ImGui::BeginPopupModal("Export your project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Name your export please:\n");
+		ImGui::Separator();
+
+		static char name[128] = "";
+		static bool exported = false;
+		
+		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+			ImGui::SetKeyboardFocusHere(0);
+
+		if (ImGui::InputText("", name, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Export", ImVec2(60, 0)))
+		{
+			if (strnlen_s(name, 128) > 0)
+			{
+				if (AssetManager::Instance().Export(name, false))
+					ImGui::CloseCurrentPopup();
+				else
+					ImGui::OpenPopup("Export already exists");
+			}
+		}
+
+		if (exported)
+		{
+			ImGui::CloseCurrentPopup();
+			exported = false;
+		}
+
+		if (ImGui::BeginPopupModal("Export already exists"))
+		{
+			if (ImGui::Button("Overwrite", ImVec2(90, 0)))
+			{
+				exported = AssetManager::Instance().Export(name, true);
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", ImVec2(60, 0)))
+				ImGui::CloseCurrentPopup();
+
+			ImGui::EndPopup();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(60, 0)))
+			ImGui::CloseCurrentPopup();
 		ImGui::EndPopup();
 	}
 }

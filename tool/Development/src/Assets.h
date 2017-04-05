@@ -13,10 +13,11 @@ struct Asset
 	typename T::Handle handle;
 	std::string path;
 	std::string name;
+	bool operator==(const Asset<T>& other) const { return handle == other.handle; }
+	bool operator!=(const Asset<T>& other) const { return handle != other.handle; }
+	bool operator<(const Asset<T>& other) const { return handle < other.handle; }
 };
 
-// TODO
-// better tracking data to reduce loops and lookups would be great
 template<class T>
 struct Tracker
 {
@@ -63,6 +64,7 @@ public:
 	bool CreateProject(std::string folder);
 	bool LoadProject(std::string folder);
 	void SaveProject();
+	bool Export(std::string name, bool force);
 
 	DefaultAssets defaults;
 

@@ -15,6 +15,7 @@ struct GuiData
 	bool sceneCreate;
 	int sceneIndex;
 	bool exitTool;
+	bool exportPrompt;
 };
 
 class Tool
@@ -44,6 +45,7 @@ private:
 	void ExitToolGUI();
 	void InvokeGUI();
 	void PromptImport();
+	void PromptExport();
 	GuiData gui;
 };
 

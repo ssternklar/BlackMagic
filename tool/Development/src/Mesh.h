@@ -10,11 +10,11 @@
 
 struct Vertex
 {
-	DirectX::XMFLOAT3 Position;
-	DirectX::XMFLOAT3 Normal;
-	DirectX::XMFLOAT3 Tangent;
-	DirectX::XMFLOAT3 Bitangent;
-	DirectX::XMFLOAT3 UV;
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 normal;
+	DirectX::XMFLOAT3 tangent;
+	DirectX::XMFLOAT3 bitangent;
+	DirectX::XMFLOAT2 uv;
 };
 
 struct Mesh
@@ -40,6 +40,7 @@ public:
 	Handle Get(std::string modelPath);
 	void Revoke(Handle handle);
 
+	void Export(std::string path, Handle handle);
 	Handle LoadMesh(std::string modelPath);
 	const std::string root = "assets/models/";
 

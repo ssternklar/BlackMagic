@@ -4,6 +4,9 @@
 
 #include "Mesh.h"
 #include "Assets.h"
+#include "FileFormats.h"
+#include "FileUtil.h"
+#include "StringManip.h"
 
 MeshData::~MeshData()
 {
@@ -81,11 +84,11 @@ MeshData::Handle MeshData::LoadMesh(std::string modelPath)
 
 		for (size_t i = 0; i < mesh->mNumVertices; ++i)
 		{
-			h->verts[vertOffset + i].Position = DirectX::XMFLOAT3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-			h->verts[vertOffset + i].Normal = DirectX::XMFLOAT3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-			h->verts[vertOffset + i].Tangent = DirectX::XMFLOAT3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
-			h->verts[vertOffset + i].Bitangent = DirectX::XMFLOAT3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
-			h->verts[vertOffset + i].UV = DirectX::XMFLOAT3(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y, mesh->mTextureCoords[0][i].z);
+			h->verts[vertOffset + i].position = DirectX::XMFLOAT3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+			h->verts[vertOffset + i].normal = DirectX::XMFLOAT3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+			h->verts[vertOffset + i].tangent = DirectX::XMFLOAT3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+			h->verts[vertOffset + i].bitangent = DirectX::XMFLOAT3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+			h->verts[vertOffset + i].uv = DirectX::XMFLOAT2(mesh->mTextureCoords[0][i].x, 1 - mesh->mTextureCoords[0][i].y);
 		}
 
 		for (size_t i = 0; i < mesh->mNumFaces; ++i)
@@ -99,8 +102,8 @@ MeshData::Handle MeshData::LoadMesh(std::string modelPath)
 		faceOffset += mesh->mNumFaces * 3;
 	}
 
-	DirectX::BoundingOrientedBox::CreateFromPoints(h->obb, h->vertCount, &h->verts[0].Position, sizeof(Vertex));
-	DirectX::BoundingSphere::CreateFromPoints(h->sphere, h->vertCount, &h->verts[0].Position, sizeof(Vertex));
+	DirectX::BoundingOrientedBox::CreateFromPoints(h->obb, h->vertCount, &h->verts[0].position, sizeof(Vertex));
+	DirectX::BoundingSphere::CreateFromPoints(h->sphere, h->vertCount, &h->verts[0].position, sizeof(Vertex));
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -140,4 +143,68 @@ void MeshData::Revoke(Handle handle)
 
 	AssetManager::Instance().StopTrackingAsset<MeshData>(handle);
 	ProxyHandler::Revoke(handle);
+}
+
+void MeshData::Export(std::string path, Handle handle)
+{
+	FileUtil::CreateDirectoryRecursive(path);
+
+	FILE* meshFile;
+	fopen_s(&meshFile, path.c_str(), "wb");
+	if (!meshFile)
+	{
+		printf("Failed to write mesh file '%s'", path.c_str());
+		return;
+	}
+
+	Export::Mesh::File fileData;
+
+	// meta
+	fileData.blockCount = 3;
+	
+	fileData.boundsMeta.offsetInBytes = sizeof(Export::Mesh::File::blockCount) + sizeof(Export::Mesh::Block) * fileData.blockCount;
+	fileData.boundsMeta.sizeInBytes = sizeof(Export::Mesh::Bounds);
+	fileData.boundsMeta.elementCount = 1;
+	fileData.boundsMeta.elementSize = sizeof(Export::Mesh::Bounds);
+
+	fileData.vertexMeta.offsetInBytes = fileData.boundsMeta.offsetInBytes + fileData.boundsMeta.sizeInBytes;
+	fileData.vertexMeta.sizeInBytes = (uint16_t)(sizeof(Export::Mesh::Vertex) * handle->vertCount);
+	fileData.vertexMeta.elementCount = (uint16_t)handle->vertCount;
+	fileData.vertexMeta.elementSize = sizeof(Export::Mesh::Vertex);
+
+	fileData.indexMeta.offsetInBytes = fileData.vertexMeta.offsetInBytes + fileData.vertexMeta.sizeInBytes;
+	fileData.indexMeta.sizeInBytes = (uint16_t)(sizeof(uint16_t) * handle->faceCount);
+	fileData.indexMeta.elementCount = (uint16_t)handle->faceCount;
+	fileData.indexMeta.elementSize = sizeof(uint16_t);
+
+	fwrite(&fileData.blockCount, sizeof(uint8_t), 1, meshFile);
+	fwrite(&fileData.boundsMeta.offsetInBytes, sizeof(Export::Mesh::Block), fileData.blockCount, meshFile);
+
+	// bounds
+	Export::Mesh::Bounds bounds = {};
+	memcpy_s(&bounds.obbCenter[0], sizeof(float) * 3, &handle->obb.Center.x, sizeof(DirectX::XMFLOAT3));
+	memcpy_s(&bounds.halfSize[0], sizeof(float) * 3, &handle->obb.Extents.x, sizeof(DirectX::XMFLOAT3));
+	memcpy_s(&bounds.sphere[0], sizeof(float) * 3, &handle->sphere.Center.x, sizeof(DirectX::XMFLOAT3));
+	memcpy_s(&bounds.sphere[3], sizeof(float), &handle->sphere.Radius, sizeof(float));
+
+	fwrite(&bounds.obbCenter[0], sizeof(Export::Mesh::Bounds), 1, meshFile);
+
+	// vertices
+	Export::Mesh::Vertex vert = {};
+	size_t i;
+	for (i = 0; i < handle->vertCount; ++i)
+	{
+		memcpy_s(&vert.position, sizeof(float) * 3, &handle->verts[i].position.x, sizeof(DirectX::XMFLOAT3));
+		memcpy_s(&vert.normal, sizeof(float) * 3, &handle->verts[i].normal.x, sizeof(DirectX::XMFLOAT3));
+		memcpy_s(&vert.tangent, sizeof(float) * 3, &handle->verts[i].tangent.x, sizeof(DirectX::XMFLOAT3));
+		memcpy_s(&vert.biTangent, sizeof(float) * 3, &handle->verts[i].bitangent.x, sizeof(DirectX::XMFLOAT3));
+		memcpy_s(&vert.uv, sizeof(float) * 2, &handle->verts[i].uv.x, sizeof(DirectX::XMFLOAT2));
+
+		fwrite(&vert.position[0], sizeof(Export::Mesh::Vertex), 1, meshFile);
+	}
+
+	// write indexes
+	fwrite(&handle->faces[0], sizeof(uint32_t), handle->faceCount, meshFile);
+
+	fclose(meshFile);
 }
