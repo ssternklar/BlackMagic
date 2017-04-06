@@ -98,8 +98,8 @@ namespace BlackMagic
 			BestFitAllocator* allocLocal = _allocator;
 			T* retLocal = Load<T>(str.c_str());
 			std::shared_ptr<T> ret(retLocal,
-				[allocLocal](T* foo) {
-				DestructAndDeallocate<BestFitAllocator, T>(allocLocal, foo, 1);
+				[=](T* foo) {
+				DestructAndDeallocate<BestFitAllocator, T>(allocLocal, retLocal, 1);
 			});
 			return ret;
 		}

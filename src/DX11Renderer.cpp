@@ -260,7 +260,7 @@ void DX11Renderer::Init(ContentManager* content)
 
 	_device->CreateBuffer(&vbDesc, &vbData, _quad.ReleaseAndGetAddressOf());
 
-	_skybox = content->Load<Mesh>(std::string("/models/skybox.obj"));
+	_skybox = content->Load<Mesh>(std::string("/models/skybox.bmmesh"));
 	_skyboxTex = content->Load<Cubemap>(std::string("/textures/skybox_tex.dds"));
     _skyboxEnvMap = content->Load<Cubemap>(std::string("/textures/skybox_env_filter.dds"));
     _skyboxIrradiance = content->Load<Cubemap>(std::string("/textures/skybox_irradiance.dds"));

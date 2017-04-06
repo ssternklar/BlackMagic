@@ -70,7 +70,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		as.fileSize = FileSize(fullPath);
 		strings.push_back(line);
 		assets.push_back(as);
-		index += fullPath.size() + 1;
+		index += line.size() + 1;
 		uid++;
 	}
 

@@ -334,12 +334,10 @@ bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileB
 
 unsigned int BlackMagic::WindowsPlatform::GetFileSize(char* fileName)
 {
-	std::ifstream file(fileName, std::ios::binary);
+	std::ifstream file(fileName, std::ios::binary | std::ios::ate);
 	if(file.is_open())
 	{
-		file.seekg(file.end);
 		unsigned int fileLength = file.tellg();
-		file.seekg(file.beg);
 		return fileLength;
 	}
 	return 0;

@@ -75,7 +75,7 @@ namespace BlackMagic
 
 		explicit Texture(BlackMagic::Renderer* device, ResourceHandle* tex, ShaderResource* srView, RenderTarget* rtView);
 		Texture(const Texture& t);
-		~Texture();
+		virtual ~Texture();
 
 		ShaderResource* GetShaderResource() const;
 		RenderTarget* GetRenderTarget() const;

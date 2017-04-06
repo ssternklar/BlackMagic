@@ -38,7 +38,6 @@ bool PlatformBase::BlackMagicInit()
 		contentAllocator
 	);
 	
-	renderer->Init(contentManager);
 	
 	//Content manager manifest setup
 	char path[256];
@@ -46,10 +45,12 @@ bool PlatformBase::BlackMagicInit()
 	strcpy_s(path, GetAssetDirectory());
 	strcat_s(path, "manifest.bm");
 	unsigned int fileSize = GetFileSize(path);
-	void* manifestFile = allocatorAllocator->allocate(fileSize, 1);
+	BlackMagic::byte* manifestFile = (byte*)allocatorAllocator->allocate(fileSize, 1);
+	ReadFileIntoMemory(path, manifestFile, fileSize);
 	contentManager->ProcessManifestFile(manifestFile);
 	allocatorAllocator->deallocate(manifestFile, fileSize, 1);
 
+	renderer->Init(contentManager);
 	InitPlatformAudioManager();
 	InitPlatformThreadManager();
 

@@ -7,6 +7,7 @@
 /models/sphere.obj
 /models/torus.obj
 /shaders/FinalMerge.hlsl
+/shaders/FinalMerge.cso
 /shaders/FXAA_PS.cso
 /shaders/FXAA_PS.hlsl
 /shaders/FXAA_VS.cso
@@ -22,6 +23,7 @@
 /shaders/ProjectorPS.cso
 /shaders/ProjectorPS.hlsl
 /shaders/QuadVS.hlsl
+/shaders/QuadVS.cso
 /shaders/ShadowMapVS.cso
 /shaders/ShadowMapVS.hlsl
 /shaders/SkyboxPS.cso

@@ -26,22 +26,22 @@ ContentManager::~ContentManager()
 struct Asset
 {
 	uint16_t uid;
-	uint16_t useCount;
 	uint16_t fileSize;
 	uint16_t filePathIndex;
 };
 
 struct ManifestFileHeader
 {
-	uint16_t numAssets;
 	uint16_t pathsSize;
+	uint16_t numAssets;
+	uint32_t reserved[2];
 };
 
 void BlackMagic::ContentManager::ProcessManifestFile(void* manifestFileLocation)
 {
 	ManifestFileHeader* header = (ManifestFileHeader*)manifestFileLocation;
 	Asset* assets = (Asset*)&header[1];
-	char* firstString = ((char*)(assets + header->numAssets)) + 1;
+	char* firstString = (char*)(assets + header->numAssets);
 	manifestStrings = (char*)_allocator->allocate(header->pathsSize, 1);
 	memcpy_s(manifestStrings, header->pathsSize, firstString, header->pathsSize);
 	entries = _allocator->allocate<ManifestEntry>(header->numAssets);
@@ -51,6 +51,7 @@ void BlackMagic::ContentManager::ProcessManifestFile(void* manifestFileLocation)
 		entries[i].uid = assets[i].uid;
 		entries[i].size = assets[i].fileSize;
 	}
+	entryCount = header->numAssets;
 }
 
 
@@ -84,10 +85,28 @@ if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, manifest->size)
 
 struct MeshHeader
 {
-	int offsetToVertexData;
-	int vertexDataCount;
-	int offsetToIndexData;
-	int indexDataCount;
+	struct Bounds
+	{
+		float obbCenter[3];
+		float emptyCenter;
+		float halfSize[3];
+		float emptySize;
+		float sphere[4];
+	};
+
+	struct Block
+	{
+		uint16_t offsetInBytes;
+		uint16_t sizeInBytes;
+		uint16_t elementCount;
+		uint16_t elementSize;
+	};
+
+	uint8_t blockCount;
+	Block boundsMeta;
+	Block vertexMeta;
+	Block indexMeta;
+	Bounds bounds;
 };
 
 template<>
@@ -95,7 +114,7 @@ Mesh* ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	LOAD_FILE(meshSpace);
 	MeshHeader* header = (MeshHeader*)meshSpace;
-	Mesh* ret = AllocateAndConstruct<BestFitAllocator, Mesh>(_allocator, 1, &meshSpace[header->offsetToVertexData], header->vertexDataCount, &meshSpace[header->offsetToIndexData], header->indexDataCount, renderer);
+	Mesh* ret = AllocateAndConstruct<BestFitAllocator, Mesh>(_allocator, 1, &meshSpace[header->vertexMeta.offsetInBytes], header->vertexMeta.elementCount, &meshSpace[header->indexMeta.offsetInBytes], header->indexMeta.elementCount, renderer);
 	UNLOAD_FILE(meshSpace);
 	return ret;
 	
@@ -105,16 +124,20 @@ template<>
 Texture* ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	LOAD_FILE(textureSpace);
-	Texture tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::FLAT_2D, Texture::Usage::READ);
+	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
+	*tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::FLAT_2D, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
+	return tex;
 }
 
 template<>
 Cubemap* ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	LOAD_FILE(textureSpace);
-	Texture tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::CUBEMAP, Texture::Usage::READ);
+	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
+	*tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::CUBEMAP, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
+	return (Cubemap*)tex;
 }
 
 /*template<>
@@ -134,10 +157,13 @@ VertexShader* ContentManager::load_Internal(ManifestEntry* manifest)
 	memset(path, 0, 256);
 	strcpy_s(path, directory);
 	strcat_s(path, manifest->resourceName);
+	wchar_t widePath[256];
+	size_t size = 0;
+	mbstowcs_s(&size, widePath, path, 256);
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
 	auto ptr = AllocateAndConstruct<BestFitAllocator, VertexShader>(_allocator, 1, device.Get(), context.Get());
-	ptr->LoadShaderFile((LPCWSTR)path);
+	ptr->LoadShaderFile(widePath);
 	manifest->resource = ptr;
 	return ptr;
 }
@@ -149,10 +175,13 @@ PixelShader* ContentManager::load_Internal(ManifestEntry* manifest)
 	memset(path, 0, 256);
 	strcpy_s(path, directory);
 	strcat_s(path, manifest->resourceName);
+	wchar_t widePath[256];
+	size_t size = 0;
+	mbstowcs_s(&size, widePath, path, 256);
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
 	auto ptr = AllocateAndConstruct<BestFitAllocator, PixelShader>(_allocator, 1, device.Get(), context.Get());
-	ptr->LoadShaderFile((LPCWSTR)path);
+	ptr->LoadShaderFile(widePath);
 	manifest->resource = ptr;
 	return ptr;
 }
