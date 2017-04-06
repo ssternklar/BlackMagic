@@ -38,7 +38,7 @@ namespace BlackMagic
 				storage = buffer;
 			}
 
-			byte alignmentIssues = (reinterpret_cast<size_t>(storage) & (alignment - 1));
+			byte alignmentIssues = (byte)(reinterpret_cast<size_t>(storage) & (alignment - 1));
 			size -= alignmentIssues;
 			storage += alignmentIssues;
 

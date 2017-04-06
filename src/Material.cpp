@@ -228,15 +228,15 @@ void Material::UploadData(std::string name, const ResourceData& dat) const
 	{
 	case ResourceType::Data:
 		if (s & ResourceStage::VS)
-			_vertShader->SetData(name, dat.data, dat.size);
+			_vertShader->SetData(name, dat.data, (uint32_t)dat.size);
 		if (s & ResourceStage::PS)
-			_pixelShader->SetData(name, dat.data, dat.size);
+			_pixelShader->SetData(name, dat.data, (uint32_t)dat.size);
 		if (_hullShader && s & ResourceStage::HS)
-			_hullShader->SetData(name, dat.data, dat.size);
+			_hullShader->SetData(name, dat.data, (uint32_t)dat.size);
 		if (_domainShader && s & ResourceStage::DS)
-			_domainShader->SetData(name, dat.data, dat.size);
+			_domainShader->SetData(name, dat.data, (uint32_t)dat.size);
 		if (_geometryShader && s & ResourceStage::GS)
-			_geometryShader->SetData(name, dat.data, dat.size);
+			_geometryShader->SetData(name, dat.data, (uint32_t)dat.size);
 		break;
 	case ResourceType::Sampler:
 		if (s & ResourceStage::VS)
@@ -271,7 +271,7 @@ size_t Material::GetTotalResourceMem(ISimpleShader* shader)
 	size_t srvs = shader->GetShaderResourceViewCount() * sizeof(std::shared_ptr<Texture>);
 	size_t samplers = shader->GetSamplerCount() * sizeof(Sampler);
 
-	for (int i = 0; i < shader->GetBufferCount(); i++)
+	for (unsigned int i = 0; i < shader->GetBufferCount(); i++)
 	{
 		buffers += shader->GetBufferSize(i);
 	}

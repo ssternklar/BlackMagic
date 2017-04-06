@@ -108,7 +108,7 @@ Buffer DX11Renderer::CreateBuffer(Buffer::Type bufferType, void* data, size_t bu
 {
 	D3D11_BUFFER_DESC desc = {};
 	desc.BindFlags = bufferType == Buffer::Type::VERTEX_BUFFER ? D3D11_BIND_VERTEX_BUFFER : D3D11_BIND_INDEX_BUFFER;
-	desc.ByteWidth = bufferSize;
+	desc.ByteWidth = (UINT)bufferSize;
 	desc.Usage = D3D11_USAGE_IMMUTABLE;
 
 	D3D11_SUBRESOURCE_DATA dat = {};
@@ -476,7 +476,7 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 			_shadowMapVS->CopyBufferData("PerInstance");
 			_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
 			_context->IASetIndexBuffer(iBuf, DXGI_FORMAT_R32_UINT, 0);
-			_context->DrawIndexed(mesh->IndexCount(), 0, 0);
+			_context->DrawIndexed((UINT)mesh->IndexCount(), 0, 0);
 		}
 
 		//Reset to old viewport and default rasterizer state
@@ -669,7 +669,7 @@ void DX11Renderer::RenderSkybox(const Camera& cam)
 	auto vBuf = _skybox->VertexBuffer().As<BufferHandle>();
 	_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
 	_context->IASetIndexBuffer(_skybox->IndexBuffer().As<BufferHandle>(), DXGI_FORMAT_R32_UINT, 0);
-	_context->DrawIndexed(_skybox->IndexCount(), 0, 0);
+	_context->DrawIndexed((UINT)_skybox->IndexCount(), 0, 0);
 
 	//Reset the DS and RS states
 	_context->OMSetDepthStencilState(lastDepthState, lastStencilRef);
@@ -1180,7 +1180,7 @@ void DX11Renderer::InitBuffers()
 		shadowDS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 		shadowDS.Texture2DArray.MipSlice = 0;
 		shadowDS.Texture2DArray.ArraySize = 1;
-		shadowDS.Texture2DArray.FirstArraySlice = i;
+		shadowDS.Texture2DArray.FirstArraySlice = (UINT)i;
 		_device->CreateDepthStencilView(smDepth, &shadowDS, _shadowMapDSVs[i].ReleaseAndGetAddressOf());
 	}
 

@@ -30,5 +30,3 @@ namespace BlackMagic
 		operator SamplerHandle*() { return static_cast<SamplerHandle*>(_resource); }
 	};
 }
-
-#undef _BM_GRAPHICS_TYPE_INFO(X)

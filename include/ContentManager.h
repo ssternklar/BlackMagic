@@ -66,7 +66,8 @@ namespace BlackMagic
 					}
 				}
 			}
-			assert(false, "No file found");
+			assert(false); // No file found
+			return nullptr;
 		}
 
 		template<typename T>
@@ -87,7 +88,8 @@ namespace BlackMagic
 					}
 				}
 			}
-			assert(false, "No file found");
+			assert(false); // No file found
+			return nullptr;
 		}
 
 		//for compatibility, will be removed later

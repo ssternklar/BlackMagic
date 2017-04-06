@@ -106,7 +106,7 @@ public:
 
 	unsigned int GetShaderResourceViewCount()
 	{
-		return textureTable.size();
+		return (unsigned int)textureTable.size();
 	}
 
 	const SimpleSampler* GetSamplerInfo(std::string name);
@@ -114,7 +114,7 @@ public:
 
 	unsigned int GetSamplerCount()
 	{
-		return samplerTable.size();
+		return (unsigned int)samplerTable.size();
 	}
 
 	// Get data about constant buffers

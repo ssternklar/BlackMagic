@@ -147,7 +147,7 @@ bool WindowsPlatform::InitWindow()
 		// If the class exists, that's actually fine.  Otherwise,
 		// we can't proceed with the next step.
 		if (error != ERROR_CLASS_ALREADY_EXISTS)
-			return HRESULT_FROM_WIN32(error);
+			return (bool)HRESULT_FROM_WIN32(error);
 	}
 
 	// Adjust the width and height so the "client size" matches
@@ -225,12 +225,12 @@ void WindowsPlatform::InputUpdate()
 	lastMousePos.y = currentMousePos.y;
 
 	//Some of this occurs in windowproc
-	inputData.SetButton(3, KEYPRESSED('W'));
-	inputData.SetButton(4, KEYPRESSED('A'));
-	inputData.SetButton(5, KEYPRESSED('S'));
-	inputData.SetButton(6, KEYPRESSED('D'));
-	inputData.SetButton(7, KEYPRESSED(' '));
-	inputData.SetButton(15, KEYPRESSED(VK_ESCAPE));
+	inputData.SetButton(3, (bool)KEYPRESSED('W'));
+	inputData.SetButton(4, (bool)KEYPRESSED('A'));
+	inputData.SetButton(5, (bool)KEYPRESSED('S'));
+	inputData.SetButton(6, (bool)KEYPRESSED('D'));
+	inputData.SetButton(7, (bool)KEYPRESSED(' '));
+	inputData.SetButton(15, (bool)KEYPRESSED(VK_ESCAPE));
 }
 
 bool BlackMagic::WindowsPlatform::ShouldExit()
@@ -314,7 +314,7 @@ bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileB
 	if (file.is_open())
 	{
 		file.seekg(file.end);
-		int fileLength = file.tellg();
+		int fileLength = (int)file.tellg();
 		file.seekg(file.beg);
 #ifdef DEBUG
 		if (fileLength > bufferSize)
@@ -337,7 +337,7 @@ unsigned int BlackMagic::WindowsPlatform::GetFileSize(char* fileName)
 	std::ifstream file(fileName, std::ios::binary | std::ios::ate);
 	if(file.is_open())
 	{
-		unsigned int fileLength = file.tellg();
+		unsigned int fileLength = (unsigned int)file.tellg();
 		return fileLength;
 	}
 	return 0;

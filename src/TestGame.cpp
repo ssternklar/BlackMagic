@@ -133,7 +133,7 @@ void TestGame::LoadContent()
 
 		for (float x = 1; x < 12; x++)
 		{
-			unsigned int roughness = (x/ 11.0f) * 255;
+			unsigned int roughness = (uint32_t)((x/ 11.0f) * 255);
 			desc.InitialData = &roughness;
 			desc.Format = Texture::Format::R8_UNORM;
 			auto roughnessTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));

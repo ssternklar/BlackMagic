@@ -21,5 +21,3 @@ namespace BlackMagic
 		_BM_HANDLE_TYPE_INFO(AudioFile)
 	};
 }
-
-#undef _BM_HANDLE_TYPE_INFO(X)
