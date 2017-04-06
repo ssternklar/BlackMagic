@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\dear imgui">
+      <UniqueIdentifier>{a6bb48be-31c9-474f-b9a0-97cde6f17dcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\dear imgui">
+      <UniqueIdentifier>{511b6194-8ad2-45ec-9aab-401a12adaa10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\systems">
+      <UniqueIdentifier>{be0cad34-870e-4d66-ae7d-f8dbf9fa8dcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\data">
+      <UniqueIdentifier>{59489590-5962-4a9f-8125-9e7f56ba6059}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\systems">
+      <UniqueIdentifier>{19dbcffa-1fdf-414c-a69c-9e9c09ed51ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\data">
+      <UniqueIdentifier>{87e36b5f-db0e-42dc-8713-00288924b41e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\util">
+      <UniqueIdentifier>{0fe599ca-4a22-463e-b4b7-acc3d8cff532}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{c8efee94-adda-43f6-88be-c53c395aeee2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\dear imgui\imgui.cpp">
+      <Filter>Source Files\dear imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dear imgui\imgui_demo.cpp">
+      <Filter>Source Files\dear imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dear imgui\imgui_draw.cpp">
+      <Filter>Source Files\dear imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dear imgui\imgui_impl_dx11.cpp">
+      <Filter>Source Files\dear imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>Source Files\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics.cpp">
+      <Filter>Source Files\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI.cpp">
+      <Filter>Source Files\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input.cpp">
+      <Filter>Source Files\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Source Files\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Tool.cpp">
+      <Filter>Source Files\systems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assets.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Entity.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Shaders.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Transform.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SimpleShader.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileUtil.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringManip.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\dear imgui\imconfig.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\imgui.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\imgui_internal.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\stb_rect_pack.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\stb_textedit.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\stb_truetype.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dear imgui\imgui_impl_dx11.h">
+      <Filter>Header Files\dear imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input.h">
+      <Filter>Header Files\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Tool.h">
+      <Filter>Header Files\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics.h">
+      <Filter>Header Files\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.h">
+      <Filter>Header Files\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Transform.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Assets.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Entity.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Shaders.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Patterns.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PointerProxy.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SimpleShader.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileUtil.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StringManip.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileFormats.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="tool.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="default assets\defaultMesh.crap">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>
