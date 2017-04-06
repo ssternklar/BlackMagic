@@ -7,18 +7,6 @@
 #include "Graphics.h"
 #include "Mesh.h"
 
-std::string getPath(std::string currentPath)
-{
-	size_t found = currentPath.find_last_of("/\\");
-	return currentPath.substr(0, found);
-}
-
-std::string getName(std::string currentPath)
-{
-	size_t found = currentPath.find_last_of("/\\");
-	return currentPath.substr(found + 1);
-}
-
 size_t FileSize(std::string name)
 {
 	std::wstring wname(name.length(), L' ');
@@ -40,6 +28,11 @@ size_t FileSize(std::string name)
 	return size.QuadPart;
 }
 
+std::string getPath(std::string fileName)
+{
+	return fileName.substr(0, fileName.find_last_of('/'));
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	Graphics::Instance().Init(hInstance, 800, 600);
@@ -47,6 +40,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//Change this for your manifest description
 	std::string fileName = "C:\\Users\\Sam\\Documents\\Visual Studio 2015\\Projects\\Racing\\assets\\manifestDesc.txt";
+	fileName = StringManip::ReplaceAll(fileName, "\\", "/");
 	std::string path = getPath(fileName);
 	//chdir(path.c_str());
 
@@ -86,10 +80,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	std::ofstream out(path + "/manifest.bm", std::ios::binary);
 	out.write((char*)&file, sizeof(Export::Manifest::File));
 	out.write((char*)&assets[0], assets.size() * sizeof(Export::Manifest::Asset));
+	
+	char buf[5] = { '\0','\0' ,'\0' ,'\0' ,'\0' };
+	
 	for (int i = 0; i < strings.size(); i++)
 	{
 		out.write(strings[i].c_str(), strings[i].size());
-		out.write('\0', 1);
+		out.write(buf, 1);
 	}
 	out.flush();
 	out.close();
