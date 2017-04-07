@@ -22,7 +22,6 @@ private:
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
-	POINT prevMousePos;
 	BlackMagic::FirstPersonCamera _camera;
 	DirectionalLight _globalLight;
 	std::vector<BlackMagic::Entity*> _objects;
