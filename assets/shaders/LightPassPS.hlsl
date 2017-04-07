@@ -83,17 +83,6 @@ float SchlickGaussianF(float3 v, float3 h, float f0)
 	return f0 + (1 - f0)*pow(2, (-5.55473*vh - 6.98316)*vh);
 }
 
-float DiffuseF(float3 n, float3 l, float3 v, float r)
-{
-    float3 h = normalize((l + v) / 2);
-    float lDotH = saturate(dot(l, h));
-    float nDotL = saturate(dot(n, l));
-    float nDotV = saturate(dot(n, v));
-
-    float fd = 0.5 + 2 * pow(lDotH, 2) * r;
-    return (1 + (fd - 1)*pow(1 - nDotL, 5))*(1 + (fd - 1)*pow(1 - nDotV, 5));
-}
-
 float3 CT_BRDF(float3 v, float3 l, float3 n, float r, float f0)
 {
 	float3 h = normalize((l + v) / 2);
@@ -110,9 +99,9 @@ float3 ApproximateIBL(float3 specColor, float r, float3 n, float3 v)
 	uint numLevels = 0;
 	uint _ = 0;
 	skyboxRadianceMap.GetDimensions(0, _, _, numLevels);
-	float2 brdf = cosLookup.Sample(mainSampler, float2(nDotV, r)).rg;
+	float2 brdf = cosLookup.Sample(mainSampler, float2(nDotV, 1-r)).rg;
 	float3 filteredEnvColor = skyboxRadianceMap.SampleLevel(envSampler, dir, r * numLevels);
-	return filteredEnvColor * (specColor * brdf.r + brdf.g);
+    return filteredEnvColor * (specColor * brdf.r + brdf.g);
 }
 
 float3 colorFromScenelight(GBuffer input)
@@ -125,14 +114,14 @@ float3 colorFromScenelight(GBuffer input)
     float3 diffuseColor = lerp(input.albedo.rgb, 0, input.metal);
     float3 specColor = lerp(0.04, input.albedo.rgb, input.metal);
     float specIntensity = CT_BRDF(v, l, input.normal, input.roughness, f0);
-    float diffuseIntensity = DiffuseF(input.normal, l, v, input.roughness);
+    float diffuseIntensity = 1-specIntensity;
 
     float3 directDiffuse = DiffuseBRDF(diffuseColor) * diffuseIntensity;
     float3 directSpecular = specColor * specIntensity;
-    float3 indirectDiffuse = DiffuseBRDF(skyboxIrradianceMap.Sample(envSampler, dir).rgb * diffuseColor);
+    float3 indirectDiffuse = (skyboxIrradianceMap.Sample(envSampler, dir).rgb * diffuseColor);
     float3 indirectSpecular = ApproximateIBL(specColor, input.roughness, input.normal, v);
 
-    return directDiffuse + directSpecular + indirectDiffuse + indirectSpecular;
+    return (saturate(dot(input.normal, l))*directDiffuse + directSpecular + indirectDiffuse + indirectSpecular);
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
