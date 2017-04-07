@@ -84,6 +84,7 @@ namespace BlackMagic
 
 	Vector3& operator*(Quaternion& quat, Vector3& vec);
 	Vector4& operator*(Quaternion& quat, Vector4& vec);
+	Quaternion& operator*(Quaternion& left, Quaternion& right);
 	Matrix4& QuaternionToMatrix(Quaternion& quat);
 
 }
