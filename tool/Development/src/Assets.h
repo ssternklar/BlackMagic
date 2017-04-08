@@ -11,11 +11,12 @@ template<class T>
 struct Asset
 {
 	typename T::Handle handle;
+	size_t uID;
 	std::string path;
 	std::string name;
-	bool operator==(const Asset<T>& other) const { return handle == other.handle; }
-	bool operator!=(const Asset<T>& other) const { return handle != other.handle; }
-	bool operator<(const Asset<T>& other) const { return handle < other.handle; }
+	bool operator==(const Asset<T>& other) const { return uID == other.uID; }
+	bool operator!=(const Asset<T>& other) const { return uID != other.uID; }
+	bool operator<(const Asset<T>& other) const { return uID < other.uID; }
 };
 
 template<class T>
@@ -42,9 +43,6 @@ public:
 	AssetManager();
 
 	template<class T>
-	void SetDefault(typename T::Handle handle); // make private once loading is in, or remove
-
-	template<class T>
 	Asset<T>& GetAsset(size_t index);
 	template<class T>
 	Asset<T>& GetAsset(typename T::Handle handle);
@@ -56,7 +54,7 @@ public:
 	typename T::Handle GetHandle(std::string fullPath);
 
 	template<class T>
-	Asset<T>& TrackAsset(typename T::Handle handle, std::string fullPath);
+	void TrackAsset(typename T::Handle handle, std::string fullPath);
 	template<class T>
 	void StopTrackingAsset(typename T::Handle handle);
 
@@ -69,8 +67,14 @@ public:
 	DefaultAssets defaults;
 
 private:
+	template<class T>
+	void SetDefault(typename T::Handle handle);
+	template<class T>
+	void AddAsset(Asset<T> asset);
+
 	AssetTrackers trackers;
 	bool ready;
+	size_t nextUID;
 };
 
 template<class T>
@@ -122,7 +126,7 @@ typename T::Handle AssetManager::GetHandle(std::string fullPath)
 }
 
 template<class T>
-Asset<T>& AssetManager::TrackAsset(typename T::Handle handle, std::string fullPath)
+void AssetManager::TrackAsset(typename T::Handle handle, std::string fullPath)
 {
 	Tracker<T>& tracker = trackers;
 	tracker.fullPaths[fullPath] = tracker.assets.size();
@@ -130,11 +134,11 @@ Asset<T>& AssetManager::TrackAsset(typename T::Handle handle, std::string fullPa
 
 	Asset<T> asset;
 	asset.handle = handle;
+	asset.uID = nextUID++;
 	asset.path = fullPath;
 	asset.name = StringManip::FileName(fullPath); // TODO manage better later? IE no duplicates
 
 	tracker.assets.push_back(asset);
-	return tracker.assets.back();
 }
 
 template<class T>
@@ -147,4 +151,13 @@ void AssetManager::StopTrackingAsset(typename T::Handle handle)
 	tracker.fullPaths.erase(tracker.fullPaths.find(tracker.assets[index].path));
 	tracker.handles.erase(tracker.handles.find(handle));
 	tracker.assets.erase(tracker.assets.begin() + index);
+}
+
+template<class T>
+void AssetManager::AddAsset(Asset<T> asset)
+{
+	Tracker<T>& tracker = trackers;
+	tracker.fullPaths[asset.path] = tracker.assets.size();
+	tracker.handles[asset.handle] = tracker.assets.size();
+	tracker.assets.push_back(asset);
 }
