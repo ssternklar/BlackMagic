@@ -34,6 +34,8 @@ bool AssetManager::CreateProject(std::string folder)
 
 	// metadata
 	Internal::Proj::Meta meta = {};
+	meta.numMeshes = 1;
+	meta.nextUID = 1;
 	fwrite(&meta.nextUID, sizeof(Internal::Proj::Meta), 1, projFile);
 
 	// default assets
@@ -103,6 +105,14 @@ bool AssetManager::LoadProject(std::string folder)
 		AddAsset(sceneAsset);
 	}
 
+	// load scene config
+	size_t sceneIndex;
+	for (size_t i = 0; i < meta.numScenes; ++i)
+	{
+		fread_s(&sceneIndex, sizeof(size_t), sizeof(size_t), 1, projFile);
+		SceneData::Instance().sceneExportConfig.push_back(GetAsset<SceneData>(sceneIndex).handle);
+	}
+
 	// load camera
 	fread_s(&Camera::Instance().transform->pos, sizeof(DirectX::XMFLOAT3), sizeof(float), 3, projFile);
 	fread_s(&Camera::Instance().transform->rot, sizeof(DirectX::XMFLOAT4), sizeof(float), 4, projFile);
@@ -129,12 +139,11 @@ void AssetManager::SaveProject()
 	Tracker<SceneData>& sceneTracker = trackers;
 
 	MeshData::Handle& defaultMesh = defaults;
-	Asset<MeshData>& defaultMeshAsset = GetAsset<MeshData>(defaultMesh);
 	
 	// save metadata
 	Internal::Proj::Meta meta = {
 		nextUID,
-		defaultMeshAsset.uID,
+		GetAsset<MeshData>(defaultMesh).uID,
 		meshTracker.assets.size(),
 		sceneTracker.assets.size()
 	};
@@ -156,6 +165,14 @@ void AssetManager::SaveProject()
 		fwrite(sceneTracker.assets[i].name.c_str(), sceneTracker.assets[i].name.length() + 1, 1, projFile);
 	}
 
+	// save scene config
+	size_t sceneIndex;
+	for (size_t i = 0; i < meta.numScenes; ++i)
+	{
+		sceneIndex = GetIndex<SceneData>(SceneData::Instance().sceneExportConfig[i]);
+		fwrite(&sceneIndex, sizeof(size_t), 1, projFile);
+	}
+
 	// save camera
 	fwrite(&Camera::Instance().transform->pos, sizeof(float), 3, projFile);
 	fwrite(&Camera::Instance().transform->rot, sizeof(float), 4, projFile);
@@ -174,9 +191,109 @@ bool AssetManager::Export(std::string name, bool force)
 	if (force)
 		FileUtil::DeleteDirectory(exportFolder);
 
-	Tracker<SceneData>& sceneTracker = trackers;
-	
-	// rewrite the export for new UID format
+	vector<SceneData::Handle> scenes = SceneData::Instance().sceneExportConfig;
+	vector<Asset<MeshData>> usedMeshAssets;
+	vector<Asset<SceneData>> usedSceneAssets;
+
+	// find all used mesh assets
+	size_t i, j;
+	Asset<MeshData> meshAsset;
+	for (i = 0; i < scenes.size(); ++i)
+	{
+		if (!scenes[i]->willExport)
+			continue;
+
+		usedSceneAssets.push_back(AssetManager::Instance().GetAsset<SceneData>(scenes[i]));
+		for (j = 0; j < scenes[i]->entities.size(); ++j)
+		{
+			meshAsset = GetAsset<MeshData>(scenes[i]->entities[j]->mesh);
+			auto check = std::find(usedMeshAssets.begin(), usedMeshAssets.end(), meshAsset);
+			if (check == usedMeshAssets.end())
+				usedMeshAssets.push_back(meshAsset);
+		}
+	}
+
+	// build manifest path blob
+	vector<size_t> filePathIndexes;
+	filePathIndexes.reserve(usedSceneAssets.size() + usedMeshAssets.size());
+	string filePathBlob = "";
+	string filePath;
+
+	for (i = 0; i < usedSceneAssets.size(); ++i)
+	{
+		filePathIndexes.push_back(filePathBlob.size());
+		filePath = StringManip::ReplaceAll(usedSceneAssets[i].path, "assets/", exportFolder);
+		filePathBlob += filePath + '\0';
+
+		SceneData::Instance().Export(filePath, usedSceneAssets[i].handle);
+	}
+
+	for (i = 0; i < usedMeshAssets.size(); ++i)
+	{
+		filePathIndexes.push_back(filePathBlob.size());
+		filePath = StringManip::ReplaceAll(usedMeshAssets[i].path, "assets/", exportFolder);
+		filePath = StringManip::ReplaceAll(filePath, StringManip::FileExtension(filePath), "mesh");
+		filePathBlob += filePath + '\0';
+
+		MeshData::Instance().Export(filePath, usedMeshAssets[i].handle);
+	}
+
+	// process file path blob
+	filePathBlob = StringManip::ReplaceAll(filePathBlob, exportFolder, "");
+	for (i = 1; i < filePathIndexes.size(); ++i)
+		filePathIndexes[i] -= i * exportFolder.length();
+
+	// write manifest
+	filePath = exportFolder + "manifest.bm";
+
+	FILE* manifestFile;
+	fopen_s(&manifestFile, filePath.c_str(), "wb");
+	if (!manifestFile)
+	{
+		printf("Failed to write manifest file '%s'", filePath.c_str());
+		return false;
+	}
+
+	Export::Manifest::File fileData;
+
+	// write meta to manifest
+	fileData.pathBlockSize = (uint16_t)filePathBlob.size();
+	fileData.numAssets = (uint16_t)filePathIndexes.size();
+	fileData.numScenes = (uint16_t)usedSceneAssets.size();
+
+	fwrite(&fileData.pathBlockSize, sizeof(uint16_t), 3, manifestFile);
+
+	// write scene uIDs to manifest
+	for (i = 0; i < usedSceneAssets.size(); ++i)
+		fwrite(&usedSceneAssets[i].uID, sizeof(Export::Manifest::Asset::uID), 1, manifestFile);
+
+	// write assets to manifest
+	vector<uint16_t> uIDs;
+	Export::Manifest::Asset asset = {};
+	struct _stat statBuf;
+
+	uIDs.reserve(fileData.numAssets);
+	for (i = 0; i < usedSceneAssets.size(); ++i)
+		uIDs.push_back(usedSceneAssets[i].uID);
+	for (i = 0; i < usedMeshAssets.size(); ++i)
+		uIDs.push_back(usedMeshAssets[i].uID);
+
+	for (i = 0; i < fileData.numAssets; ++i)
+	{
+		asset.uID = uIDs[i];
+		asset.filePathIndex = (uint16_t)filePathIndexes[i];
+
+		filePath = filePathBlob.substr(filePathIndexes[i]);
+		_stat((exportFolder + filePath).c_str(), &statBuf);
+		asset.fileSize = (uint16_t)statBuf.st_size;
+
+		fwrite(&asset.uID, sizeof(uint16_t), 3, manifestFile);
+	}
+
+	// write file path blob to manifest
+	fwrite(filePathBlob.c_str(), sizeof(char), filePathBlob.size(), manifestFile);
+
+	fclose(manifestFile);
 
 	return true;
 }

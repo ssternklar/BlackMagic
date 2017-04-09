@@ -1,5 +1,7 @@
 #include "Scene.h"
 #include "Assets.h"
+#include "FileFormats.h"
+#include "FileUtil.h"
 
 void SceneData::Init(GuiData::EntityEditorData* gui)
 {
@@ -22,14 +24,18 @@ SceneData::Handle SceneData::Create(std::string name)
 		return e;
 	}
 
+	uint8_t willExport = 0;
 	size_t numEntities = 0;
+	fwrite(&willExport, sizeof(uint8_t), 1, sceneFile);
 	fwrite(&numEntities, sizeof(size_t), 1, sceneFile);
 
 	fclose(sceneFile);
 
 	h = ProxyHandler::Get();
+	h->willExport = false;
 
 	AssetManager::Instance().TrackAsset<SceneData>(h, fullPath);
+	sceneExportConfig.push_back(h);
 	activeScene = h;
 
 	return h;
@@ -66,10 +72,14 @@ SceneData::Handle SceneData::LoadScene(std::string scenePath)
 	Handle h = ProxyHandler::Get();
 	EntityData::Handle entity;
 
+	uint8_t willExport;
 	size_t numEntities, meshIndex;
+	fread_s(&willExport, sizeof(uint8_t), sizeof(willExport), 1, sceneFile);
 	fread_s(&numEntities, sizeof(size_t), sizeof(numEntities), 1, sceneFile);
+	
+	h->willExport = willExport == 1;
 	h->entities.reserve(numEntities);
-
+	
 	for (size_t i = 0; i < numEntities; ++i)
 	{
 		entity = EntityData::Instance().Get();
@@ -99,8 +109,11 @@ void SceneData::SaveScene(Handle handle)
 		return;
 	}
 
+	uint8_t willExport = (handle->willExport ? 1 : 0);
 	size_t numEntities, meshIndex;
 	numEntities = handle->entities.size();
+
+	fwrite(&willExport, sizeof(uint8_t), 1, sceneFile);
 	fwrite(&numEntities, sizeof(size_t), 1, sceneFile);
 
 	for (size_t i = 0; i < numEntities; ++i)
@@ -152,4 +165,55 @@ void SceneData::Revoke(Handle handle)
 {
 	AssetManager::Instance().StopTrackingAsset<SceneData>(handle);
 	ProxyHandler::Revoke(handle);
+}
+
+void SceneData::Export(std::string path, Handle handle)
+{
+	FileUtil::CreateDirectoryRecursive(path);
+
+	FILE* sceneFile;
+	fopen_s(&sceneFile, path.c_str(), "wb");
+	if (!sceneFile)
+	{
+		printf("Failed to write scene file '%s'", path.c_str());
+		return;
+	}
+
+	Export::Scene::File fileData = {};
+	fileData.numEntities = (uint16_t)handle->entities.size();
+
+	vector<uint16_t> meshUIDs;
+	Asset<MeshData> meshAsset;
+	size_t i;
+	for (i = 0; i < fileData.numEntities; ++i)
+	{
+		meshAsset = AssetManager::Instance().GetAsset<MeshData>(handle->entities[i]->mesh);
+		auto check = std::find(meshUIDs.begin(), meshUIDs.end(), meshAsset.uID);
+		if (check == meshUIDs.end())
+			meshUIDs.push_back((uint16_t)meshAsset.uID);
+	}
+
+	fileData.numAssets = (uint16_t)meshUIDs.size();
+	fwrite(&fileData.numAssets, sizeof(Export::Scene::File::numAssets), 1, sceneFile);
+
+	if (fileData.numAssets > 0)
+		fwrite(&meshUIDs[0], sizeof(Export::Scene::Entity::meshUID), meshUIDs.size(), sceneFile);
+
+	fwrite(&fileData.numEntities, sizeof(Export::Scene::File::numEntities), 1, sceneFile);
+
+	Export::Scene::Transform transform = {};
+	EntityData::Handle entity;
+	for (i = 0; i < fileData.numEntities; ++i)
+	{
+		entity = handle->entities[i];
+
+		memcpy_s(&transform.pos[0], sizeof(float) * 3, &entity->transform->pos.x, sizeof(DirectX::XMFLOAT3));
+		memcpy_s(&transform.rot[0], sizeof(float) * 4, &entity->transform->rot.x, sizeof(DirectX::XMFLOAT4));
+		memcpy_s(&transform.scale, sizeof(float), &entity->transform->scale, sizeof(float));
+
+		fwrite(&transform.pos[0], sizeof(Export::Scene::Transform), 1, sceneFile);
+		fwrite(&meshUIDs[i], sizeof(Export::Scene::Entity::meshUID), 1, sceneFile);
+	}
+
+	fclose(sceneFile);
 }

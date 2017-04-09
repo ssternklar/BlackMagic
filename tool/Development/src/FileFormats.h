@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-// TODO clean swipe entire codebase for sizeof() usage against file formats and update them to not use types
+// TODO clean swipe entire codebase for sizeof() usage against file formats and update them to not use types directly
 
 namespace Internal
 {
@@ -33,6 +33,7 @@ namespace Internal
 		{
 			Meta metaData;
 			Assets assetData;
+			size_t* l_sceneIndices;
 			float camPos[3];
 			float camRot[4];
 		};
@@ -55,6 +56,7 @@ namespace Internal
 
 		struct File
 		{
+			uint8_t willExport;
 			size_t numEntities;
 			Entity* l_entities;
 		};
@@ -76,6 +78,8 @@ namespace Export
 		{
 			uint16_t pathBlockSize;
 			uint16_t numAssets;
+			uint16_t numScenes;
+			uint16_t* l_sceneUIDs;
 			Asset* l_assets;
 			char* l_filePaths;
 		};
@@ -89,6 +93,7 @@ namespace Export
 				float emptyPos;
 			float rot[4];
 			float scale;
+				float emptyScale[3];
 		};
 
 		struct Entity
