@@ -100,7 +100,7 @@ float3 ApproximateIBL(float3 specColor, float r, float3 n, float3 v)
 	uint _ = 0;
 	skyboxRadianceMap.GetDimensions(0, _, _, numLevels);
 	float2 brdf = cosLookup.Sample(mainSampler, float2(nDotV, 1-r)).rg;
-	float3 filteredEnvColor = skyboxRadianceMap.SampleLevel(envSampler, dir, r * numLevels);
+	float3 filteredEnvColor = pow(skyboxRadianceMap.SampleLevel(envSampler, dir, r * numLevels), 2.2);
     return filteredEnvColor * (specColor * brdf.r + brdf.g);
 }
 
@@ -109,19 +109,19 @@ float3 colorFromScenelight(GBuffer input)
     float3 v = normalize(cameraPosition - input.position);
     float3 l = -normalize(sceneLight.Direction);
     float3 dir = 2 * dot(input.normal, v) * input.normal - v;
-    float f0 = lerp(0.04, 0.5, input.metal);
+    float f0 = lerp(0.04, length(input.albedo.rgb), input.metal);
 
     float3 diffuseColor = lerp(input.albedo.rgb, 0, input.metal);
     float3 specColor = lerp(0.04, input.albedo.rgb, input.metal);
     float specIntensity = CT_BRDF(v, l, input.normal, input.roughness, f0);
-    float diffuseIntensity = 1-specIntensity;
+    float diffuseIntensity = 1-f0;
 
     float3 directDiffuse = DiffuseBRDF(diffuseColor) * diffuseIntensity;
     float3 directSpecular = specColor * specIntensity;
-    float3 indirectDiffuse = (skyboxIrradianceMap.Sample(envSampler, dir).rgb * diffuseColor);
+    float3 indirectDiffuse = (pow(skyboxIrradianceMap.Sample(envSampler, dir).rgb * diffuseColor, 2.2));
     float3 indirectSpecular = ApproximateIBL(specColor, input.roughness, input.normal, v);
 
-    return (saturate(dot(input.normal, l))*directDiffuse + directSpecular + indirectDiffuse + indirectSpecular);
+    return saturate(dot(input.normal, l)) * (directDiffuse + directSpecular) + indirectDiffuse + indirectSpecular;
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
