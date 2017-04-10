@@ -183,9 +183,6 @@
     <FxCompile Include="assets\shaders\LightPassPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="assets\shaders\LightPassVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="assets\shaders\ShadowMapVS.hlsl" />
     <FxCompile Include="assets\shaders\SkyboxPS.hlsl" />
     <FxCompile Include="assets\shaders\SkyboxVS.hlsl" />
@@ -196,5 +193,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="assets\shaders\ProjectorPS.hlsl" />
+    <FxCompile Include="assets\shaders\QuadVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\FinalMerge.hlsl" />
   </ItemGroup>
 </Project>

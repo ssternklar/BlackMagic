@@ -4,6 +4,7 @@
 #define ZFAR 100.0f
 #define SPLIT_SIZE ((ZFAR - ZNEAR)/NUM_SHADOW_CASCADES)
 #define GEN_SHADOW_MAPS 0
+#define PI 3.141592654
 
 struct DirectionalLight
 {
@@ -44,27 +45,83 @@ Texture2D roughnessMap: register(t2);
 Texture2D normalMap : register(t3);
 Texture2DArray shadowMap : register(t4);
 Texture2D depth : register(t5);
-Texture2D metalMap : register(t6);
+Texture2D metalnessMap : register(t6);
 Texture2D cavityMap : register(t7);
+TextureCube skyboxEnvMap : register(t8);
+TextureCube skyboxRadianceMap : register(t9);
+TextureCube skyboxIrradianceMap : register(t10);
+Texture2D cosLookup : register(t11);
 SamplerState mainSampler : register(s0);
 SamplerComparisonState shadowSampler : register(s1);
+SamplerState envSampler : register(s2);
 
+float3 DiffuseBRDF(float3 albedo)
+{
+	return albedo / PI;
+}
+
+float GGX_TR_D(float3 n, float3 h, float r)
+{
+	float a = pow(r, 4);
+	return a / (PI*pow(pow(saturate(dot(n, h)), 2) * (a - 1) + 1, 2));
+}
+
+float SchlickG1(float3 n, float3 v, float k)
+{
+	return 1.0 / (saturate(dot(n, v))*(1 - k) + k);
+}
+
+float SchlickG(float3 n, float3 v, float3 l, float r)
+{
+	float k = pow(r+1, 2) / 8;
+	return SchlickG1(n, v, k) * SchlickG1(n, l, k);
+}
+
+float SchlickGaussianF(float3 v, float3 h, float f0)
+{
+	float vh = saturate(dot(v, h));
+	return f0 + (1 - f0)*pow(2, (-5.55473*vh - 6.98316)*vh);
+}
+
+float3 CT_BRDF(float3 v, float3 l, float3 n, float r, float f0)
+{
+	float3 h = normalize((l + v) / 2);
+	float D = GGX_TR_D(n, h, r);
+	float F = SchlickGaussianF(v, h, f0);
+	float G = SchlickG(n, v, l, r);
+    return D * F * G / 4.0;
+}
+
+float3 ApproximateIBL(float3 specColor, float r, float3 n, float3 v)
+{
+	float nDotV = saturate(dot(n, v));
+	float3 dir = 2 * dot(n, v) * n - v;
+	uint numLevels = 0;
+	uint _ = 0;
+	skyboxRadianceMap.GetDimensions(0, _, _, numLevels);
+	float2 brdf = cosLookup.Sample(mainSampler, float2(nDotV, 1-r)).rg;
+	float3 filteredEnvColor = pow(skyboxRadianceMap.SampleLevel(envSampler, dir, r * numLevels), 2.2);
+    return filteredEnvColor * (specColor * brdf.r + brdf.g);
+}
 
 float3 colorFromScenelight(GBuffer input)
 {
-	float3 ambient, diffuse;
-	ambient = diffuse = float3(0, 0, 0);
+    float3 v = normalize(cameraPosition - input.position);
+    float3 l = -normalize(sceneLight.Direction);
+    float3 dir = 2 * dot(input.normal, v) * input.normal - v;
+    float f0 = lerp(0.04, length(input.albedo.rgb), input.metal);
 
-	float3 v = normalize(cameraPosition - input.position);
-	
-	float3 l = -normalize(sceneLight.Direction);
-	float nDotL = saturate(dot(input.normal, l));
-	diffuse += nDotL * sceneLight.DiffuseColor.xyz;
+    float3 diffuseColor = lerp(input.albedo.rgb, 0, input.metal);
+    float3 specColor = lerp(0.04, input.albedo.rgb, input.metal);
+    float specIntensity = CT_BRDF(v, l, input.normal, input.roughness, f0);
+    float diffuseIntensity = 1-f0;
 
-	ambient += sceneLight.AmbientColor.xyz;
+    float3 directDiffuse = DiffuseBRDF(diffuseColor) * diffuseIntensity;
+    float3 directSpecular = specColor * specIntensity;
+    float3 indirectDiffuse = (pow(skyboxIrradianceMap.Sample(envSampler, dir).rgb * diffuseColor, 2.2));
+    float3 indirectSpecular = ApproximateIBL(specColor, input.roughness, input.normal, v);
 
-	float3 texColor = input.albedo.rgb;
-	return pow((ambient + diffuse)*texColor, 1 / 2.2);
+    return saturate(dot(input.normal, l)) * (directDiffuse + directSpecular) + indirectDiffuse + indirectSpecular;
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
@@ -78,7 +135,6 @@ float3 decompressNormal(float2 compressedNormal)
 float linearizeDepth(float logDepth, float n, float f)
 {
 	return (2 * n) / (f + n - logDepth * (f - n));
-
 }
 
 float sampleShadowMap(float3 pos, float cascade)
@@ -108,7 +164,10 @@ float4 main(VertexToPixel input) : SV_TARGET
 	GBuffer buffer;
 	buffer.albedo = albedoMap.Sample(mainSampler, input.uv);
 	buffer.normal = decompressNormal(normalMap.Sample(mainSampler, input.uv).xy);
+	buffer.metal = metalnessMap.Sample(mainSampler, input.uv);
 	buffer.position = positionMap.Sample(mainSampler, input.uv);
+	buffer.roughness = roughnessMap.Sample(mainSampler, input.uv);
+	buffer.cavity = cavityMap.Sample(mainSampler, input.uv);
 
 	float linearDepth = linearizeDepth((depth.Sample(mainSampler, input.uv).r), ZNEAR, ZFAR);
 	float depthID = floor(linearDepth * NUM_SHADOW_CASCADES);
@@ -125,5 +184,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 		shadow = lerp(nextShadow, shadow, t);
 	}
 #endif
-	return float4(colorFromScenelight(buffer) , 1.0f);
+	return float4(pow(colorFromScenelight(buffer), 1/2.2), linearDepth < 1);
 }
