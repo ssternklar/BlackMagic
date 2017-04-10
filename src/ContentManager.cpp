@@ -113,8 +113,15 @@ template<>
 Mesh* ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	LOAD_FILE(meshSpace);
-	MeshHeader* header = (MeshHeader*)meshSpace;
-	Mesh* ret = AllocateAndConstruct<BestFitAllocator, Mesh>(_allocator, 1, &meshSpace[header->vertexMeta.offsetInBytes], header->vertexMeta.elementCount, &meshSpace[header->indexMeta.offsetInBytes], header->indexMeta.elementCount, renderer);
+
+	//block count
+	uint8_t blockCount = *meshSpace;
+	//Mesh Header Blocks
+	MeshHeader::Block* boundsMeta = (MeshHeader::Block*)(meshSpace + 1);
+	MeshHeader::Block* vertexMeta = (MeshHeader::Block*)(meshSpace + 1 + (sizeof(MeshHeader::Block)));
+	MeshHeader::Block* indexMeta = (MeshHeader::Block*)(meshSpace + 1 + (sizeof(MeshHeader::Block) * 2));
+
+	Mesh* ret = AllocateAndConstruct<BestFitAllocator, Mesh>(_allocator, 1, &meshSpace[vertexMeta->offsetInBytes], vertexMeta->elementCount, &meshSpace[indexMeta->offsetInBytes], indexMeta->elementCount, renderer);
 	UNLOAD_FILE(meshSpace);
 	return ret;
 	
