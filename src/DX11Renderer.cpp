@@ -261,10 +261,10 @@ void DX11Renderer::Init(ContentManager* content)
 	_device->CreateBuffer(&vbDesc, &vbData, _quad.ReleaseAndGetAddressOf());
 
 	_skybox = content->Load<Mesh>(std::string("/models/skybox.bmmesh"));
-	_skyboxTex = content->Load<Cubemap>(std::string("/textures/skybox_tex.dds"));
-    _skyboxEnvMap = content->Load<Cubemap>(std::string("/textures/skybox_env_filter.dds"));
-    _skyboxIrradiance = content->Load<Cubemap>(std::string("/textures/skybox_irradiance.dds"));
-    _cosLookup = content->Load<Cubemap>(std::string("/textures/cosLUT.png"));
+	_skyboxTex = content->Load<Cubemap>(std::string("/textures/park_skybox_env.dds"));
+	_skyboxRadiance = content->Load<Cubemap>(std::string("/textures/park_skybox_radiance.dds"));
+	_skyboxIrradiance = content->Load<Cubemap>(std::string("/textures/park_skybox_irradiance.dds"));
+	_cosLookup = content->Load<Texture>(std::string("/textures/cosLUT.png"));
 
 	//Load device-specific shaders
 	_lightPassVS = content->Load<VertexShader>(std::string("/shaders/QuadVS.cso"));
@@ -279,14 +279,17 @@ void DX11Renderer::Init(ContentManager* content)
 
 	//Set up g-buffer sampler
 	D3D11_SAMPLER_DESC sampDesc = {};
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	sampDesc.MaxAnisotropy = D3D11_MAX_MAXANISOTROPY;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	_gBufferSampler = CreateSampler(sampDesc);
+
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	_envSampler = CreateSampler(sampDesc);
 
 	D3D11_SAMPLER_DESC shadowSampDesc = {};
 	shadowSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -528,10 +531,12 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	static UINT stride = sizeof(Vertex);
 	static UINT quadStride = sizeof(XMFLOAT2);
 	static UINT offset = 0;
+	ID3D11ShaderResourceView* srvs[32] = { 0 };
 
 	const Material* currentMaterial = nullptr;
 
 	//RenderShadowMaps(cam, objects, sceneLight);
+	
 
 	//TODO: Sort renderables by material and texture to minimize state switches
 	ID3D11RenderTargetView* rts[] = {
@@ -589,6 +594,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetData("lightProjection", &_shadowProjections[0], sizeof(XMFLOAT4X4)*NUM_SHADOW_CASCADES);
 	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
 	_lightPassPS->SetSamplerState("shadowSampler", _shadowSampler.As<SamplerHandle>());
+	_lightPassPS->SetSamplerState("envSampler", _envSampler.As<SamplerHandle>());
 	_lightPassPS->SetShaderResourceView("albedoMap", _albedoMap->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("roughnessMap", _roughnessMap->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("positionMap", _positionMap->GetShaderResource());
@@ -597,49 +603,38 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetShaderResourceView("cavityMap", _cavityMap->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("shadowMap", _shadowMapSRV.Get());
 	_lightPassPS->SetShaderResourceView("depth", _depthStencilTexture.Get());
-    _lightPassPS->SetShaderResourceView("envMap", _skyboxEnvMap->GetShaderResource());
-    _lightPassPS->SetShaderResourceView("irradianceMap", _skyboxIrradiance->GetShaderResource());
-    _lightPassPS->SetShaderResourceView("cosLookup", _cosLookup->GetShaderResource());
+	_lightPassPS->SetShaderResourceView("skyboxRadianceMap", _skyboxRadiance->GetShaderResource());
+	_lightPassPS->SetShaderResourceView("skyboxIrradianceMap", _skyboxIrradiance->GetShaderResource());
+	_lightPassPS->SetShaderResourceView("cosLookup", _cosLookup->GetShaderResource());
 	_lightPassPS->CopyAllBufferData();
 
 	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
 	_context->Draw(6, 0);
-	
-
-	_context->OMSetRenderTargets(1, _backBuffer.GetAddressOf(), nullptr);
+	_context->PSSetShaderResources(0, _lightPassPS->GetShaderResourceViewCount()+1, srvs);
 	
 	ID3D11BlendState* oldBlendState = nullptr;
 	float blendFac[4];
 	UINT sampleMask = 0;
+	_context->OMSetRenderTargets(1, _backBuffer.GetAddressOf(), nullptr);
 	_context->OMGetBlendState(&oldBlendState, blendFac, &sampleMask);
 	_context->OMSetBlendState(_projectionBlend.Get(), blendFac, sampleMask);
 	_mergePS->SetShader();
 	_mergePS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
-	_mergePS->SetShaderResourceView("albedoMap", _albedoMap->GetShaderResource());
-	_mergePS->SetShaderResourceView("roughnessMap", _roughnessMap->GetShaderResource());
-	_mergePS->SetShaderResourceView("positionMap", _positionMap->GetShaderResource());
-	_mergePS->SetShaderResourceView("normalMap", _normalMap->GetShaderResource());
-	_mergePS->SetShaderResourceView("metalnessMap", _metalMap->GetShaderResource());
-	_mergePS->SetShaderResourceView("cavityMap", _cavityMap->GetShaderResource());
-	_mergePS->SetShaderResourceView("depth", _depthStencilTexture.Get());
-	_mergePS->SetShaderResourceView("skybox", _skyboxTex->GetShaderResource());
+	_mergePS->SetShaderResourceView("lightMap", _lightMap->GetShaderResource());
 	_mergePS->CopyAllBufferData();
 	_context->Draw(6, 0);
-	_context->OMSetBlendState(oldBlendState, blendFac, sampleMask);
 	RenderSkybox(cam);
+	_context->OMSetBlendState(oldBlendState, blendFac, sampleMask);
+	_context->PSSetShaderResources(0, _mergePS->GetShaderResourceViewCount()+1, srvs);
 
-	_fxaaVS->SetShader();
+	/*_fxaaVS->SetShader();
 	_fxaaPS->SetShader();
 	_fxaaPS->SetInt("width", _width);
 	_fxaaPS->SetInt("height", _height);
 	_fxaaPS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
 	_fxaaPS->SetShaderResourceView("inputMap", _lightMap->GetShaderResource());
 	_fxaaPS->CopyAllBufferData();
-	//_context->Draw(6, 0);
-	
-	//Can't have SRVs and RTVs that are pointing to the same texture bound at the same time, so unset them
-	ID3D11ShaderResourceView* srvs[8] = { 0 };
-	_context->PSSetShaderResources(0, 8, srvs);
+	_context->Draw(6, 0);*/
 }
 
 void DX11Renderer::RenderSkybox(const Camera& cam)
@@ -651,9 +646,6 @@ void DX11Renderer::RenderSkybox(const Camera& cam)
 	ID3D11RasterizerState* lastRasterState;
 	_context->RSGetState(&lastRasterState);
 
-	_context->RSSetState(_skyboxRS.Get());
-	_context->OMSetDepthStencilState(_skyboxDS.Get(), lastStencilRef);
-	_context->OMSetRenderTargets(1, _backBuffer.GetAddressOf(), _depthStencil.Get());
 	_skyboxVS->SetShader();
 	_skyboxPS->SetShader();
 	_skyboxVS->SetFloat3("camPos", cam.Position());
@@ -663,6 +655,9 @@ void DX11Renderer::RenderSkybox(const Camera& cam)
 	_skyboxPS->SetSamplerState("mainSampler", _skyboxSampler.As<SamplerHandle>());
 	_skyboxVS->CopyAllBufferData();
 	_skyboxPS->CopyAllBufferData();
+	_context->RSSetState(_skyboxRS.Get());
+	_context->OMSetDepthStencilState(_skyboxDS.Get(), lastStencilRef);
+	_context->OMSetRenderTargets(1, _backBuffer.GetAddressOf(), _depthStencil.Get());
 
 	const UINT stride = sizeof(Vertex);
 	const UINT offset = 0;

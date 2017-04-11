@@ -15,7 +15,12 @@ struct GuiData
 	bool sceneCreate;
 	int sceneIndex;
 	bool exitTool;
-	bool exportPrompt;
+	struct ExporterData
+	{
+		bool prompt;
+		int sceneCount;
+		int dragIndex;
+	}exportData;
 };
 
 class Tool

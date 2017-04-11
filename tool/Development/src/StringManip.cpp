@@ -88,16 +88,16 @@ namespace StringManip
 	string FilePath(string path)
 	{
 		char slash = '/';
-		if (path.find('\\'))
+		if (path.find('\\') != string::npos)
 			slash = '\\';
 
 		size_t index = path.rfind(slash);
 		size_t index2;
 		path = path.substr(0, index + 1);
 
-		while ((index = path.find("..")) != -1)
+		while ((index = path.find("..")) != string::npos)
 		{
-			index2 = path.rfind(slash, index - 2); // will break on '/' potentially
+			index2 = path.rfind(slash, index - 2);
 			path = path.erase(index2, index - index2 + 2);
 		}
 

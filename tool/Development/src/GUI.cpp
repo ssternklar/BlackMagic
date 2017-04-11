@@ -10,7 +10,8 @@
 void Tool::HelloGUI()
 {
 	ImGuiIO& io = ImGui::GetIO();
-	
+
+	//ImGui::ShowTestWindow(NULL);
 	ImGui::OpenPopup("Create or Load a Project");
 
 	if (ImGui::BeginPopupModal("Create or Load a Project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
@@ -73,8 +74,9 @@ void Tool::InvokeGUI()
 			if (ImGui::MenuItem("Save"))
 				AssetManager::Instance().SaveProject();
 
-			if (ImGui::MenuItem("Export"))
-				gui.exportPrompt = true;
+			if (SceneData::Instance().Size())
+				if (ImGui::MenuItem("Export"))
+					gui.exportData.prompt = true;
 
 			ImGui::EndMenu();
 		}
@@ -125,7 +127,7 @@ void Tool::InvokeGUI()
 				scene->entities.push_back(entity);
 				SceneData::Instance().SelectEntity(entity);
 			}
-			
+
 			if (scene->selectedEntity.ptr())
 			{
 				ImGui::DragFloat3("Position", &scene->selectedEntity->transform->pos.x, 0.005f);
@@ -269,27 +271,94 @@ void Tool::ExitToolGUI()
 	}
 }
 
-// TODO support scene selection
 void Tool::PromptExport()
 {
-	if (gui.exportPrompt)
+	if (gui.exportData.prompt)
 	{
+		gui.exportData.sceneCount = SceneData::Instance().Size();
+
 		ImGui::OpenPopup("Export your project");
-		gui.exportPrompt = false;
+		gui.exportData.prompt = false;
 	}
 
 	if (ImGui::BeginPopupModal("Export your project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::Text("Name your export please:\n");
+		// draggable list heavily modified/adapted from this code https://gist.github.com/Roflraging/f4af1d688237a7d367f9
+
+		float itemHeight = ImGui::GetTextLineHeightWithSpacing();
+		int displayStart = 0, displayEnd = gui.exportData.sceneCount;
+		int hoverIndex = -1;
+		vector<SceneData::Handle>& scenes = SceneData::Instance().sceneExportConfig;
+
+		ImGui::Text("Drag and drop to change the scene order.\n");
 		ImGui::Separator();
+
+		ImGui::CalcListClipping(gui.exportData.sceneCount, itemHeight, &displayStart, &displayEnd);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (displayStart * itemHeight));
+
+		int sceneID = -1;
+		for (int i = displayStart; i < displayEnd; ++i)
+		{
+			char buffer[132];
+			if (scenes[i]->willExport)
+				snprintf(buffer, sizeof(buffer), "%d) %s", ++sceneID, AssetManager::Instance().GetAsset<SceneData>(scenes[i]).name.c_str());
+			else
+				snprintf(buffer, sizeof(buffer), "na %s", AssetManager::Instance().GetAsset<SceneData>(scenes[i]).name.c_str());
+
+			ImGui::PushID(i);
+			
+			ImGui::Checkbox("", &scenes[i]->willExport);
+			ImGui::SameLine();
+			ImGui::Selectable(buffer, scenes[i]->willExport, ImGuiSelectableFlags_DontClosePopups);
+
+			if (ImGui::IsItemHoveredRect())
+				hoverIndex = i;
+
+			ImGui::PopID();
+		}
+
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ((gui.exportData.sceneCount - displayEnd) * itemHeight));
+		ImGuiIO& io = ImGui::GetIO();
+
+		if (hoverIndex >= 0)
+		{
+			if (ImGui::IsMouseDragging() && gui.exportData.dragIndex != -1 && gui.exportData.dragIndex != hoverIndex)
+			{
+				SceneData::Handle dragging = scenes[gui.exportData.dragIndex];
+				
+				int numMoving = gui.exportData.dragIndex - hoverIndex;
+				SceneData::Handle* src = &scenes[hoverIndex];
+				SceneData::Handle* dest = src + 1;
+
+				if (hoverIndex >= gui.exportData.dragIndex)
+				{
+					numMoving *= -1;
+					dest = &scenes[gui.exportData.dragIndex];
+					src = dest + 1;
+				}
+				
+				memmove(dest, src, sizeof(SceneData::Handle) * numMoving);
+				scenes[hoverIndex] = dragging;
+				gui.exportData.dragIndex = hoverIndex;
+			}
+			else if (io.MouseClicked[0])
+				gui.exportData.dragIndex = hoverIndex;
+		}
+
+		if (io.MouseReleased[0] && gui.exportData.dragIndex != -1)
+			gui.exportData.dragIndex = -1;
+
+		ImGui::Separator();
+		if (sceneID != -1)
+			ImGui::Text("Name your export please:\n");
 
 		static char name[128] = "";
 		static bool exported = false;
-		
+
 		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
 			ImGui::SetKeyboardFocusHere(0);
 
-		if (ImGui::InputText("", name, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Export", ImVec2(60, 0)))
+		if (sceneID != -1 && (ImGui::InputText("", name, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Export", ImVec2(60, 0))))
 		{
 			if (strnlen_s(name, 128) > 0)
 			{

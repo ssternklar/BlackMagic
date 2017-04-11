@@ -78,15 +78,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	file.numAssets = assets.size();
 	file.pathBlockSize = index;
 	std::ofstream out(path + "/manifest.bm", std::ios::binary);
-	out.write((char*)&file, sizeof(Export::Manifest::File));
+	out.write((char*)&file.pathBlockSize, sizeof(uint16_t));
+	out.write((char*)&file.numAssets, sizeof(uint16_t));
+	out.write((char*)&file.numScenes, sizeof(uint16_t));
 	out.write((char*)&assets[0], assets.size() * sizeof(Export::Manifest::Asset));
 	
-	char buf[5] = { '\0','\0' ,'\0' ,'\0' ,'\0' };
+	char buf = '\0';
 	
 	for (int i = 0; i < strings.size(); i++)
 	{
 		out.write(strings[i].c_str(), strings[i].size());
-		out.write(buf, 1);
+		out.write(&buf, 1);
 	}
 	out.flush();
 	out.close();

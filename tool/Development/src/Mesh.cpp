@@ -6,7 +6,6 @@
 #include "Assets.h"
 #include "FileFormats.h"
 #include "FileUtil.h"
-#include "StringManip.h"
 
 MeshData::~MeshData()
 {

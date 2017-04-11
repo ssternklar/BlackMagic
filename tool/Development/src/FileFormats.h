@@ -2,23 +2,23 @@
 
 #include <stdint.h>
 
+// TODO clean swipe entire codebase for sizeof() usage against file formats and update them to not use types directly
+
 namespace Internal
 {
 	namespace Proj
 	{
-		struct Defaults
-		{
-			char* meshPath;
-		};
-
 		struct Meta
 		{
+			size_t nextUID;
+			size_t defaultMeshUID;
 			size_t numMeshes;
 			size_t numScenes;
 		};
 
 		struct Asset
 		{
+			size_t uID;
 			char* path;
 			char* name;
 		};
@@ -31,9 +31,9 @@ namespace Internal
 
 		struct File
 		{
-			Defaults defaultAssets;
 			Meta metaData;
 			Assets assetData;
+			size_t* l_sceneIndices;
 			float camPos[3];
 			float camRot[4];
 		};
@@ -56,6 +56,7 @@ namespace Internal
 
 		struct File
 		{
+			uint8_t willExport;
 			size_t numEntities;
 			Entity* l_entities;
 		};
@@ -69,15 +70,17 @@ namespace Export
 		struct Asset
 		{
 			uint16_t uID;
-			uint16_t fileSize;
 			uint16_t filePathIndex;
+			uint32_t fileSize;
 		};
 
 		struct File
 		{
 			uint16_t pathBlockSize;
 			uint16_t numAssets;
-			Asset* l_assets; // scenes are assets too
+			uint16_t numScenes;
+			uint16_t* l_sceneUIDs;
+			Asset* l_assets;
 			char* l_filePaths;
 		};
 	}
@@ -90,6 +93,7 @@ namespace Export
 				float emptyPos;
 			float rot[4];
 			float scale;
+				float emptyScale[3];
 		};
 
 		struct Entity

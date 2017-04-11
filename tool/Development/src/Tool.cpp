@@ -25,7 +25,9 @@ Tool::Tool()
 	gui.sceneCreate = false;
 	gui.sceneIndex = -1;
 	gui.exitTool = false;
-	gui.exportPrompt = false;
+	gui.exportData.prompt = false;
+	gui.exportData.sceneCount = 0;
+	gui.exportData.dragIndex = -1;
 
 	CreateConsoleWindow(500, 120, 32, 120);
 }

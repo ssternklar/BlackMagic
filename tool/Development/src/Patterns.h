@@ -32,7 +32,6 @@ public:
 	typedef typename proxy_ctr<T>::proxy_ptr Handle;
 
 	size_t Size() { return size; };
-	Handle Recover(T* ptr) { return proxy.Recover(ptr); }
 
 protected:
 	ProxyHandler();
@@ -68,7 +67,9 @@ typename ProxyHandler<T, S>::Handle ProxyHandler<T, S>::Get()
 		count += growth;
 		T* newData = new T[count];
 
-		memcpy_s(newData, sizeof(T) * count, data, sizeof(T) * (count - growth));
+		for (size_t i = 0; i < count - growth; ++i)
+			newData[i] = std::move(data[i]);
+
 		proxy.Move(data, newData, count - growth);
 
 		delete[] data;
@@ -87,6 +88,6 @@ void ProxyHandler<T, S>::Revoke(Handle handle)
 	if (index != --size)
 	{
 		proxy.Move(data + size, data + index);
-		data[index] = data[size];
+		data[index] = std::move(data[size]);
 	}
 }

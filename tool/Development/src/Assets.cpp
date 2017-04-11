@@ -32,13 +32,19 @@ bool AssetManager::CreateProject(std::string folder)
 		return false;
 	}
 
-	// default paths
-	const char* defaultMeshPath = "assets/defaults/Mesh.obj";
-	fwrite(defaultMeshPath, strlen(defaultMeshPath) + 1, 1, projFile);
-
 	// metadata
-	size_t zero[2] = {};
-	fwrite(&zero, sizeof(size_t), 2, projFile);
+	Internal::Proj::Meta meta = {};
+	meta.numMeshes = 1;
+	meta.nextUID = 1;
+	fwrite(&meta.nextUID, sizeof(Internal::Proj::Meta), 1, projFile);
+
+	// default assets
+	const char* defaultName = "default";
+	const char* defaultMeshPath = "assets/defaults/Mesh.obj";
+
+	fwrite(&meta.defaultMeshUID, sizeof(Internal::Proj::Meta::defaultMeshUID), 1, projFile);
+	fwrite(defaultMeshPath, strlen(defaultMeshPath) + 1, 1, projFile);
+	fwrite(defaultName, strlen(defaultName) + 1, 1, projFile);
 
 	// camera
 	float origin[7] = {};
@@ -55,13 +61,11 @@ bool AssetManager::CreateProject(std::string folder)
 	return true;
 }
 
+// TODO if i add loading mid-usage of the tool, track which assets are not used and revoke them
 bool AssetManager::LoadProject(std::string folder)
 {
 	if (FileUtil::IsFolderEmpty(folder))
 		return false;
-
-	// TODO
-	// if i add loading mid-usage of the tool, track which assets are not used and revoke them
 
 	SetCurrentDirectoryA(folder.c_str());
 
@@ -73,31 +77,40 @@ bool AssetManager::LoadProject(std::string folder)
 		return false;
 	}
 
-	// load defaults
-	string path = FileUtil::GetStringInFile(projFile);
-	MeshData::Handle mesh = MeshData::Instance().LoadMesh(path);
-	SetDefault<MeshData>(mesh);
-	TrackAsset<MeshData>(mesh, path).name = "default";
-
 	// load metadata
-	size_t meshCount, sceneCount;
-	fread_s(&meshCount, sizeof(size_t), sizeof(size_t), 1, projFile);
-	fread_s(&sceneCount, sizeof(size_t), sizeof(size_t), 1, projFile);
+	Internal::Proj::Meta meta;
+	fread_s(&meta.nextUID, sizeof(Internal::Proj::Meta), sizeof(Internal::Proj::Meta), 1, projFile);
 
 	// load assets
-	for (size_t i = 0; i < meshCount; ++i)
+	Asset<MeshData> meshAsset = {};
+	for (size_t i = 0; i < meta.numMeshes; ++i)
 	{
-		path = FileUtil::GetStringInFile(projFile);
-		mesh = MeshData::Instance().LoadMesh(path);
-		TrackAsset<MeshData>(mesh, path).name = FileUtil::GetStringInFile(projFile);
+		fread_s(&meshAsset.uID, sizeof(Internal::Proj::Asset::uID), sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		meshAsset.path = FileUtil::GetStringInFile(projFile);
+		meshAsset.name = FileUtil::GetStringInFile(projFile);
+		meshAsset.handle = MeshData::Instance().LoadMesh(meshAsset.path);
+		AddAsset(meshAsset);
+
+		if (meshAsset.uID == meta.defaultMeshUID)
+			SetDefault<MeshData>(meshAsset.handle);
 	}
 
-	SceneData::Handle scene;
-	for (size_t i = 0; i < sceneCount; ++i)
+	Asset<SceneData> sceneAsset;
+	for (size_t i = 0; i < meta.numScenes; ++i)
 	{
-		path = FileUtil::GetStringInFile(projFile);
-		scene = SceneData::Instance().LoadScene(path);
-		TrackAsset<SceneData>(scene, path).name = FileUtil::GetStringInFile(projFile);
+		fread_s(&sceneAsset.uID, sizeof(Internal::Proj::Asset::uID), sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		sceneAsset.path = FileUtil::GetStringInFile(projFile);
+		sceneAsset.name = FileUtil::GetStringInFile(projFile);
+		sceneAsset.handle = SceneData::Instance().LoadScene(sceneAsset.path);
+		AddAsset(sceneAsset);
+	}
+
+	// load scene config
+	size_t sceneIndex;
+	for (size_t i = 0; i < meta.numScenes; ++i)
+	{
+		fread_s(&sceneIndex, sizeof(size_t), sizeof(size_t), 1, projFile);
+		SceneData::Instance().sceneExportConfig.push_back(GetAsset<SceneData>(sceneIndex).handle);
 	}
 
 	// load camera
@@ -126,33 +139,38 @@ void AssetManager::SaveProject()
 	Tracker<SceneData>& sceneTracker = trackers;
 
 	MeshData::Handle& defaultMesh = defaults;
-	Asset<MeshData>& defaultMeshAsset = GetAsset<MeshData>(defaultMesh);
-
-	// save defaults
-	fwrite(defaultMeshAsset.path.c_str(), defaultMeshAsset.path.length() + 1, 1, projFile);
 	
 	// save metadata
-	size_t meshCount = meshTracker.assets.size() - 1;
-	fwrite(&meshCount, sizeof(size_t), 1, projFile);
-
-	size_t sceneCount = sceneTracker.assets.size();
-	fwrite(&sceneCount, sizeof(size_t), 1, projFile);
+	Internal::Proj::Meta meta = {
+		nextUID,
+		GetAsset<MeshData>(defaultMesh).uID,
+		meshTracker.assets.size(),
+		sceneTracker.assets.size()
+	};
+	fwrite(&meta.nextUID, sizeof(Internal::Proj::Meta), 1, projFile);
 
 	// save assets
-	for (size_t i = 0; i < meshTracker.assets.size(); ++i)
+	for (size_t i = 0; i < meta.numMeshes; ++i)
 	{
-		if (meshTracker.assets[i].handle != defaultMesh)
-		{
-			fwrite(meshTracker.assets[i].path.c_str(), meshTracker.assets[i].path.length() + 1, 1, projFile);
-			fwrite(meshTracker.assets[i].name.c_str(), meshTracker.assets[i].name.length() + 1, 1, projFile);
-		}
+		fwrite(&meshTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		fwrite(meshTracker.assets[i].path.c_str(), meshTracker.assets[i].path.length() + 1, 1, projFile);
+		fwrite(meshTracker.assets[i].name.c_str(), meshTracker.assets[i].name.length() + 1, 1, projFile);
 	}
 
-	for (size_t i = 0; i < sceneCount; ++i)
+	for (size_t i = 0; i < meta.numScenes; ++i)
 	{
 		SceneData::Instance().SaveScene(sceneTracker.assets[i].handle);
+		fwrite(&sceneTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
 		fwrite(sceneTracker.assets[i].path.c_str(), sceneTracker.assets[i].path.length() + 1, 1, projFile);
 		fwrite(sceneTracker.assets[i].name.c_str(), sceneTracker.assets[i].name.length() + 1, 1, projFile);
+	}
+
+	// save scene config
+	size_t sceneIndex;
+	for (size_t i = 0; i < meta.numScenes; ++i)
+	{
+		sceneIndex = GetIndex<SceneData>(SceneData::Instance().sceneExportConfig[i]);
+		fwrite(&sceneIndex, sizeof(size_t), 1, projFile);
 	}
 
 	// save camera
@@ -162,7 +180,6 @@ void AssetManager::SaveProject()
 	fclose(projFile);
 }
 
-// TODO make UIDs a part of the Asset struct, will require export rewrite too
 bool AssetManager::Export(std::string name, bool force)
 {
 	string exportFolder = "exports/" + name + "/";
@@ -174,22 +191,22 @@ bool AssetManager::Export(std::string name, bool force)
 	if (force)
 		FileUtil::DeleteDirectory(exportFolder);
 
-	Tracker<SceneData>& sceneTracker = trackers;
+	vector<SceneData::Handle> scenes = SceneData::Instance().sceneExportConfig;
 	vector<Asset<MeshData>> usedMeshAssets;
+	vector<Asset<SceneData>> usedSceneAssets;
 
 	// find all used mesh assets
 	size_t i, j;
-	size_t sceneCount = sceneTracker.assets.size();
-	size_t entityCount;
-	SceneData::Handle scene;
 	Asset<MeshData> meshAsset;
-	for (i = 0; i < sceneCount; ++i)
+	for (i = 0; i < scenes.size(); ++i)
 	{
-		scene = sceneTracker.assets[i].handle;
-		entityCount = scene->entities.size();
-		for (j = 0; j < entityCount; ++j)
+		if (!scenes[i]->willExport)
+			continue;
+
+		usedSceneAssets.push_back(AssetManager::Instance().GetAsset<SceneData>(scenes[i]));
+		for (j = 0; j < scenes[i]->entities.size(); ++j)
 		{
-			meshAsset = GetAsset<MeshData>(scene->entities[j]->mesh);
+			meshAsset = GetAsset<MeshData>(scenes[i]->entities[j]->mesh);
 			auto check = std::find(usedMeshAssets.begin(), usedMeshAssets.end(), meshAsset);
 			if (check == usedMeshAssets.end())
 				usedMeshAssets.push_back(meshAsset);
@@ -197,88 +214,28 @@ bool AssetManager::Export(std::string name, bool force)
 	}
 
 	// build manifest path blob
-	map<MeshData::Handle, uint16_t> meshUIDs;
 	vector<size_t> filePathIndexes;
-	filePathIndexes.reserve(sceneCount + usedMeshAssets.size());
+	filePathIndexes.reserve(usedSceneAssets.size() + usedMeshAssets.size());
 	string filePathBlob = "";
 	string filePath;
 
-	for (i = 0; i < sceneCount; ++i)
+	for (i = 0; i < usedSceneAssets.size(); ++i)
 	{
 		filePathIndexes.push_back(filePathBlob.size());
-		filePath = StringManip::ReplaceAll(sceneTracker.assets[i].path, "assets/", exportFolder);
+		filePath = StringManip::ReplaceAll(usedSceneAssets[i].path, "assets/", exportFolder);
 		filePathBlob += filePath + '\0';
+
+		SceneData::Instance().Export(filePath, usedSceneAssets[i].handle);
 	}
 
 	for (i = 0; i < usedMeshAssets.size(); ++i)
 	{
-		meshAsset = usedMeshAssets[i];
-		meshUIDs[meshAsset.handle] = (uint16_t)(sceneCount + i);
-
 		filePathIndexes.push_back(filePathBlob.size());
-		filePath = StringManip::ReplaceAll(meshAsset.path, "assets/", exportFolder);
+		filePath = StringManip::ReplaceAll(usedMeshAssets[i].path, "assets/", exportFolder);
 		filePath = StringManip::ReplaceAll(filePath, StringManip::FileExtension(filePath), "mesh");
 		filePathBlob += filePath + '\0';
 
-		MeshData::Instance().Export(filePath, meshAsset.handle);
-	}
-
-	// TODO move to SceneData once UIDs are in Assets
-	// scenes
-	vector<uint16_t> sceneUIDs;
-	uint16_t meshUID;
-	Export::Scene::File sceneStruct = {};
-	Export::Scene::Transform transform = {};
-
-	for (i = 0; i < sceneCount; ++i)
-	{
-		// find used UIDs
-		sceneUIDs.clear();
-		scene = sceneTracker.assets[i].handle;
-		entityCount = scene->entities.size();
-
-		for (j = 0; j < entityCount; ++j)
-		{
-			auto check = meshUIDs.find(scene->entities[j]->mesh);
-			if (check != meshUIDs.end())
-				sceneUIDs.push_back(check->second);
-		}
-
-		// meta data
-		sceneStruct.numAssets = (uint16_t)sceneUIDs.size();
-		sceneStruct.numEntities = (uint16_t)entityCount;
-
-		// create the scene file
-		filePath = filePathBlob.substr(filePathIndexes[i]);
-		FileUtil::CreateDirectoryRecursive(filePath.c_str());
-
-		FILE* sceneFile;
-		fopen_s(&sceneFile, filePath.c_str(), "wb");
-		if (!sceneFile)
-		{
-			printf("Failed to write scene file '%s'", filePath.c_str());
-			return false;
-		}
-
-		// write meta data
-		fwrite(&sceneStruct.numAssets, sizeof(uint16_t), 1, sceneFile);
-		fwrite(&sceneUIDs[0], sizeof(uint16_t), sceneUIDs.size(), sceneFile);
-		fwrite(&sceneStruct.numEntities, sizeof(uint16_t), 1, sceneFile);
-
-		// write entities
-		for (j = 0; j < entityCount; ++j)
-		{
-			memcpy_s(&transform.pos[0], sizeof(float) * 3, &scene->entities[j]->transform->pos.x, sizeof(DirectX::XMFLOAT3));
-			memcpy_s(&transform.rot[0], sizeof(float) * 4, &scene->entities[j]->transform->rot.x, sizeof(DirectX::XMFLOAT4));
-			memcpy_s(&transform.scale, sizeof(float), &scene->entities[j]->transform->scale, sizeof(float));
-
-			meshUID = meshUIDs[scene->entities[j]->mesh];
-
-			fwrite(&transform.pos[0], sizeof(Export::Scene::Transform), 1, sceneFile);
-			fwrite(&meshUID, sizeof(uint16_t), 1, sceneFile);
-		}
-
-		fclose(sceneFile);
+		MeshData::Instance().Export(filePath, usedMeshAssets[i].handle);
 	}
 
 	// process file path blob
@@ -297,29 +254,40 @@ bool AssetManager::Export(std::string name, bool force)
 		return false;
 	}
 
-	Export::Manifest::File manifest;
+	Export::Manifest::File fileData;
 
 	// write meta to manifest
-	manifest.pathBlockSize = (uint16_t)filePathBlob.size();
-	manifest.numAssets = (uint16_t)filePathIndexes.size();
+	fileData.pathBlockSize = (uint16_t)filePathBlob.size();
+	fileData.numAssets = (uint16_t)filePathIndexes.size();
+	fileData.numScenes = (uint16_t)usedSceneAssets.size();
 
-	fwrite(&manifest.pathBlockSize, sizeof(uint16_t), 2, manifestFile);
+	fwrite(&fileData.pathBlockSize, sizeof(uint16_t), 3, manifestFile);
+
+	// write scene uIDs to manifest
+	for (i = 0; i < usedSceneAssets.size(); ++i)
+		fwrite(&usedSceneAssets[i].uID, sizeof(Export::Manifest::Asset::uID), 1, manifestFile);
 
 	// write assets to manifest
+	vector<uint16_t> uIDs;
 	Export::Manifest::Asset asset = {};
 	struct _stat statBuf;
 
-	for (i = 0; i < manifest.numAssets; ++i)
+	uIDs.reserve(fileData.numAssets);
+	for (i = 0; i < usedSceneAssets.size(); ++i)
+		uIDs.push_back(usedSceneAssets[i].uID);
+	for (i = 0; i < usedMeshAssets.size(); ++i)
+		uIDs.push_back(usedMeshAssets[i].uID);
+
+	for (i = 0; i < fileData.numAssets; ++i)
 	{
-		filePath = filePathBlob.substr(filePathIndexes[asset.uID]);
-		asset.filePathIndex = (uint16_t)filePathIndexes[asset.uID];
+		asset.uID = uIDs[i];
+		asset.filePathIndex = (uint16_t)filePathIndexes[i];
 
+		filePath = filePathBlob.substr(filePathIndexes[i]);
 		_stat((exportFolder + filePath).c_str(), &statBuf);
-		asset.fileSize = (uint16_t)statBuf.st_size;
+		asset.fileSize = statBuf.st_size;
 
-		fwrite(&asset.uID, sizeof(uint16_t), 3, manifestFile);
-
-		asset.uID++;
+		fwrite(&asset.uID, sizeof(Export::Manifest::Asset), 1, manifestFile);
 	}
 
 	// write file path blob to manifest
