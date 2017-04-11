@@ -1,7 +1,7 @@
 #include "BMMath.h"
 
 //If errors start occurring, uncomment this:
-#define _XM_NO_INTRINSICS_
+//#define _XM_NO_INTRINSICS_
 #include <DirectXMath.h>
 
 using namespace DirectX;
