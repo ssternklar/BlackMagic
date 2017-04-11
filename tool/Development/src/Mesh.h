@@ -41,7 +41,7 @@ public:
 	void Revoke(Handle handle);
 
 	void Export(std::string path, Handle handle);
-	Handle LoadMesh(std::string modelPath);
+	Handle Load(std::string modelPath);
 	const std::string root = "assets/models/";
 
 private:

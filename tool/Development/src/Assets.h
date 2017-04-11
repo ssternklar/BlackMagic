@@ -6,6 +6,7 @@
 #include "StringManip.h"
 #include "Mesh.h"
 #include "Scene.h"
+#include "Texture.h"
 
 template<class T>
 struct Asset
@@ -29,12 +30,14 @@ struct Tracker
 
 struct AssetTrackers :
 	Tracker<MeshData>,
-	Tracker<SceneData>
+	Tracker<SceneData>,
+	Tracker<TextureData>
 {};
 
 struct DefaultAssets :
 	MeshData::Handle,
-	SceneData::Handle
+	SceneData::Handle,
+	TextureData::Handle
 {};
 
 class AssetManager : public Singleton<AssetManager>

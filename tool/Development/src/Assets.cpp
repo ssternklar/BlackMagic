@@ -88,7 +88,7 @@ bool AssetManager::LoadProject(std::string folder)
 		fread_s(&meshAsset.uID, sizeof(Internal::Proj::Asset::uID), sizeof(Internal::Proj::Asset::uID), 1, projFile);
 		meshAsset.path = FileUtil::GetStringInFile(projFile);
 		meshAsset.name = FileUtil::GetStringInFile(projFile);
-		meshAsset.handle = MeshData::Instance().LoadMesh(meshAsset.path);
+		meshAsset.handle = MeshData::Instance().Load(meshAsset.path);
 		AddAsset(meshAsset);
 
 		if (meshAsset.uID == meta.defaultMeshUID)
@@ -101,7 +101,7 @@ bool AssetManager::LoadProject(std::string folder)
 		fread_s(&sceneAsset.uID, sizeof(Internal::Proj::Asset::uID), sizeof(Internal::Proj::Asset::uID), 1, projFile);
 		sceneAsset.path = FileUtil::GetStringInFile(projFile);
 		sceneAsset.name = FileUtil::GetStringInFile(projFile);
-		sceneAsset.handle = SceneData::Instance().LoadScene(sceneAsset.path);
+		sceneAsset.handle = SceneData::Instance().Load(sceneAsset.path);
 		AddAsset(sceneAsset);
 	}
 
@@ -159,7 +159,7 @@ void AssetManager::SaveProject()
 
 	for (size_t i = 0; i < meta.numScenes; ++i)
 	{
-		SceneData::Instance().SaveScene(sceneTracker.assets[i].handle);
+		SceneData::Instance().Save(sceneTracker.assets[i].handle);
 		fwrite(&sceneTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
 		fwrite(sceneTracker.assets[i].path.c_str(), sceneTracker.assets[i].path.length() + 1, 1, projFile);
 		fwrite(sceneTracker.assets[i].name.c_str(), sceneTracker.assets[i].name.length() + 1, 1, projFile);
@@ -274,9 +274,9 @@ bool AssetManager::Export(std::string name, bool force)
 
 	uIDs.reserve(fileData.numAssets);
 	for (i = 0; i < usedSceneAssets.size(); ++i)
-		uIDs.push_back(usedSceneAssets[i].uID);
+		uIDs.push_back((uint16_t)usedSceneAssets[i].uID);
 	for (i = 0; i < usedMeshAssets.size(); ++i)
-		uIDs.push_back(usedMeshAssets[i].uID);
+		uIDs.push_back((uint16_t)usedMeshAssets[i].uID);
 
 	for (i = 0; i < fileData.numAssets; ++i)
 	{

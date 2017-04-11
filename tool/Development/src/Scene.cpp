@@ -49,7 +49,7 @@ SceneData::Handle SceneData::Get(std::string name)
 	if (h.ptr())
 		return h;
 
-	h = LoadScene(fullPath);
+	h = Load(fullPath);
 
 	if (!h.ptr())
 		return h;
@@ -59,7 +59,7 @@ SceneData::Handle SceneData::Get(std::string name)
 	return h;
 }
 
-SceneData::Handle SceneData::LoadScene(std::string scenePath)
+SceneData::Handle SceneData::Load(std::string scenePath)
 {
 	FILE* sceneFile;
 	fopen_s(&sceneFile, scenePath.c_str(), "rb");
@@ -97,7 +97,7 @@ SceneData::Handle SceneData::LoadScene(std::string scenePath)
 	return h;
 }
 
-void SceneData::SaveScene(Handle handle)
+void SceneData::Save(Handle handle)
 {
 	Asset<SceneData> asset = AssetManager::Instance().GetAsset<SceneData>(handle);
 
