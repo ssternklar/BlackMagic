@@ -26,22 +26,26 @@ ContentManager::~ContentManager()
 struct Asset
 {
 	uint16_t uid;
-	uint16_t fileSize;
 	uint16_t filePathIndex;
+	uint32_t fileSize;
 };
 
 struct ManifestFileHeader
 {
 	uint16_t pathsSize;
 	uint16_t numAssets;
-	uint32_t reserved[2];
+	uint16_t numScenes;
 };
 
 void BlackMagic::ContentManager::ProcessManifestFile(void* manifestFileLocation)
 {
 	ManifestFileHeader* header = (ManifestFileHeader*)manifestFileLocation;
-	Asset* assets = (Asset*)&header[1];
-	char* firstString = (char*)(assets + header->numAssets);
+	uint16_t* scenes = (uint16_t*)&(header[1]);
+	Asset* assets = (Asset*)&scenes[header->numScenes];
+	char* firstString = (char*)&assets[header->numAssets];
+
+	//manipulate scene IDs here
+
 	manifestStrings = (char*)_allocator->allocate(header->pathsSize, 1);
 	memcpy_s(manifestStrings, header->pathsSize, firstString, header->pathsSize);
 	entries = _allocator->allocate<ManifestEntry>(header->numAssets);
@@ -73,9 +77,8 @@ char path[256]; \
 memset(path, 0, 256); \
 strcpy_s(path, directory); \
 strcat_s(path, manifest->resourceName); \
-size_t __filesize = PlatformBase::GetSingleton()->GetFileSize(path); \
-byte* ##X = (byte*)_allocator->allocate(__filesize); \
-if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, __filesize)) \
+byte* ##X = (byte*)_allocator->allocate(manifest->size); \
+if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, manifest->size)) \
 { \
 	throw "Failed to load file into memory"; \
 } \
@@ -133,7 +136,7 @@ Texture* ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	LOAD_FILE(textureSpace);
 	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
-	*tex = renderer->CreateTexture(textureSpace, __filesize, Texture::Type::FLAT_2D, Texture::Usage::READ);
+	*tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::FLAT_2D, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
 	return tex;
 }
@@ -143,7 +146,7 @@ Cubemap* ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	LOAD_FILE(textureSpace);
 	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
-	*tex = renderer->CreateTexture(textureSpace, __filesize, Texture::Type::CUBEMAP, Texture::Usage::READ);
+	*tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::CUBEMAP, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
 	return (Cubemap*)tex;
 }

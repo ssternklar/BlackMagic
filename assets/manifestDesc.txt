@@ -42,8 +42,8 @@
 /textures/rocks_normal.tif
 /textures/sand_nromal.JPG
 /textures/sand_texture.JPG
-/textures/park_skybox_env_filter.dds
+/textures/park_skybox_env.dds
 /textures/park_skybox_irradiance.dds
-/textures/park_skybox_tex.dds
+/textures/park_skybox_radiance.dds
 /textures/test_normals.png
 /textures/test_texture.png

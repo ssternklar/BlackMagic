@@ -77,6 +77,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Export::Manifest::File file;
 	file.numAssets = assets.size();
 	file.pathBlockSize = index;
+	file.numScenes = 0;
 	std::ofstream out(path + "/manifest.bm", std::ios::binary);
 	out.write((char*)&file.pathBlockSize, sizeof(uint16_t));
 	out.write((char*)&file.numAssets, sizeof(uint16_t));
