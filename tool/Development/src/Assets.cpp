@@ -285,9 +285,9 @@ bool AssetManager::Export(std::string name, bool force)
 
 		filePath = filePathBlob.substr(filePathIndexes[i]);
 		_stat((exportFolder + filePath).c_str(), &statBuf);
-		asset.fileSize = (uint16_t)statBuf.st_size;
+		asset.fileSize = statBuf.st_size;
 
-		fwrite(&asset.uID, sizeof(uint16_t), 3, manifestFile);
+		fwrite(&asset.uID, sizeof(Export::Manifest::Asset), 1, manifestFile);
 	}
 
 	// write file path blob to manifest

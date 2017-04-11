@@ -70,8 +70,8 @@ namespace Export
 		struct Asset
 		{
 			uint16_t uID;
-			uint16_t fileSize;
 			uint16_t filePathIndex;
+			uint32_t fileSize;
 		};
 
 		struct File
