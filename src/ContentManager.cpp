@@ -73,8 +73,9 @@ char path[256]; \
 memset(path, 0, 256); \
 strcpy_s(path, directory); \
 strcat_s(path, manifest->resourceName); \
-byte* ##X = (byte*)_allocator->allocate(manifest->size); \
-if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, manifest->size)) \
+size_t __filesize = PlatformBase::GetSingleton()->GetFileSize(path); \
+byte* ##X = (byte*)_allocator->allocate(__filesize); \
+if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, __filesize)) \
 { \
 	throw "Failed to load file into memory"; \
 } \
@@ -132,7 +133,7 @@ Texture* ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	LOAD_FILE(textureSpace);
 	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
-	*tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::FLAT_2D, Texture::Usage::READ);
+	*tex = renderer->CreateTexture(textureSpace, __filesize, Texture::Type::FLAT_2D, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
 	return tex;
 }
@@ -142,7 +143,7 @@ Cubemap* ContentManager::load_Internal(ManifestEntry* manifest)
 {
 	LOAD_FILE(textureSpace);
 	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
-	*tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::CUBEMAP, Texture::Usage::READ);
+	*tex = renderer->CreateTexture(textureSpace, __filesize, Texture::Type::CUBEMAP, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
 	return (Cubemap*)tex;
 }
