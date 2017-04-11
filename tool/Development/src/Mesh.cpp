@@ -31,7 +31,7 @@ MeshData::Handle MeshData::Get(std::string modelPath)
 	if (h.ptr())
 		return h;
 
-	h = LoadMesh(fullPath);
+	h = Load(fullPath);
 
 	if (!h.ptr())
 		return h;
@@ -41,7 +41,7 @@ MeshData::Handle MeshData::Get(std::string modelPath)
 	return h;
 }
 
-MeshData::Handle MeshData::LoadMesh(std::string modelPath)
+MeshData::Handle MeshData::Load(std::string modelPath)
 {
 	Assimp::Importer importer;
 

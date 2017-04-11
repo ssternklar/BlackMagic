@@ -15,7 +15,7 @@ public:
 	void Init(ID3D11Device* device, ID3D11DeviceContext* context);
 
 	template<typename T>
-	T* LoadShader(LPCWSTR path);
+	T* Load(LPCWSTR path);
 
 private:
 	ID3D11Device* device;
@@ -23,7 +23,7 @@ private:
 };
 
 template<typename T>
-T* ShaderData::LoadShader(LPCWSTR path)
+T* ShaderData::Load(LPCWSTR path)
 {
 	ID3DBlob* blob;
 	T* shader = new T(device, context);

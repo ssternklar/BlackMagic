@@ -29,8 +29,8 @@ public:
 	Handle Get(std::string name);
 	void Revoke(Handle handle);
 
-	Handle LoadScene(std::string scenePath);
-	void SaveScene(Handle handle);
+	Handle Load(std::string scenePath);
+	void Save(Handle handle);
 	void Export(std::string path, Handle handle);
 	
 	Handle CurrentScene();

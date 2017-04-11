@@ -43,6 +43,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 	if (FAILED(hr)) return hr;
 
 	MeshData::Instance().Init(Graphics::Instance().GetDevice());
+	TextureData::Instance().Init(Graphics::Instance().GetDevice());
 	SceneData::Instance().Init(&gui.entityData);
 
 	RAWINPUTDEVICE Rid[1];

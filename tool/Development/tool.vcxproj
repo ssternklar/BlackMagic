@@ -151,6 +151,7 @@
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\Shaders.cpp" />
     <ClCompile Include="src\StringManip.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Tool.cpp" />
     <ClCompile Include="src\Graphics.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="src\Shaders.h" />
     <ClInclude Include="src\Patterns.h" />
     <ClInclude Include="src\StringManip.h" />
+    <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\Tool.h" />
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="src\SimpleShader.h" />
