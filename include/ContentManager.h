@@ -9,7 +9,7 @@
 #include <allocators/AllocatorSTLAdapter.h>
 #include <allocators/BadBestFitAllocator.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(BM_PLATFORM_WINDOWS)
 using VertexShader = SimpleVertexShader;
 using PixelShader = SimplePixelShader;
 #endif

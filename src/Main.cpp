@@ -1,4 +1,4 @@
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(BM_PLATFORM_WINDOWS)
 #include <d3d11.h>
 #include <Windows.h>
 #include "WindowsPlatform.h"
@@ -6,7 +6,7 @@
 
 #include "TestGame.h"
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(BM_PLATFORM_WINDOWS)
 // --------------------------------------------------------
 // Entry point for a graphical (non-console) Windows application
 // --------------------------------------------------------

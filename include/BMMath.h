@@ -2,10 +2,10 @@
 
 namespace BlackMagic
 {
-	class Vector3;
-	class Vector4;
-	class Matrix4;
-	class Quaternion;
+	class alignas(16) Vector3 { float data[4]; };
+	class alignas(16) Vector4 { float data[4]; };
+	class alignas(16) Matrix4 { float data[16]; };
+	class alignas(16) Quaternion { float data[4]; };
 	typedef Matrix4 Mat4;
 
 	Vector3 CreateVector3(float x, float y, float z);
@@ -31,7 +31,7 @@ namespace BlackMagic
 	Vector4 CreateVector4Zero();
 	float Dot(Vector4& left, Vector4& right);
 	Vector4 Normalize(Vector4& vec);
-	Vector3 Lerp(Vector4& t0, Vector4& t1, float t);
+	Vector4 Lerp(Vector4& t0, Vector4& t1, float t);
 	Vector4 operator*(Vector4& left, float scalar);
 	Vector4 operator/(Vector4& left, float scalar);
 	Vector4 operator+(Vector4& left, Vector4& right);
@@ -67,5 +67,4 @@ namespace BlackMagic
 	Vector3 operator*(Quaternion& quat, Vector3& vec);
 	Quaternion operator*(Quaternion& left, Quaternion& right);
 	Matrix4 QuaternionToMatrix(Quaternion& quat);
-
 }

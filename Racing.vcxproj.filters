@@ -47,7 +47,7 @@
     <ClCompile Include="src\FirstPersonCamera.cpp" />
     <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\Resource.cpp" />
-    <ClCompile Include="WindowsMath.cpp" />
+    <ClCompile Include="src\WindowsMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -93,6 +93,6 @@
     <ClInclude Include="include\FirstPersonCamera.h" />
     <ClInclude Include="include\Resource.h" />
     <ClInclude Include="include\PlatformResourceTypes.h" />
-    <ClInclude Include="Math.h" />
+    <ClInclude Include="include\BMMath.h" />
   </ItemGroup>
 </Project>

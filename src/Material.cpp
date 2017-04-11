@@ -1,6 +1,6 @@
 #include "Material.h"
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(BM_PLATFORM_WINDOWS)
 #include "WindowsPlatform.h"
 #endif
 

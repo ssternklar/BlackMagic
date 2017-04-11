@@ -2,7 +2,7 @@
 
 #include <d3d11.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(BM_PLATFORM_WINDOWS)
 using ShaderResource = ID3D11ShaderResourceView;
 using RenderTarget = ID3D11RenderTargetView;
 using BufferHandle = ID3D11Buffer;
