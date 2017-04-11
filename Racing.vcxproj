@@ -172,6 +172,7 @@
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\TransformData.cpp" />
     <ClCompile Include="src\WindowsPlatform.cpp" />
+    <ClCompile Include="WindowsMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -217,6 +218,7 @@
     <ClInclude Include="include\TransformData.h" />
     <ClInclude Include="include\Vertex.h" />
     <ClInclude Include="include\WindowsPlatform.h" />
+    <ClInclude Include="Math.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="assets\shaders\FinalMerge.hlsl">

@@ -3,51 +3,24 @@
   <ItemGroup>
     <FxCompile Include="assets\shaders\FXAA_PS.hlsl" />
     <FxCompile Include="assets\shaders\FXAA_VS.hlsl" />
-    <ClCompile Include="src\GameObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FirstPersonCamera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Entity.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Resource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClInclude Include="include\FirstPersonCamera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Entity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\PlatformResourceTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <FxCompile Include="assets\shaders\GBufferPS.hlsl" />
     <FxCompile Include="assets\shaders\LightPassPS.hlsl" />
     <FxCompile Include="assets\shaders\GBufferVS.hlsl" />
-    <FxCompile Include="assets\shaders\LightPassVS.hlsl" />
     <FxCompile Include="assets\shaders\LightPassPS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="assets\shaders\QuadVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="assets\shaders\FinalMerge.hlsl" />
     <FxCompile Include="assets\shaders\ShadowMapVS.hlsl" />
     <FxCompile Include="assets\shaders\SkyboxPS.hlsl" />
     <FxCompile Include="assets\shaders\SkyboxVS.hlsl" />
+    <FxCompile Include="assets\shaders\QuadVS.hlsl" />
+    <FxCompile Include="assets\shaders\ProjectorPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ContentManager.cpp" />
     <ClCompile Include="src\GameAbstraction.cpp" />
     <ClCompile Include="src\InputData.cpp" />
-    <ClCompile Include="src\IResource.cpp" />
     <ClCompile Include="src\LinkedList.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Material.cpp" />
@@ -70,6 +43,11 @@
     <ClCompile Include="src\AudioManager.cpp" />
     <ClCompile Include="src\DirectXAudioManager.cpp" />
     <ClCompile Include="src\AudioJob.cpp" />
+    <ClCompile Include="src\Entity.cpp" />
+    <ClCompile Include="src\FirstPersonCamera.cpp" />
+    <ClCompile Include="src\GameObject.cpp" />
+    <ClCompile Include="src\Resource.cpp" />
+    <ClCompile Include="WindowsMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -80,7 +58,6 @@
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />
-    <ClInclude Include="include\ECS.h" />
     <ClInclude Include="include\GameAbstraction.h" />
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\GenericJob.h" />
@@ -96,7 +73,6 @@
     <ClInclude Include="include\Renderable.h" />
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\Mesh.h" />
-    <ClInclude Include="include\IResource.h" />
     <ClInclude Include="include\RenderJob.h" />
     <ClInclude Include="include\DX11Renderer.h" />
     <ClInclude Include="include\ShaderStructs.h" />
@@ -113,5 +89,10 @@
     <ClInclude Include="include\AudioManager.h" />
     <ClInclude Include="include\DirectXAudioManager.h" />
     <ClInclude Include="include\AudioJob.h" />
+    <ClInclude Include="include\Entity.h" />
+    <ClInclude Include="include\FirstPersonCamera.h" />
+    <ClInclude Include="include\Resource.h" />
+    <ClInclude Include="include\PlatformResourceTypes.h" />
+    <ClInclude Include="Math.h" />
   </ItemGroup>
 </Project>
