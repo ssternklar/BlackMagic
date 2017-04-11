@@ -204,6 +204,7 @@ bool WindowsPlatform::InitWindow()
 void BlackMagic::WindowsPlatform::InitPlatformAudioManager()
 {
 	audioManager = AllocateAndConstruct<StackAllocator, DirectXAudioManager>(allocatorAllocator, 1);
+	return;
 }
 
 #define KEYPRESSED(char) (GetAsyncKeyState(char) & 0x8000)

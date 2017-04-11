@@ -5,18 +5,12 @@ using namespace DirectX;
 
 DirectXAudioManager::DirectXAudioManager()
 {
-	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	AUDIO_ENGINE_FLAGS eflags = AudioEngine_Default;
-#ifdef _DEBUG
-	eflags = eflags | AudioEngine_Debug;
-#endif
 	audioEngine = std::make_unique<AudioEngine>(eflags);
-
 }
 
 DirectXAudioManager::~DirectXAudioManager()
 {
-	audioEngine->Reset();
 	audioEngine.release();
 }
 

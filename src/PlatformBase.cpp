@@ -49,13 +49,14 @@ bool PlatformBase::BlackMagicInit()
 	ReadFileIntoMemory(path, manifestFile, fileSize);
 	contentManager->ProcessManifestFile(manifestFile);
 	allocatorAllocator->deallocate(manifestFile, fileSize, 1);
-
+	
 	renderer->Init(contentManager);
+
 	InitPlatformAudioManager();
 	InitPlatformThreadManager();
 
-	transformData = allocatorAllocator->allocate<TransformData>();
-	new (transformData) TransformData;
+	transformData = AllocateAndConstruct<StackAllocator, TransformData>(allocatorAllocator, 1);
+
 	gameMemorySize = allocatorAllocator->GetRemainingSize() - 32;
 	gameMemory = (byte*)allocatorAllocator->allocate(gameMemorySize);
 
