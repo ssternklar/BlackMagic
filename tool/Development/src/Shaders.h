@@ -3,18 +3,34 @@
 #include "Patterns.h"
 #include "SimpleShader.h"
 
-template<typename T, typename = std::is_base_of<ISimpleShader, T>::type>
-struct ShaderTypeString
+struct Shader
 {
-	static const char* value;
+public:
+	enum Type
+	{
+		Compute,
+		Domain,
+		Geometry,
+		Hull,
+		Pixel,
+		Vertex
+	};
+
+	// how to return type based on enum?
+	ISimpleShader* operator->() { return shader; }
+	ISimpleShader& operator *() { return *shader; }
+
+private:
+	ISimpleShader* shader;
+	Type type;
 };
 
-class ShaderData : public Singleton<ShaderData>
+class ShaderData : public ProxyHandler<Shader, ShaderData>
 {
 public:
 	void Init(ID3D11Device* device, ID3D11DeviceContext* context);
 
-	template<typename T>
+	template <typename T>
 	T* Load(LPCWSTR path);
 
 private:
@@ -22,7 +38,13 @@ private:
 	ID3D11DeviceContext* context;
 };
 
-template<typename T>
+template <typename T, typename = std::is_base_of<ISimpleShader, T>::type>
+struct ShaderTypeString
+{
+	static const char* value;
+};
+
+template <typename T>
 T* ShaderData::Load(LPCWSTR path)
 {
 	ID3DBlob* blob;
