@@ -38,7 +38,6 @@ struct AssetTrackers :
 
 struct DefaultAssets :
 	MeshData::Handle,
-	SceneData::Handle,
 	TextureData::Handle
 {};
 

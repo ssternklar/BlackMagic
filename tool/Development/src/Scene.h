@@ -11,13 +11,6 @@ struct Scene
 	std::vector<EntityData::Handle> entities;
 	EntityData::Handle selectedEntity;
 	bool willExport;
-	Scene& operator=(Scene&& other)
-	{
-		entities = other.entities;
-		selectedEntity = other.selectedEntity;
-		willExport = other.willExport;
-		return *this;
-	}
 };
 
 class SceneData : public ProxyHandler<Scene, SceneData>
