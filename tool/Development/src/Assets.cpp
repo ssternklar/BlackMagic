@@ -22,6 +22,7 @@ bool AssetManager::CreateProject(std::string folder)
 
 	FileUtil::CreateDirectoryRecursive("assets/defaults/");
 	FileUtil::CreateDirectoryRecursive("assets/models/");
+	FileUtil::CreateDirectoryRecursive("assets/textures/");
 	FileUtil::CreateDirectoryRecursive("assets/scenes/");
 
 	FILE* projFile;
@@ -34,16 +35,25 @@ bool AssetManager::CreateProject(std::string folder)
 
 	// metadata
 	Internal::Proj::Meta meta = {};
+	meta.nextUID = 2;
+	meta.defaultMeshUID = 0;
+	meta.defaultTextureUID = 1;
 	meta.numMeshes = 1;
-	meta.nextUID = 1;
+	meta.numTextures = 1;
+	meta.numScenes = 0;
 	fwrite(&meta.nextUID, sizeof(Internal::Proj::Meta), 1, projFile);
 
 	// default assets
 	const char* defaultName = "default";
 	const char* defaultMeshPath = "assets/defaults/Mesh.obj";
+	const char* defaultTexturePath = "assets/defaults/Texture.png";
 
 	fwrite(&meta.defaultMeshUID, sizeof(Internal::Proj::Meta::defaultMeshUID), 1, projFile);
 	fwrite(defaultMeshPath, strlen(defaultMeshPath) + 1, 1, projFile);
+	fwrite(defaultName, strlen(defaultName) + 1, 1, projFile);
+
+	fwrite(&meta.defaultTextureUID, sizeof(Internal::Proj::Meta::defaultTextureUID), 1, projFile);
+	fwrite(defaultTexturePath, strlen(defaultTexturePath) + 1, 1, projFile);
 	fwrite(defaultName, strlen(defaultName) + 1, 1, projFile);
 
 	// camera
@@ -55,6 +65,7 @@ bool AssetManager::CreateProject(std::string folder)
 	
 	// write default files to disk
 	FileUtil::WriteResourceToDisk(IDR_MESH1, "mesh", defaultMeshPath);
+	FileUtil::WriteResourceToDisk(IDB_PNG1, "png", defaultTexturePath);
 
 	LoadProject(folder);
 
@@ -93,6 +104,19 @@ bool AssetManager::LoadProject(std::string folder)
 
 		if (meshAsset.uID == meta.defaultMeshUID)
 			SetDefault<MeshData>(meshAsset.handle);
+	}
+
+	Asset<TextureData> textureAsset = {};
+	for (size_t i = 0; i < meta.numTextures; ++i)
+	{
+		fread_s(&textureAsset.uID, sizeof(Internal::Proj::Asset::uID), sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		textureAsset.path = FileUtil::GetStringInFile(projFile);
+		textureAsset.name = FileUtil::GetStringInFile(projFile);
+		textureAsset.handle = TextureData::Instance().Load(textureAsset.path, TextureDesc::Type::FLAT, TextureDesc::Usage::READ);
+		AddAsset(textureAsset);
+
+		if (textureAsset.uID == meta.defaultTextureUID)
+			SetDefault<TextureData>(textureAsset.handle);
 	}
 
 	Asset<SceneData> sceneAsset;
@@ -136,15 +160,19 @@ void AssetManager::SaveProject()
 
 	// gather up the trackers and defaults
 	Tracker<MeshData>& meshTracker = trackers;
+	Tracker<TextureData>& textureTracker = trackers;
 	Tracker<SceneData>& sceneTracker = trackers;
 
 	MeshData::Handle& defaultMesh = defaults;
+	TextureData::Handle& defaultTexture = defaults;
 	
 	// save metadata
 	Internal::Proj::Meta meta = {
 		nextUID,
 		GetAsset<MeshData>(defaultMesh).uID,
+		GetAsset<TextureData>(defaultTexture).uID,
 		meshTracker.assets.size(),
+		textureTracker.assets.size(),
 		sceneTracker.assets.size()
 	};
 	fwrite(&meta.nextUID, sizeof(Internal::Proj::Meta), 1, projFile);
@@ -155,6 +183,13 @@ void AssetManager::SaveProject()
 		fwrite(&meshTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
 		fwrite(meshTracker.assets[i].path.c_str(), meshTracker.assets[i].path.length() + 1, 1, projFile);
 		fwrite(meshTracker.assets[i].name.c_str(), meshTracker.assets[i].name.length() + 1, 1, projFile);
+	}
+
+	for (size_t i = 0; i < meta.numTextures; ++i)
+	{
+		fwrite(&textureTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		fwrite(textureTracker.assets[i].path.c_str(), textureTracker.assets[i].path.length() + 1, 1, projFile);
+		fwrite(textureTracker.assets[i].name.c_str(), textureTracker.assets[i].name.length() + 1, 1, projFile);
 	}
 
 	for (size_t i = 0; i < meta.numScenes; ++i)
@@ -193,9 +228,11 @@ bool AssetManager::Export(std::string name, bool force)
 
 	vector<SceneData::Handle> scenes = SceneData::Instance().sceneExportConfig;
 	vector<Asset<MeshData>> usedMeshAssets;
+	vector<Asset<TextureData>> usedTextureAssets;
 	vector<Asset<SceneData>> usedSceneAssets;
 
-	// find all used mesh assets
+	// TODO find used textures
+	// find all used assets
 	size_t i, j;
 	Asset<MeshData> meshAsset;
 	for (i = 0; i < scenes.size(); ++i)
@@ -213,9 +250,13 @@ bool AssetManager::Export(std::string name, bool force)
 		}
 	}
 
+	// TODO remove once textures are found properly
+	Tracker<TextureData>& textureTracker = trackers;
+	usedTextureAssets = textureTracker.assets;
+
 	// build manifest path blob
 	vector<size_t> filePathIndexes;
-	filePathIndexes.reserve(usedSceneAssets.size() + usedMeshAssets.size());
+	filePathIndexes.reserve(usedSceneAssets.size() + usedMeshAssets.size() + usedTextureAssets.size());
 	string filePathBlob = "";
 	string filePath;
 
@@ -236,6 +277,15 @@ bool AssetManager::Export(std::string name, bool force)
 		filePathBlob += filePath + '\0';
 
 		MeshData::Instance().Export(filePath, usedMeshAssets[i].handle);
+	}
+
+	for (i = 0; i < usedTextureAssets.size(); ++i)
+	{
+		filePathIndexes.push_back(filePathBlob.size());
+		filePath = StringManip::ReplaceAll(usedTextureAssets[i].path, "assets/", exportFolder);
+		filePathBlob += filePath + '\0';
+
+		TextureData::Instance().Export(filePath, usedTextureAssets[i].handle);
 	}
 
 	// process file path blob
@@ -277,6 +327,8 @@ bool AssetManager::Export(std::string name, bool force)
 		uIDs.push_back((uint16_t)usedSceneAssets[i].uID);
 	for (i = 0; i < usedMeshAssets.size(); ++i)
 		uIDs.push_back((uint16_t)usedMeshAssets[i].uID);
+	for (i = 0; i < usedTextureAssets.size(); ++i)
+		uIDs.push_back((uint16_t)usedTextureAssets[i].uID);
 
 	for (i = 0; i < fileData.numAssets; ++i)
 	{

@@ -22,6 +22,7 @@ Tool::Tool()
 
 	gui.entityData.meshIndex = -1;
 	gui.meshImporter = false;
+	gui.textureImporter = false;
 	gui.sceneCreate = false;
 	gui.sceneIndex = -1;
 	gui.exitTool = false;
@@ -43,7 +44,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 	if (FAILED(hr)) return hr;
 
 	MeshData::Instance().Init(Graphics::Instance().GetDevice());
-	TextureData::Instance().Init(Graphics::Instance().GetDevice());
+	TextureData::Instance().Init(Graphics::Instance().GetDevice(), Graphics::Instance().GetContext());
 	SceneData::Instance().Init(&gui.entityData);
 
 	RAWINPUTDEVICE Rid[1];

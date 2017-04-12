@@ -1,6 +1,7 @@
 #include "StringManip.h"
 
 #include <sstream>
+#include <Windows.h>
 
 namespace StringManip
 {
@@ -102,5 +103,16 @@ namespace StringManip
 		}
 
 		return path;
+	}
+
+	// http://stackoverflow.com/questions/215963/how-do-you-properly-use-widechartomultibyte
+
+	wstring utf8_decode(const string &str)
+	{
+		if (str.empty()) return wstring();
+		int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+		wstring wstrTo(size_needed, 0);
+		MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
+		return wstrTo;
 	}
 }

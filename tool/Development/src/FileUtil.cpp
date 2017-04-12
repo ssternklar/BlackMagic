@@ -23,7 +23,7 @@ namespace FileUtil
 		return out;
 	}
 
-	int CopyFile(string from, string to)
+	int CopyFileViaPaths(string from, string to)
 	{
 		CreateDirectoryRecursive(to);
 
@@ -39,6 +39,9 @@ namespace FileUtil
 			b = fgetc(fromFile);
 			if (b != EOF) fputc(b, toFile);
 		} while (b != EOF);
+
+		fclose(fromFile);
+		fclose(toFile);
 
 		return EXIT_SUCCESS;
 	}

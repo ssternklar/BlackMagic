@@ -85,6 +85,10 @@ void Tool::InvokeGUI()
 		{
 			if (ImGui::MenuItem("Mesh"))
 				gui.meshImporter = true;
+
+			if (ImGui::MenuItem("Texture"))
+				gui.textureImporter = true;
+
 			ImGui::EndMenu();
 		}
 
@@ -144,6 +148,7 @@ void Tool::InvokeGUI()
 	ExitToolGUI();
 }
 
+// TODO macro these
 void Tool::PromptImport()
 {
 	// mesh import
@@ -180,6 +185,51 @@ void Tool::PromptImport()
 		if (ImGui::BeginPopupModal("Bad mesh path"))
 		{
 			ImGui::Text("The path '%s%s' is invalid.", MeshData::Instance().root.c_str(), path);
+			if (ImGui::Button("OK", ImVec2(60, 0)))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(60, 0)))
+			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+	}
+
+	// texture import
+	if (gui.textureImporter)
+	{
+		ImGui::OpenPopup("Import a new Texture file");
+		gui.textureImporter = false;
+	}
+
+	if (ImGui::BeginPopupModal("Import a new Texture file", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Please specify which texture you would like to load.\n");
+		ImGui::Separator();
+
+		ImGui::Text(TextureData::Instance().root.c_str());
+		ImGui::SameLine();
+		static char path[128] = "";
+
+		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+			ImGui::SetKeyboardFocusHere(0);
+
+		if (ImGui::InputText("", path, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Load", ImVec2(60, 0)))
+		{
+			if (strnlen_s(path, 128) > 0)
+			{
+				TextureData::Handle h = TextureData::Instance().Get(path);
+				if (!h.ptr())
+					ImGui::OpenPopup("Bad texture path");
+				else
+					ImGui::CloseCurrentPopup();
+			}
+		}
+
+		if (ImGui::BeginPopupModal("Bad texture path"))
+		{
+			ImGui::Text("The path '%s%s' is invalid.", TextureData::Instance().root.c_str(), path);
 			if (ImGui::Button("OK", ImVec2(60, 0)))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();

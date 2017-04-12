@@ -12,6 +12,7 @@ struct GuiData
 		int meshIndex;
 	}entityData;
 	bool meshImporter;
+	bool textureImporter;
 	bool sceneCreate;
 	int sceneIndex;
 	bool exitTool;

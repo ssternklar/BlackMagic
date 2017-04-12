@@ -12,7 +12,9 @@ namespace Internal
 		{
 			size_t nextUID;
 			size_t defaultMeshUID;
+			size_t defaultTextureUID;
 			size_t numMeshes;
+			size_t numTextures;
 			size_t numScenes;
 		};
 
@@ -26,6 +28,7 @@ namespace Internal
 		struct Assets
 		{
 			Asset* l_meshes;
+			Asset* l_textures;
 			Asset* l_scenes;
 		};
 

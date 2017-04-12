@@ -8,6 +8,8 @@
 #include "Scene.h"
 #include "Texture.h"
 
+#define DX_RELEASE(ptr) if(ptr) { ptr->Release(); }
+
 template<class T>
 struct Asset
 {

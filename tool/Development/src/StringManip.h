@@ -15,4 +15,5 @@ namespace StringManip
 	string FileExtension(string path);
 	string FileName(string path);
 	string FilePath(string path);
+	wstring utf8_decode(const string &str);
 }
