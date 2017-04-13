@@ -154,7 +154,7 @@ void Tool::ScanEntities(float x, float y)
 		XMVECTOR rayPosLocal = XMVector3TransformCoord(rayPos, entMatrix);
 		XMVECTOR rayDirLocal = XMVector3Normalize(XMVector3TransformNormal(rayDir, entMatrix));
 
-		Vertex* verts = entity->mesh->verts;
+		Mesh::Vertex* verts = entity->mesh->verts;
 		UINT* faces = entity->mesh->faces;
 
 		for (size_t j = 0; j < entity->mesh->faceCount; j += 3)

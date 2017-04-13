@@ -7,6 +7,7 @@
 #include "Mesh.h"
 #include "Scene.h"
 #include "Texture.h"
+#include "Shaders.h"
 
 #define DX_RELEASE(ptr) if(ptr) { ptr->Release(); }
 
@@ -33,7 +34,8 @@ struct Tracker
 struct AssetTrackers :
 	Tracker<MeshData>,
 	Tracker<SceneData>,
-	Tracker<TextureData>
+	Tracker<TextureData>,
+	Tracker<ShaderData>
 {};
 
 struct DefaultAssets :

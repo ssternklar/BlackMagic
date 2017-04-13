@@ -26,9 +26,6 @@ Graphics::~Graphics()
 	if (swapChain) { swapChain->Release(); }
 	if (context) { context->Release(); }
 	if (device) { device->Release(); }
-
-	delete vertexShader;
-	delete pixelShader;
 }
 
 HRESULT Graphics::Init(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
@@ -262,17 +259,17 @@ void Graphics::Draw(float deltaTime)
 	if (!scene.ptr())
 		return;
 	
-	UINT stride = sizeof(Vertex);
+	UINT stride = sizeof(Mesh::Vertex);
 	UINT offset = 0;
 
 	for (size_t i = 0; i < scene->entities.size(); ++i)
 	{
-		vertexShader->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
-		vertexShader->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
-		vertexShader->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
-		vertexShader->CopyAllBufferData();
-		vertexShader->SetShader();
-		pixelShader->SetShader();
+		vertexShader->GetAs<Shader::Vertex>()->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
+		vertexShader->GetAs<Shader::Vertex>()->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
+		vertexShader->GetAs<Shader::Vertex>()->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
+		vertexShader->GetAs<Shader::Vertex>()->CopyAllBufferData();
+		vertexShader->GetAs<Shader::Vertex>()->SetShader();
+		pixelShader->GetAs<Shader::Pixel>()->SetShader();
 		context->IASetVertexBuffers(0, 1, &scene->entities[i]->mesh->vertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(scene->entities[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		context->DrawIndexed(scene->entities[i]->mesh->faceCount, 0, 0);
@@ -286,8 +283,8 @@ void Graphics::Present()
 
 void Graphics::LoadShaders()
 {
-	vertexShader = ShaderData::Instance().Load<SimpleVertexShader>(L"shaders/VertexShader.hlsl");
-	pixelShader = ShaderData::Instance().Load<SimplePixelShader>(L"shaders/PixelShader.hlsl");
+	vertexShader = ShaderData::Instance().Load<Shader::Vertex>("shaders/VertexShader.hlsl");
+	pixelShader = ShaderData::Instance().Load<Shader::Pixel>("shaders/PixelShader.hlsl");
 }
 
 HWND Graphics::GetHandle()

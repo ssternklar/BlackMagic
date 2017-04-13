@@ -6,7 +6,7 @@
 #include <DirectXMath.h>
 #include <vector>
 
-#include "SimpleShader.h"
+#include "Shaders.h"
 #include "Camera.h"
 #include "Patterns.h"
 
@@ -50,6 +50,6 @@ private:
 
 	// temp
 	void LoadShaders();
-	SimpleVertexShader* vertexShader;
-	SimplePixelShader* pixelShader;
+	ShaderData::Handle vertexShader;
+	ShaderData::Handle pixelShader;
 };

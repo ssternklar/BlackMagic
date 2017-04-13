@@ -2,9 +2,11 @@
 
 #include "Patterns.h"
 #include "SimpleShader.h"
+#include "StringManip.h"
 
 struct Shader
 {
+	friend class ShaderData;
 public:
 	enum Type
 	{
@@ -16,9 +18,20 @@ public:
 		Vertex
 	};
 
-	// how to return type based on enum?
-	ISimpleShader* operator->() { return shader; }
-	ISimpleShader& operator *() { return *shader; }
+	template<Shader::Type> struct TypeMap;
+	template<> struct TypeMap<Shader::Compute> { using type = SimpleComputeShader; };
+	template<> struct TypeMap<Shader::Domain> { using type = SimpleDomainShader; };
+	template<> struct TypeMap<Shader::Geometry> { using type = SimpleComputeShader; };
+	template<> struct TypeMap<Shader::Hull> { using type = SimpleHullShader; };
+	template<> struct TypeMap<Shader::Pixel> { using type = SimplePixelShader; };
+	template<> struct TypeMap<Shader::Vertex> { using type = SimpleVertexShader; };
+
+	template <Type T>
+	typename TypeMap<T>::type* GetAs()
+	{
+		assert(T == type);
+		return dynamic_cast<TypeMap<T>::type*>(shader);
+	}
 
 private:
 	ISimpleShader* shader;
@@ -28,29 +41,50 @@ private:
 class ShaderData : public ProxyHandler<Shader, ShaderData>
 {
 public:
+	~ShaderData();
+
 	void Init(ID3D11Device* device, ID3D11DeviceContext* context);
 
-	template <typename T>
-	T* Load(LPCWSTR path);
+	Handle Get(std::string shaderPath, Shader::Type type);
+	void Revoke(Handle handle);
+
+	void Export(std::string path, Handle handle);
+	template <Shader::Type T>
+	Handle Load(std::string path);
+	const std::string root = "assets/shaders/";
 
 private:
 	ID3D11Device* device;
 	ID3D11DeviceContext* context;
 };
 
-template <typename T, typename = std::is_base_of<ISimpleShader, T>::type>
+template <Shader::Type T>
 struct ShaderTypeString
 {
 	static const char* value;
 };
 
-template <typename T>
-T* ShaderData::Load(LPCWSTR path)
+template <Shader::Type T>
+ShaderData::Handle ShaderData::Load(std::string path)
 {
+	using type = typename Shader::TypeMap<T>::type;
+	wstring wpath = StringManip::utf8_decode(path);
+
 	ID3DBlob* blob;
-	T* shader = new T(device, context);
-	D3DCompileFromFile(path, NULL, NULL, "main", ShaderTypeString<T>::value, 0, 0, &blob, NULL);
+	type* shader = new type(device, context);
+	D3DCompileFromFile(wpath.c_str(), NULL, NULL, "main", ShaderTypeString<T>::value, 0, 0, &blob, NULL);
 	shader->LoadShaderBlob(blob);
 
-	return shader;
+	if (!shader)
+	{
+		Handle e;
+		return e;
+	}
+
+	Handle h = ProxyHandler::Get();
+
+	h->shader = shader;
+	h->type = T;
+
+	return h;
 }
