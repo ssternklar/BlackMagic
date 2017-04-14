@@ -91,6 +91,10 @@ namespace BlackMagic {
 		Sampler _projectionSampler;
 		ComPtr<ID3D11BlendState> _projectionBlend;
 
+        //HDR framebuffer
+        Texture* _hdrBuffer;
+        std::shared_ptr<PixelShader> _tonemapPS;
+
 		void InitBuffers();
 		Texture* createEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
 		void RenderShadowMaps(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight);

@@ -15,6 +15,7 @@
     <FxCompile Include="assets\shaders\SkyboxVS.hlsl" />
     <FxCompile Include="assets\shaders\QuadVS.hlsl" />
     <FxCompile Include="assets\shaders\ProjectorPS.hlsl" />
+    <FxCompile Include="assets\shaders\ReinhardTonemapping.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />
@@ -75,7 +76,6 @@
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\RenderJob.h" />
     <ClInclude Include="include\DX11Renderer.h" />
-    <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\StdThreadManager.h" />
     <ClInclude Include="include\TestGame.h" />
@@ -94,5 +94,8 @@
     <ClInclude Include="include\Resource.h" />
     <ClInclude Include="include\PlatformResourceTypes.h" />
     <ClInclude Include="include\BMMath.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\ShaderBase.hlsli" />
   </ItemGroup>
 </Project>
