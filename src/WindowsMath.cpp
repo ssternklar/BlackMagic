@@ -2,6 +2,7 @@
 
 //If errors start occurring, uncomment this:
 //#define _XM_NO_INTRINSICS_
+#include <DirectXCollision.h>
 #include <DirectXMath.h>
 
 using namespace DirectX;
@@ -29,6 +30,17 @@ inline XMMATRIX C(Matrix4& mat)
 	return *reinterpret_cast<XMMATRIX*>(&mat);
 }
 
+inline DirectX::BoundingFrustum C(BlackMagic::BoundingFrustum& fr)
+{
+	XMFLOAT3 origin;
+	XMFLOAT4 orient; 
+	XMStoreFloat3(&origin, C(fr.Origin));
+	XMStoreFloat4(&orient, C(fr.Orientation));
+	return DirectX::BoundingFrustum(origin, orient,
+		fr.RightSlope, fr.LeftSlope, fr.TopSlope, fr.BottomSlope,
+		fr.Near, fr.Far);
+}
+
 inline Vector3 CV3(XMVECTOR& vec)
 {
 	return *reinterpret_cast<Vector3*>(&vec);
@@ -47,6 +59,51 @@ inline Quaternion CQ(XMVECTOR& vec)
 inline Matrix4 CM4(XMMATRIX& mat)
 {
 	return *reinterpret_cast<Matrix4*>(&mat);
+}
+
+inline BlackMagic::BoundingFrustum CBF(DirectX::BoundingFrustum& fr)
+{
+	return BlackMagic::BoundingFrustum(CV3(XMLoadFloat3(&fr.Origin)), 
+		CQ(XMLoadFloat4(&fr.Orientation)), 
+		fr.RightSlope, 
+		fr.LeftSlope, 
+		fr.TopSlope, 
+		fr.BottomSlope, 
+		fr.Near, 
+		fr.Far
+	);
+}
+
+BoundingFrustum::BoundingFrustum()
+	: Origin(CreateVector3Zero()), Orientation(CreateQuaternionIdentity()),
+	RightSlope(0.0f), LeftSlope(0.0f), TopSlope(0.0f), BottomSlope(0.0f),
+	Near(0.0f), Far(1.0f)
+{}
+
+BoundingFrustum::BoundingFrustum(Vector3& origin, Quaternion& orient, float rSlope, float lSlope, float tSlope, float bSlope, float n, float f)
+	: Origin(origin), Orientation(orient), 
+	RightSlope(rSlope), LeftSlope(lSlope), TopSlope(tSlope), BottomSlope(bSlope),
+	Near(n), Far(f)
+{}
+
+BoundingFrustum::BoundingFrustum( Mat4& proj)
+{
+	*this = CBF(DirectX::BoundingFrustum(C(proj)));
+}
+
+void BoundingFrustum::Transform(BlackMagic::BoundingFrustum& out, Mat4& m)
+{
+	auto dxbf = C(*this);
+	dxbf.Transform(dxbf, C(m));
+	out = CBF(dxbf);
+}
+
+Vector2 operator-(Vector2& left, Vector2& right)
+{
+	Vector2 v;
+	v.data[0] = left.data[0] - right.data[0];
+	v.data[1] = left.data[1] - right.data[1];
+	return v;
 }
 
 Vector3 CreateVector3(float x, float y, float z)
@@ -84,6 +141,11 @@ Vector3 Normalize(Vector3& vec)
 	return CV3(XMVector3Normalize(C(vec)));
 }
 
+Vector3 Rotate(Vector3& v, Quaternion& q)
+{
+	return CV3(XMVector3Rotate(C(v), C(q)));
+}
+
 Vector3 Lerp(Vector3& t0, Vector3& t1, float t)
 {
 	return CV3(XMVectorLerp(C(t0), C(t1), t));
@@ -92,6 +154,11 @@ Vector3 Lerp(Vector3& t0, Vector3& t1, float t)
 Vector3 operator*(Vector3& left, float scalar)
 {
 	return CV3(XMVectorScale(C(left), scalar));
+}
+
+Vector3 operator*(float scalar, Vector3& right)
+{
+	return right * scalar;
 }
 
 Vector3 operator/(Vector3& left, float scalar)
@@ -164,6 +231,11 @@ Vector4 operator*(Vector4& left, float scalar)
 	return CV4(XMVectorScale(C(left), scalar));
 }
 
+Vector4 operator*(float scalar, Vector4& right)
+{
+	return right * scalar;
+}
+
 Vector4 operator/(Vector4& left, float scalar)
 {
 	return operator*(left, 1 / scalar);
@@ -234,6 +306,21 @@ Matrix4 CreateMatrix4Zero()
 	return CreateMatrix4(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
+Matrix4 CreateMatrixLookToLH(Vector3& pos, Vector3& dir, Vector3& up)
+{
+	return CM4(XMMatrixLookToLH(C(pos), C(dir), C(up)));
+}
+
+Matrix4 CreateMatrixPerspectiveFovLH(float fov, float aspect, float near, float far)
+{
+	return CM4(XMMatrixPerspectiveFovLH(fov, aspect, near, far));
+}
+
+Matrix4 CreateAffineTransformation(Vector3& scale, Vector3& rotOffset, Quaternion& rot, Vector3& pos)
+{
+	return CM4(XMMatrixAffineTransformation(C(scale), C(rotOffset), C(rot), C(pos)));
+}
+
 Matrix4 Transpose(Matrix4& mat4)
 {
 	return CM4(XMMatrixTranspose(C(mat4)));
@@ -288,6 +375,11 @@ Quaternion CreateQuaternion(Vector3& forward, Vector3& up)
 	mat.r[3] = XMVectorSet(0, 0, 0, 1);
 	return CQ(XMQuaternionRotationMatrix(mat));
 
+}
+
+Quaternion CreateQuaternion(Vector3& axis, float angle)
+{
+	return CQ(XMQuaternionRotationAxis(C(axis), angle));
 }
 
 Quaternion CreateQuaternionIdentity()

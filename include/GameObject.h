@@ -1,6 +1,6 @@
 #pragma once
 
-#include <DirectXMath.h>
+#include "BMMath.h"
 #include "Transform.h"
 
 namespace BlackMagic
@@ -9,7 +9,7 @@ namespace BlackMagic
 	{
 	public:
 		GameObject() = default;
-		GameObject(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT4 rot, DirectX::XMFLOAT3 scale);
+		GameObject(Vector3 pos, Quaternion rot, Vector3 scale);
 
 		Transform& GetTransform();
 	protected:

@@ -1,6 +1,7 @@
 #include "TestGame.h"
 #include "DX11Renderer.h"
-#include "TestJob.h";
+#include "TestJob.h"
+#include "BMMath.h"
 
 using namespace BlackMagic;
 using namespace DirectX;
@@ -44,7 +45,7 @@ void TestGame::LoadContent()
 	XMStoreFloat4(&quatIdentity, XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	auto sphere = content->Load<Mesh>(std::string("/models/sphere.bmmesh"));
+	auto sphere = content->Load<Mesh>(std::string("/models/cube.bmmesh"));
 	auto gPassVS = content->Load<VertexShader>(std::string("/shaders/GBufferVS.cso"));
 	auto gPassPS = content->Load<PixelShader>(std::string("/shaders/GBufferPS.cso"));
 	auto sphereTex = content->Load<Texture>(std::string("/textures/test_texture.png"));
@@ -133,7 +134,7 @@ void TestGame::LoadContent()
 
 		for (float x = 1; x < 12; x++)
 		{
-			unsigned int roughness = ((x-1.0f)/ 11.0f) * 255;
+			unsigned int roughness = static_cast<unsigned int>(((x-1.0f)/ 11.0f) * 255);
 
 			desc.InitialData = &roughness;
 			desc.Format = Texture::Format::R8_UNORM;
@@ -142,7 +143,7 @@ void TestGame::LoadContent()
 			auto mem = allocator.allocate<Entity>();
 			auto matInstance = rowMaterial;
 			matInstance.SetResource("roughnessMap", Material::ResourceStage::PS, roughnessTex, Material::ResourceStorageType::Instance);
-			_objects.push_back(new (mem) Entity(XMFLOAT3{ x, y, 0 }, XMFLOAT4{ 0, 0, 0, 1 }, sphere, matInstance));
+			_objects.push_back(new (mem) Entity(CreateVector3(x, y, 0), CreateQuaternionIdentity(), sphere, matInstance));
 		}
 	}
 }

@@ -1,9 +1,8 @@
 #include "Entity.h"
 
 using namespace BlackMagic;
-using namespace DirectX;
 
-Entity::Entity(XMFLOAT3 pos, XMFLOAT4 rot, std::shared_ptr<Mesh> mesh, const Material& mat)
+Entity::Entity(Vector3 pos, Quaternion rot, std::shared_ptr<Mesh> mesh, const Material& mat)
 	: GameObject(pos, rot, {1, 1, 1}),
 	Renderable(mesh, mat)
 {}

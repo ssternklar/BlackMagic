@@ -10,9 +10,9 @@ namespace BlackMagic
 	class FirstPersonCamera : public GameObject, public Camera
 	{
 	public:
-		FirstPersonCamera(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT4 dir);
+		FirstPersonCamera(Vector3 pos, Quaternion dir);
 		void Update(float delta);
 	private:
-		DirectX::XMFLOAT2 _rotation;
+		float _rotation[2];
 	};
 }
