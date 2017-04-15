@@ -23,7 +23,7 @@ void FirstPersonCamera::Update(float delta)
 		auto xRot = input->GetAxis(InputData::Axis::X)*0.5f*XM_PI;
 		auto yRot = input->GetAxis(InputData::Axis::Y)*0.5f*XM_PI;
 
-		printf("(%f, %f)\n", xRot, yRot);
+		//printf("(%f, %f)\n", xRot, yRot);
 
 		_rotation.x += xRot;
 		_rotation.y += yRot;

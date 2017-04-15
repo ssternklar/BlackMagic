@@ -130,7 +130,7 @@ void DX11Renderer::OnResize(UINT width, UINT height)
 	_width = width;
 	_height = height;
 	
-	if (_albedoMap)
+	/*if (_albedoMap)
 	{
 		delete _albedoMap;
 	}
@@ -163,7 +163,7 @@ void DX11Renderer::OnResize(UINT width, UINT height)
 	if (_lightMap)
 	{
 		delete _lightMap;
-	}
+	}*/
 
 	// Resize the underlying swap chain buffers
 	_swapChain->ResizeBuffers(
