@@ -149,7 +149,7 @@
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Scene.cpp" />
-    <ClCompile Include="src\Shaders.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\StringManip.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Tool.cpp" />
@@ -176,8 +176,8 @@
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\PointerProxy.h" />
     <ClInclude Include="src\Scene.h" />
-    <ClInclude Include="src\Shaders.h" />
     <ClInclude Include="src\Patterns.h" />
+    <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\StringManip.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\Tool.h" />

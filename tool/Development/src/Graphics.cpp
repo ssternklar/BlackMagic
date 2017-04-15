@@ -1,7 +1,6 @@
 #include "Graphics.h"
 #include "Tool.h"
 #include "Mesh.h"
-#include "Shaders.h"
 #include "Scene.h"
 
 using namespace DirectX;
@@ -39,7 +38,8 @@ HRESULT Graphics::Init(HINSTANCE hInstance, unsigned int windowWidth, unsigned i
 	hr = InitDirectX();
 	if (FAILED(hr)) return hr;
 
-	ShaderData::Instance().Init(device, context);
+	ShaderData<SimpleVertexShader>::Instance().Init(device, context);
+	ShaderData<SimplePixelShader>::Instance().Init(device, context);
 	LoadShaders();
 	
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -264,12 +264,12 @@ void Graphics::Draw(float deltaTime)
 
 	for (size_t i = 0; i < scene->entities.size(); ++i)
 	{
-		vertexShader->GetAs<Shader::Vertex>()->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
-		vertexShader->GetAs<Shader::Vertex>()->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
-		vertexShader->GetAs<Shader::Vertex>()->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
-		vertexShader->GetAs<Shader::Vertex>()->CopyAllBufferData();
-		vertexShader->GetAs<Shader::Vertex>()->SetShader();
-		pixelShader->GetAs<Shader::Pixel>()->SetShader();
+		vertexShader->shader->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
+		vertexShader->shader->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
+		vertexShader->shader->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
+		vertexShader->shader->CopyAllBufferData();
+		vertexShader->shader->SetShader();
+		pixelShader->shader->SetShader();
 		context->IASetVertexBuffers(0, 1, &scene->entities[i]->mesh->vertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(scene->entities[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		context->DrawIndexed(scene->entities[i]->mesh->faceCount, 0, 0);
@@ -283,8 +283,8 @@ void Graphics::Present()
 
 void Graphics::LoadShaders()
 {
-	vertexShader = ShaderData::Instance().Load<Shader::Vertex>("shaders/VertexShader.hlsl");
-	pixelShader = ShaderData::Instance().Load<Shader::Pixel>("shaders/PixelShader.hlsl");
+	vertexShader = VertexShaderData::Instance().Load("shaders/VertexShader.hlsl");
+	pixelShader = PixelShaderData::Instance().Load("shaders/PixelShader.hlsl");
 }
 
 HWND Graphics::GetHandle()
