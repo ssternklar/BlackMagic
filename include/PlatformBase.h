@@ -41,6 +41,7 @@ namespace BlackMagic {
 		virtual const char* GetAssetDirectory() = 0;
 		virtual bool ReadFileIntoMemory(char* fileName, byte* fileBuffer, size_t bufferSize) = 0;
 		virtual unsigned int GetFileSize(char* fileName) = 0;
+		virtual void ShutdownPlatform() = 0;
 		void GetScreenDimensions(unsigned int* width, unsigned int* height);
 		bool BlackMagicInit();
 		void BlackMagicCleanup();

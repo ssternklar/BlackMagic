@@ -368,3 +368,7 @@ WindowsPlatform* WindowsPlatform::GetInstance()
 	return singletonRef;
 }
 
+void WindowsPlatform::ShutdownPlatform()
+{
+
+}

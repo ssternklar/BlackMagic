@@ -276,6 +276,7 @@ void DX11Renderer::Init(ContentManager* content)
 	_fxaaPS = content->Load<PixelShader>(std::string("/shaders/FXAA_PS.cso"));
 	_projectionPS = content->Load<PixelShader>(std::string("/shaders/ProjectorPS.cso"));
 	_mergePS = content->Load<PixelShader>(std::string("/shaders/FinalMerge.cso"));
+    //_tonemapPS = content->Load<PixelShader>(std::string("/shaders/ReinhardTonemapping.hlsl"));
 
 	//Set up g-buffer sampler
 	D3D11_SAMPLER_DESC sampDesc = {};
