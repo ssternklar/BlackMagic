@@ -23,6 +23,8 @@ Tool::Tool()
 	gui.entityData.meshIndex = -1;
 	gui.meshImporter = false;
 	gui.textureImporter = false;
+	gui.shaderImporter = false;
+	gui.shaderType = 0;
 	gui.sceneCreate = false;
 	gui.sceneIndex = -1;
 	gui.exitTool = false;

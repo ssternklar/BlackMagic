@@ -89,6 +89,9 @@ void Tool::InvokeGUI()
 			if (ImGui::MenuItem("Texture"))
 				gui.textureImporter = true;
 
+			if (ImGui::MenuItem("Shader"))
+				gui.shaderImporter = true;
+
 			ImGui::EndMenu();
 		}
 
@@ -230,6 +233,83 @@ void Tool::PromptImport()
 		if (ImGui::BeginPopupModal("Bad texture path"))
 		{
 			ImGui::Text("The path '%s%s' is invalid.", TextureData::Instance().root.c_str(), path);
+			if (ImGui::Button("OK", ImVec2(60, 0)))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(60, 0)))
+			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+	}
+
+	// shader import
+	if (gui.shaderImporter)
+	{
+		ImGui::OpenPopup("Import a new Shader file");
+		gui.shaderImporter = false;
+	}
+
+	if (ImGui::BeginPopupModal("Import a new Shader file", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Please specify which shader you would like to load.\n");
+		ImGui::Separator();
+
+		ImGui::Combo("Shader Type", &gui.shaderType, "Vertex\0Pixel");
+
+		switch (gui.shaderType)
+		{
+		case 0:
+			ImGui::Text(VertexShaderData::Instance().root.c_str());
+			break;
+		case 1:
+			ImGui::Text(PixelShaderData::Instance().root.c_str());
+			break;
+		}
+
+		ImGui::SameLine();
+		static char path[128] = "";
+
+		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+			ImGui::SetKeyboardFocusHere(0);
+
+		if (ImGui::InputText("", path, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Load", ImVec2(60, 0)))
+		{
+			if (strnlen_s(path, 128) > 0)
+			{
+				VertexShaderData::Handle vertexHandle;
+				PixelShaderData::Handle pixelHandle;
+
+				switch (gui.shaderType)
+				{
+				case 0:
+					vertexHandle = VertexShaderData::Instance().Get(path);
+					break;
+				case 1:
+					pixelHandle = PixelShaderData::Instance().Get(path);
+					break;
+				}
+
+				if (!vertexHandle.ptr() && !pixelHandle.ptr())
+					ImGui::OpenPopup("Bad shader path");
+				else
+					ImGui::CloseCurrentPopup();
+			}
+		}
+
+		if (ImGui::BeginPopupModal("Bad shader path"))
+		{
+			switch (gui.shaderType)
+			{
+			case 0:
+				ImGui::Text("The path '%s%s' is invalid.", VertexShaderData::Instance().root.c_str(), path);
+				break;
+			case 1:
+				ImGui::Text("The path '%s%s' is invalid.", PixelShaderData::Instance().root.c_str(), path);
+				break;
+			}
+			
 			if (ImGui::Button("OK", ImVec2(60, 0)))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();

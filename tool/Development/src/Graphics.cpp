@@ -1,7 +1,6 @@
 #include "Graphics.h"
 #include "Tool.h"
-#include "Mesh.h"
-#include "Scene.h"
+#include "Assets.h"
 
 using namespace DirectX;
 
@@ -40,7 +39,6 @@ HRESULT Graphics::Init(HINSTANCE hInstance, unsigned int windowWidth, unsigned i
 
 	ShaderData<SimpleVertexShader>::Instance().Init(device, context);
 	ShaderData<SimplePixelShader>::Instance().Init(device, context);
-	LoadShaders();
 	
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -283,8 +281,8 @@ void Graphics::Present()
 
 void Graphics::LoadShaders()
 {
-	vertexShader = VertexShaderData::Instance().Load("shaders/VertexShader.hlsl");
-	pixelShader = PixelShaderData::Instance().Load("shaders/PixelShader.hlsl");
+	vertexShader = AssetManager::Instance().defaults;
+	pixelShader = AssetManager::Instance().defaults;
 }
 
 HWND Graphics::GetHandle()

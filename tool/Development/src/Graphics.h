@@ -31,6 +31,9 @@ public:
 
 	DirectX::XMFLOAT4 color;
 
+	// temp
+	void LoadShaders();
+
 private:
 	HRESULT InitWindow(HINSTANCE hInstance);
 	HRESULT InitDirectX();
@@ -49,7 +52,6 @@ private:
 	unsigned int height;
 
 	// temp
-	void LoadShaders();
 	ShaderData<SimpleVertexShader>::Handle vertexShader;
 	ShaderData<SimplePixelShader>::Handle pixelShader;
 };

@@ -13,6 +13,8 @@ struct GuiData
 	}entityData;
 	bool meshImporter;
 	bool textureImporter;
+	bool shaderImporter;
+	int shaderType;
 	bool sceneCreate;
 	int sceneIndex;
 	bool exitTool;

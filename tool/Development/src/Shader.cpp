@@ -61,18 +61,24 @@ void ShaderData<T>::Export(std::string path, typename ShaderData<T>::Handle hand
 template <class T>
 typename ShaderData<T>::Handle ShaderData<T>::Load(std::string path)
 {
+	Handle e;
+
+	if (!FileUtil::DoesfileExist(path))
+		return e;
+
 	wstring wpath = StringManip::utf8_decode(path);
 
 	ID3DBlob* blob;
 	T* shader = new T(device, context);
 	D3DCompileFromFile(wpath.c_str(), NULL, NULL, "main", ShaderTypeString<T>::value, 0, 0, &blob, NULL);
+
+	if (!blob)
+		return e;
+
 	shader->LoadShaderBlob(blob);
 
 	if (!shader)
-	{
-		Handle e;
 		return e;
-	}
 
 	Handle h = ProxyHandler::Get();
 
