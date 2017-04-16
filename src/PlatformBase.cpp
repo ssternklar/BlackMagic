@@ -65,6 +65,7 @@ bool PlatformBase::BlackMagicInit()
 
 void PlatformBase::BlackMagicCleanup()
 {
+	contentManager->AssetGC();
 	ShutdownPlatform();
 
 	if (contentManager)

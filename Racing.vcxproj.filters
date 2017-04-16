@@ -94,6 +94,7 @@
     <ClInclude Include="include\Resource.h" />
     <ClInclude Include="include\PlatformResourceTypes.h" />
     <ClInclude Include="include\BMMath.h" />
+    <ClInclude Include="include\ContentClasses.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\ShaderBase.hlsli" />

@@ -6,7 +6,7 @@
 
 #include "SimpleShader.h"
 
-#include <atomic>
+#include "ContentClasses.h"
 #include <allocators/AllocatorSTLAdapter.h>
 #include <allocators/BadBestFitAllocator.h>
 
@@ -25,60 +25,6 @@ namespace BlackMagic
 
 	class ContentManager
 	{
-	public:
-		struct ManifestEntry
-		{
-			char* resourceName;
-			int uid;
-			int size;
-			void* resource;
-			std::atomic_int refcount = 0;
-		};
-
-		template<typename T>
-		class AssetPointer
-		{
-		private:
-			ManifestEntry* entry;
-		public:
-			AssetPointer(ManifestEntry* entry)
-			{
-				if(entry)
-				{
-					this->entry = entry;
-					entry->refcount++;
-				}
-			}
-
-			~AssetPointer()
-			{
-				if (entry)
-				{
-					entry->refcount--;
-				}
-			}
-
-			AssetPointer(const AssetPointer& other)
-			{
-				if (other.entry)
-				{
-					entry = other->entry;
-					entry->refcount++;
-				}
-			}
-
-			T& operator*()
-			{
-				return *(T*)(entry->resource);
-			}
-
-			T* operator->()
-			{
-				return (T*)(entry->resource);
-			}
-
-		};
-
 	private:
 		BlackMagic::BestFitAllocator* _allocator;
 		Renderer* renderer;
@@ -89,6 +35,8 @@ namespace BlackMagic
 
 		template<typename T>
 		T* load_Internal(const char* fileName, int fileSize);
+		template<typename T>
+		void SetupManifest(ManifestEntry* entry, T* resource);
 
 	public:
 		ContentManager(Renderer* device, const char* assetDirectory, BlackMagic::BestFitAllocator* allocator);
@@ -112,6 +60,7 @@ namespace BlackMagic
 		{
 			DestructAndDeallocate<BestFitAllocator, T>(_allocator, thing, 1);
 		}
+		void AssetGC();
 
 		template<typename T>
 		AssetPointer<T> Load(const char* resourceName)
@@ -126,7 +75,7 @@ namespace BlackMagic
 					}
 					else
 					{
-						entries[i].resource = load_Internal<T>(entries[i].resourceName, entries[i].size);
+						SetupManifest(&entries[i], load_Internal<T>(entries[i].resourceName, entries[i].size));
 						return AssetPointer<T>(&entries[i]);
 					}
 				}
@@ -148,7 +97,7 @@ namespace BlackMagic
 					}
 					else
 					{
-						entries[i].resource = load_Internal<T>(entries[i].resourceName, entries[i].size); 
+						SetupManifest(&entries[i], load_Internal<T>(entries[i].resourceName, entries[i].size));
 						return AssetPointer<T>(&entries[i]);
 					}
 				}

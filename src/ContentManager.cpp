@@ -23,6 +23,35 @@ ContentManager::~ContentManager()
 {
 }
 
+void ContentManager::AssetGC()
+{
+	for (int i = 0; i < entryCount; i++)
+	{
+		if (entries[i].refcount == 0 && entries[i].resource)
+		{
+			switch (entries[i].type)
+			{
+			case ManifestEntry::MESH:
+				DestructAndDeallocate(_allocator, (Mesh*)entries[i].resource, 1);
+				break;
+			case ManifestEntry::TEXTURE:
+				DestructAndDeallocate(_allocator, (Texture*)entries[i].resource, 1);
+				break;
+			case ManifestEntry::CUBEMAP:
+				DestructAndDeallocate(_allocator, (Cubemap*)entries[i].resource, 1);
+				break;
+			case ManifestEntry::VERTEX_SHADER:
+				DestructAndDeallocate(_allocator, (VertexShader*)entries[i].resource, 1);
+				break;
+			case ManifestEntry::PIXEL_SHADER:
+				DestructAndDeallocate(_allocator, (PixelShader*)entries[i].resource, 1);
+				break;
+			}
+			entries[i].resource = nullptr;
+		}
+	}
+}
+
 struct Asset
 {
 	uint16_t uid;
@@ -64,6 +93,18 @@ T* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	static_assert(false,
 		"Invalid or unsupported content type provided. Supported types are:\n"
+		"Mesh\n"
+		"Texture\n"
+		"VertexShader\n"
+		"PixelShader\n"
+		"Spline\n"
+		);
+}
+
+template<typename T>
+void ContentManager::SetupManifest(ManifestEntry* entry, T* resource)
+{
+	static_assert(false, "Manifest loading not supported for this type. Supported types are:\n"
 		"Mesh\n"
 		"Texture\n"
 		"VertexShader\n"
@@ -132,6 +173,13 @@ Mesh* ContentManager::load_Internal(const char* fileName, int fileSize)
 }
 
 template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, Mesh* resource)
+{
+	entry->resource = resource;
+	entry->type = ManifestEntry::MESH;
+}
+
+template<>
 Texture* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	LOAD_FILE(textureSpace);
@@ -139,6 +187,13 @@ Texture* ContentManager::load_Internal(const char* fileName, int fileSize)
 	*tex = renderer->CreateTexture(textureSpace, fileSize, Texture::Type::FLAT_2D, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
 	return tex;
+}
+
+template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, Texture* resource)
+{
+	entry->resource = resource;
+	entry->type = ManifestEntry::TEXTURE;
 }
 
 template<>
@@ -151,12 +206,12 @@ Cubemap* ContentManager::load_Internal(const char* fileName, int fileSize)
 	return (Cubemap*)tex;
 }
 
-/*template<>
-GraphicsShader ContentManager::loadHandle_Internal(ManifestEntry* manifest)
+template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, Cubemap* resource)
 {
-	LOAD_FILE(shaderSpace);
-	UNLOAD_FILE(shaderSpace);
-}*/
+	entry->resource = resource;
+	entry->type = ManifestEntry::CUBEMAP;
+}
 
 #if defined(BM_PLATFORM_WINDOWS)
 using namespace DirectX;
@@ -179,6 +234,13 @@ VertexShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 }
 
 template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, VertexShader* resource)
+{
+	entry->resource = resource;
+	entry->type = ManifestEntry::VERTEX_SHADER;
+}
+
+template<>
 PixelShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	char path[256];
@@ -193,6 +255,13 @@ PixelShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 	auto ptr = AllocateAndConstruct<BestFitAllocator, PixelShader>(_allocator, 1, device.Get(), context.Get());
 	ptr->LoadShaderFile(widePath);
 	return ptr;
+}
+
+template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, PixelShader* resource)
+{
+	entry->resource = resource;
+	entry->type = ManifestEntry::PIXEL_SHADER;
 }
 
 /*

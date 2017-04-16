@@ -190,6 +190,7 @@
     <ClInclude Include="include\AudioManager.h" />
     <ClInclude Include="include\BMMath.h" />
     <ClInclude Include="include\Camera.h" />
+    <ClInclude Include="include\ContentClasses.h" />
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />
     <ClInclude Include="include\DirectXAudioManager.h" />

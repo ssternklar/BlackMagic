@@ -44,11 +44,11 @@ void TestGame::LoadContent()
 	XMStoreFloat4(&quatIdentity, XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	auto sphere = content->Load<Mesh>(std::string("/models/sphere.bmmesh"));
-	auto gPassVS = content->Load<VertexShader>(std::string("/shaders/GBufferVS.cso"));
-	auto gPassPS = content->Load<PixelShader>(std::string("/shaders/GBufferPS.cso"));
-	auto sphereTex = content->Load<Texture>(std::string("/textures/test_texture.png"));
-	auto sphereNormals = content->Load<Texture>(std::string("/textures/blank_normals.png"));
+	auto sphere = content->Load<Mesh>(("/models/sphere.bmmesh"));
+	auto gPassVS = content->Load<VertexShader>(("/shaders/GBufferVS.cso"));
+	auto gPassPS = content->Load<PixelShader>(("/shaders/GBufferPS.cso"));
+	auto sphereTex = content->Load<Texture>(("/textures/test_texture.png"));
+	auto sphereNormals = content->Load<Texture>(("/textures/blank_normals.png"));
 	auto sampler = platform->GetRenderer()->CreateSampler();
 	auto mat = Material(
 		allocator,
