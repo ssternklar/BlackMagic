@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include "Renderer.h"
+#include "ContentManager.h"
 
 namespace BlackMagic {
 	class DX11Renderer : public Renderer
@@ -58,7 +59,7 @@ namespace BlackMagic {
 		std::shared_ptr<PixelShader> _mergePS;
 		Sampler _gBufferSampler;
 		ComPtr<ID3D11Buffer> _quad;
-		std::shared_ptr<Texture> _cosLookup;
+		Texture* _cosLookup;
 
 		D3D_FEATURE_LEVEL _featureLevel;
 		UINT _width, _height;
@@ -75,10 +76,10 @@ namespace BlackMagic {
 		ComPtr<ID3D11ShaderResourceView> _shadowMapSRV;
 
 		//Skybox
-		std::shared_ptr<Mesh> _skybox;
-		std::shared_ptr<Cubemap> _skyboxTex;
-		std::shared_ptr<Cubemap> _skyboxRadiance;
-		std::shared_ptr<Cubemap> _skyboxIrradiance;
+		Mesh* _skybox;
+		Cubemap* _skyboxTex;
+		Cubemap* _skyboxRadiance;
+		Cubemap* _skyboxIrradiance;
 		std::shared_ptr<VertexShader> _skyboxVS;
 		std::shared_ptr<PixelShader> _skyboxPS;
 		Sampler _skyboxSampler;

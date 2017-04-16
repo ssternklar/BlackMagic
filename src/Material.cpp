@@ -138,7 +138,7 @@ void Material::SetResource(std::string name, ResourceStage s, const Sampler& sam
 	{
 		ResourceData dat;
 		dat.stage = s;
-		dat.type = ResourceType::Texture;
+		dat.type = ResourceType::Sampler;
 		dat.data = sampler.As<SamplerHandle>();
 		dat.size = sizeof(SamplerHandle);
 		UploadData(name, dat);

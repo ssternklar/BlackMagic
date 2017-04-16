@@ -1,6 +1,5 @@
 #pragma once
 #include "Camera.h"
-#include "ContentManager.h"
 #include "Entity.h"
 #include "GraphicsTypes.h"
 #include "Renderable.h"
@@ -10,6 +9,8 @@
 
 namespace BlackMagic
 {
+	class ContentManager;
+
 	class Renderer
 	{
 	public:

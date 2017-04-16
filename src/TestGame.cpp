@@ -30,11 +30,10 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 	_camera.UpdateProjectionMatrix(width, height);
 
 	_globalLight = {
-		{ 0.0f, 0.0f, 0.0f, 1.0f },
-		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ 1, -1, 1 },
-		0,
-		{ 0, 1, 1 }
+		CreateVector4(0.0f, 0.0f, 0.0f, 1.0f),
+		CreateVector4(1.0f, 1.0f, 1.0f, 1.0f),
+		CreateVector3(1, -1, 1),
+		CreateVector3(0, 1, 1)
 	};
 }
 
@@ -45,7 +44,7 @@ void TestGame::LoadContent()
 	XMStoreFloat4(&quatIdentity, XMQuaternionIdentity());
 	XMFLOAT3 defaultScale = { 1, 1, 1 };
 
-	auto sphere = content->Load<Mesh>(std::string("/models/cube.bmmesh"));
+	auto sphere = std::shared_ptr<Mesh>(content->UntrackedLoad<Mesh>("/models/sphere.bmmesh"));
 	auto gPassVS = content->Load<VertexShader>(std::string("/shaders/GBufferVS.cso"));
 	auto gPassPS = content->Load<PixelShader>(std::string("/shaders/GBufferPS.cso"));
 	auto sphereTex = content->Load<Texture>(std::string("/textures/test_texture.png"));
@@ -143,6 +142,7 @@ void TestGame::LoadContent()
 			auto mem = allocator.allocate<Entity>();
 			auto matInstance = rowMaterial;
 			matInstance.SetResource("roughnessMap", Material::ResourceStage::PS, roughnessTex, Material::ResourceStorageType::Instance);
+			auto p = CreateVector3(x, y, 0);
 			_objects.push_back(new (mem) Entity(CreateVector3(x, y, 0), CreateQuaternionIdentity(), sphere, matInstance));
 		}
 	}

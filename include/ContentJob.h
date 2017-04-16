@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ContentManager.h"
-
 namespace BlackMagic
 {
 	class ContentJob_Base
@@ -23,7 +21,7 @@ namespace BlackMagic
 	class ContentJob : public ContentJob_Base
 	{
 	public:
-		T* GetResult() { return static_cast<T>(resourceLocation) };
+		T* GetResult() { return static_cast<T>(resourceLocation); };
 		virtual void Run() override;
 	};
 }

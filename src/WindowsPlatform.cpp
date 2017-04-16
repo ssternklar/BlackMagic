@@ -311,7 +311,7 @@ const char * BlackMagic::WindowsPlatform::GetAssetDirectory()
 	return "./assets/";
 }
 
-bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileBuffer, size_t bufferSize)
+bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(const char* fileName, byte* fileBuffer, size_t bufferSize)
 {
 	std::ifstream file(fileName, std::ios::binary);
 	if (file.is_open())
@@ -335,7 +335,7 @@ bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileB
 	return false;
 }
 
-unsigned int BlackMagic::WindowsPlatform::GetFileSize(char* fileName)
+unsigned int BlackMagic::WindowsPlatform::GetFileSize(const char* fileName)
 {
 	std::ifstream file(fileName, std::ios::binary | std::ios::ate);
 	if(file.is_open())

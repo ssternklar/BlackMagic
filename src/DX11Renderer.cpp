@@ -259,11 +259,11 @@ namespace BlackMagic
 
 		_device->CreateBuffer(&vbDesc, &vbData, _quad.ReleaseAndGetAddressOf());
 
-		_skybox = content->Load<Mesh>(std::string("/models/skybox.bmmesh"));
-		_skyboxTex = content->Load<Cubemap>(std::string("/textures/park_skybox_env.dds"));
-		_skyboxRadiance = content->Load<Cubemap>(std::string("/textures/park_skybox_radiance.dds"));
-		_skyboxIrradiance = content->Load<Cubemap>(std::string("/textures/park_skybox_irradiance.dds"));
-		_cosLookup = content->Load<Texture>(std::string("/textures/cosLUT.png"));
+		_skybox = content->UntrackedLoad<Mesh>("/models/skybox.bmmesh");
+		_skyboxTex = content->UntrackedLoad<Cubemap>("/textures/park_skybox_env.dds");
+		_skyboxRadiance = content->UntrackedLoad<Cubemap>("/textures/park_skybox_radiance.dds");
+		_skyboxIrradiance = content->UntrackedLoad<Cubemap>("/textures/park_skybox_irradiance.dds");
+		_cosLookup = content->UntrackedLoad<Texture>("/textures/cosLUT.png");
 
 		//Load device-specific shaders
 		_lightPassVS = content->Load<VertexShader>(std::string("/shaders/QuadVS.cso"));
@@ -395,8 +395,10 @@ namespace BlackMagic
 		auto frustum = cam.Frustum();
 		auto v = cam.ViewMatrix();
 		auto vT = *reinterpret_cast<XMMATRIX*>(&v);
-		auto dir = DirectX::XMVector3Normalize(XMLoadFloat3(&sceneLight.Direction));
-		auto up = XMLoadFloat3(&sceneLight.Up);
+		auto bmDir = sceneLight.Direction;
+		auto bmUp = sceneLight.Up;
+		auto dir = XMVector3Normalize(XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&bmDir)));
+		auto up = XMVector3Normalize(XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&bmUp)));
 
 		XMFLOAT3 points[8];
 		XMVECTOR pointsV[8];
@@ -559,11 +561,11 @@ namespace BlackMagic
 			auto m = object->GetTransform().Matrix();
 
 			//Update per-object constant buffer
-			renderable->_material.SetResource("world", Material::VS, sizeof(XMFLOAT4X4),
+			renderable->_material.SetResource("world", Material::VS, sizeof(Mat4),
 				reinterpret_cast<void*>(m));
-			renderable->_material.SetResource("view", Material::VS, sizeof(XMFLOAT4X4),
+			renderable->_material.SetResource("view", Material::VS, sizeof(Mat4),
 				reinterpret_cast<void*>(&view));
-			renderable->_material.SetResource("projection", Material::VS, sizeof(XMFLOAT4X4),
+			renderable->_material.SetResource("projection", Material::VS, sizeof(Mat4),
 				reinterpret_cast<void*>(&proj));
 
 			//Upload buffers and draw
@@ -577,7 +579,7 @@ namespace BlackMagic
 			auto vBuf = renderable->_mesh->VertexBuffer().As<BufferHandle>();
 			_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
 			_context->IASetIndexBuffer(renderable->_mesh->IndexBuffer().As<BufferHandle>(), DXGI_FORMAT_R32_UINT, 0);
-			//_context->DrawIndexed(static_cast<UINT>(renderable->_mesh->IndexCount()), 0, 0);
+			_context->DrawIndexed(static_cast<UINT>(renderable->_mesh->IndexCount()), 0, 0);
 		}
 
 		auto lightMap = _lightMap->GetRenderTarget();
@@ -589,8 +591,8 @@ namespace BlackMagic
 		_lightPassPS->SetShader();
 		_lightPassPS->SetFloat3("cameraPosition", cPos);
 		_lightPassPS->SetData("sceneLight", &sceneLight, sizeof(DirectionalLight));
-		_lightPassPS->SetData("lightView", &_shadowViews[0], sizeof(XMFLOAT4X4)*NUM_SHADOW_CASCADES);
-		_lightPassPS->SetData("lightProjection", &_shadowProjections[0], sizeof(XMFLOAT4X4)*NUM_SHADOW_CASCADES);
+		_lightPassPS->SetData("lightView", &_shadowViews[0], sizeof(Mat4)*NUM_SHADOW_CASCADES);
+		_lightPassPS->SetData("lightProjection", &_shadowProjections[0], sizeof(Mat4)*NUM_SHADOW_CASCADES);
 		_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
 		_lightPassPS->SetSamplerState("shadowSampler", _shadowSampler.As<SamplerHandle>());
 		_lightPassPS->SetSamplerState("envSampler", _envSampler.As<SamplerHandle>());

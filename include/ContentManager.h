@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "PlatformBase.h"
 #include "SimpleShader.h"
 
 #include <allocators/AllocatorSTLAdapter.h>
@@ -40,7 +41,7 @@ namespace BlackMagic
 		const char* directory;
 
 		template<typename T>
-		T* load_Internal(char* fileName, int fileSize);
+		T* load_Internal(const char* fileName, int fileSize);
 
 	public:
 		ContentManager(Renderer* device, const char* assetDirectory, BlackMagic::BestFitAllocator* allocator);
@@ -51,7 +52,10 @@ namespace BlackMagic
 		template<typename T>
 		T* UntrackedLoad(const char* fileName)
 		{
-			int fileSize = PlatformBase::GetSingleton()->GetFileSize(fileName);
+			char path[256] = { 0 };
+			strcpy_s(path, directory);
+			strcat_s(path, fileName);
+			int fileSize = PlatformBase::GetSingleton()->GetFileSize(path);
 			return load_Internal<T>(fileName, fileSize);
 		}
 
