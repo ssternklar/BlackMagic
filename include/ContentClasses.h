@@ -57,6 +57,7 @@ namespace BlackMagic
 	template<typename T>
 	class AssetPointer : public AssetPointer_Base
 	{
+	public:
 		AssetPointer(ManifestEntry* entry) : AssetPointer_Base(entry) {};
 		AssetPointer(const AssetPointer& other) : AssetPointer_Base(other) {};
 

@@ -59,27 +59,27 @@ LRESULT BlackMagic::WindowsPlatform::WindowProc(HWND hWnd, UINT uMsg, WPARAM wPa
 
 		// Mouse button being pressed (while the cursor is currently over our window)
 	case WM_LBUTTONDOWN:
-		singletonRef->inputData.SetButton(0, true);
+		singletonRef->inputData.SetButton(MouseButton::Left, true);
 		SetCapture(hWnd);
 		return 0;
 	case WM_MBUTTONDOWN:
-		singletonRef->inputData.SetButton(1, true);
+		singletonRef->inputData.SetButton(MouseButton::Middle, true);
 		return 0;
 	case WM_RBUTTONDOWN:
-		singletonRef->inputData.SetButton(2, true);
+		singletonRef->inputData.SetButton(MouseButton::Right, true);
 		//OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 		// Mouse button being released (while the cursor is currently over our window)
 	case WM_LBUTTONUP:
-		singletonRef->inputData.SetButton(0, false);
+		singletonRef->inputData.SetButton(MouseButton::Left, false);
 		ReleaseCapture();
 		return 0;
 	case WM_MBUTTONUP:
-		singletonRef->inputData.SetButton(1, false);
+		singletonRef->inputData.SetButton(MouseButton::Middle, false);
 		return 0;
 	case WM_RBUTTONUP:
-		singletonRef->inputData.SetButton(2, false);
+		singletonRef->inputData.SetButton(MouseButton::Right, false);
 		return 0;
 		//OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		//return 0;
@@ -226,12 +226,14 @@ void WindowsPlatform::InputUpdate()
 	lastMousePos.y = currentMousePos.y;
 
 	//Some of this occurs in windowproc
-	inputData.SetButton(3, (bool)KEYPRESSED('W'));
-	inputData.SetButton(4, (bool)KEYPRESSED('A'));
-	inputData.SetButton(5, (bool)KEYPRESSED('S'));
-	inputData.SetButton(6, (bool)KEYPRESSED('D'));
-	inputData.SetButton(7, (bool)KEYPRESSED(' '));
-	inputData.SetButton(15, (bool)KEYPRESSED(VK_ESCAPE));
+	inputData.SetButton(Key::W, (bool)KEYPRESSED('W'));
+	inputData.SetButton(Key::A, (bool)KEYPRESSED('A'));
+	inputData.SetButton(Key::S, (bool)KEYPRESSED('S'));
+	inputData.SetButton(Key::D, (bool)KEYPRESSED('D'));
+	inputData.SetButton(Key::SPACE, (bool)KEYPRESSED(' '));
+	inputData.SetButton(Key::ESCAPE, (bool)KEYPRESSED(VK_ESCAPE));
+	inputData.SetButton(Key::SHIFT, (bool)KEYPRESSED(VK_SHIFT));
+	inputData.SetButton(Key::LCTRL, (bool)KEYPRESSED(VK_LCONTROL));
 }
 
 bool BlackMagic::WindowsPlatform::ShouldExit()
@@ -309,7 +311,7 @@ const char * BlackMagic::WindowsPlatform::GetAssetDirectory()
 	return "./assets/";
 }
 
-bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileBuffer, size_t bufferSize)
+bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(const char* fileName, byte* fileBuffer, size_t bufferSize)
 {
 	std::ifstream file(fileName, std::ios::binary);
 	if (file.is_open())
@@ -333,7 +335,7 @@ bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileB
 	return false;
 }
 
-unsigned int BlackMagic::WindowsPlatform::GetFileSize(char* fileName)
+unsigned int BlackMagic::WindowsPlatform::GetFileSize(const char* fileName)
 {
 	std::ifstream file(fileName, std::ios::binary | std::ios::ate);
 	if(file.is_open())

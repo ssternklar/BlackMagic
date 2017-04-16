@@ -10,9 +10,8 @@ struct DirectionalLight
 {
 	float4 AmbientColor : COLOR;
 	float4 DiffuseColor : COLOR;
-	float3 Direction	: NORMAL;
-	float padding;
-	float3 Up			: NORMAL;
+	float4 Direction	: NORMAL;
+	float4 Up			: NORMAL;
 };
 
 struct GBuffer
@@ -107,7 +106,7 @@ float3 ApproximateIBL(float3 specColor, float r, float3 n, float3 v)
 float3 colorFromScenelight(GBuffer input)
 {
     float3 v = normalize(cameraPosition - input.position);
-    float3 l = -normalize(sceneLight.Direction);
+    float3 l = -normalize(sceneLight.Direction.xyz);
     float3 dir = 2 * dot(input.normal, v) * input.normal - v;
     float f0 = lerp(0.04, length(input.albedo.rgb), input.metal);
 

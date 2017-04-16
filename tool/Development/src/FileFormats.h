@@ -119,15 +119,15 @@ namespace Export
 		struct Vertex
 		{
 			float position[3];
-				//float emptyPos;
+				float emptyPos;
 			float normal[3];
-				//float emptyNorm;
+				float emptyNorm;
 			float tangent[3];
-				//float emptyTang;
+				float emptyTang;
 			float biTangent[3];
-				//float emptyBiTang;
+				float emptyBiTang;
 			float uv[2]; // flipped on V
-				//float emptyUV[2];
+				float emptyUV[2];
 		};
 
 		struct Bounds

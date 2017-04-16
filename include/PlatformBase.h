@@ -4,13 +4,14 @@
 #include "allocators\StackAllocator.h"
 #include "allocators\BadBestFitAllocator.h"
 #include "Renderer.h"
-#include "ContentManager.h"
 #include "InputData.h"
 #include "ThreadManager.h"
 #include "TransformData.h"
 #include "Transform.h"
 
 namespace BlackMagic {
+
+	class ContentManager;
 
 	class PlatformBase
 	{
@@ -39,8 +40,8 @@ namespace BlackMagic {
 		virtual float GetDeltaTime() = 0;
 		virtual void ReturnSystemMemory(byte* memory) = 0;
 		virtual const char* GetAssetDirectory() = 0;
-		virtual bool ReadFileIntoMemory(char* fileName, byte* fileBuffer, size_t bufferSize) = 0;
-		virtual unsigned int GetFileSize(char* fileName) = 0;
+		virtual bool ReadFileIntoMemory(const char* fileName, byte* fileBuffer, size_t bufferSize) = 0;
+		virtual unsigned int GetFileSize(const char* fileName) = 0;
 		virtual void ShutdownPlatform() = 0;
 		void GetScreenDimensions(unsigned int* width, unsigned int* height);
 		bool BlackMagicInit();
@@ -52,6 +53,5 @@ namespace BlackMagic {
 		AudioManager* GetAudioManager();
 		void GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage);
 		static PlatformBase* GetSingleton();
-
 	};
 }

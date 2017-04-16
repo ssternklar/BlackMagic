@@ -1,11 +1,10 @@
 #pragma once
-#include <DirectXMath.h>
+#include "BMMath.h"
 
 struct DirectionalLight
 {
-	DirectX::XMFLOAT4 AmbientColor;
-	DirectX::XMFLOAT4 DiffuseColor;
-	DirectX::XMFLOAT3 Direction;
-	float padding;
-	DirectX::XMFLOAT3 Up;
+	BlackMagic::Vector4 AmbientColor;
+	BlackMagic::Vector4 DiffuseColor;
+	BlackMagic::Vector3 Direction;
+	BlackMagic::Vector3 Up;
 };

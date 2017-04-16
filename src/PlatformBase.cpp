@@ -1,5 +1,7 @@
 #include "PlatformBase.h"
-#ifdef _WIN32
+#include "ContentManager.h"
+
+#ifdef BM_PLATFORM_WINDOWS
 #include <new>
 #include <Windows.h>
 #endif

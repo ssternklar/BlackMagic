@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "PlatformBase.h"
 #include "SimpleShader.h"
 
 #include "ContentClasses.h"
@@ -47,8 +48,7 @@ namespace BlackMagic
 		template<typename T>
 		T* UntrackedLoad(char* fileName)
 		{
-			char path[256];
-			memset(path, 0, 256);
+			char path[256] = { 0 };
 			strcpy_s(path, directory);
 			strcat_s(path, fileName);
 			int fileSize = PlatformBase::GetSingleton()->GetFileSize(path);
@@ -115,7 +115,7 @@ namespace BlackMagic
 			T* retLocal = &(*Load<T>(str.c_str()));
 			std::shared_ptr<T> ret(retLocal,
 				[=](T* foo) {
-				DestructAndDeallocate<BestFitAllocator, T>(allocLocal, retLocal, 1);
+				//Do nothing, AssetGC takes care of cleanup
 			});
 			return ret;
 		}

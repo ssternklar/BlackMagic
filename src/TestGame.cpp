@@ -1,9 +1,9 @@
 #include "TestGame.h"
 #include "DX11Renderer.h"
-#include "TestJob.h";
+#include "TestJob.h"
+#include "BMMath.h"
 
 using namespace BlackMagic;
-using namespace DirectX;
 
 TestGame::TestGame(BlackMagic::PlatformBase* platformBase)
 	: GameAbstraction(platformBase),
@@ -29,26 +29,23 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 	_camera.UpdateProjectionMatrix(width, height);
 
 	_globalLight = {
-		{ 0.0f, 0.0f, 0.0f, 1.0f },
-		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ 1, -1, 1 },
-		0,
-		{ 0, 1, 1 }
+		CreateVector4(0.0f, 0.0f, 0.0f, 1.0f),
+		CreateVector4(1.0f, 1.0f, 1.0f, 1.0f),
+		CreateVector3(1, -1, 1),
+		CreateVector3(0, 1, 1)
 	};
 }
 
 void TestGame::LoadContent()
 {
 	auto content = platform->GetContentManager();
-	XMFLOAT4 quatIdentity;
-	XMStoreFloat4(&quatIdentity, XMQuaternionIdentity());
-	XMFLOAT3 defaultScale = { 1, 1, 1 };
-
-	auto sphere = content->Load<Mesh>(("/models/sphere.bmmesh"));
-	auto gPassVS = content->Load<VertexShader>(("/shaders/GBufferVS.cso"));
-	auto gPassPS = content->Load<PixelShader>(("/shaders/GBufferPS.cso"));
-	auto sphereTex = content->Load<Texture>(("/textures/test_texture.png"));
-	auto sphereNormals = content->Load<Texture>(("/textures/blank_normals.png"));
+	Quaternion quatIdentity = CreateQuaternionIdentity();
+	Vector3 defaultScale = CreateVector3(1.0f, 1.0f, 1.0f);
+	auto sphere = std::shared_ptr<Mesh>(content->UntrackedLoad<Mesh>("/models/sphere.bmmesh"));
+	auto gPassVS = content->Load<VertexShader>(std::string("/shaders/GBufferVS.cso"));
+	auto gPassPS = content->Load<PixelShader>(std::string("/shaders/GBufferPS.cso"));
+	auto sphereTex = content->Load<Texture>(std::string("/textures/test_texture.png"));
+	auto sphereNormals = content->Load<Texture>(std::string("/textures/blank_normals.png"));
 	auto sampler = platform->GetRenderer()->CreateSampler();
 	auto mat = Material(
 		allocator,
@@ -61,7 +58,7 @@ void TestGame::LoadContent()
 	for(float y = 0; y < 12; y++)
 	{
 		unsigned int metalness = 255;
-		XMVECTOR albedo = XMVectorSet(0, 0, 0, 1.0f);
+		Vector4 albedo = CreateVector4(0.0f, 0.0f, 0.0f, 1.0f);
 		TextureDesc desc;
 		desc = { 0 };
 
@@ -106,12 +103,12 @@ void TestGame::LoadContent()
 				metalness = 0;
 				break;
 		}
-		albedo *= 255.0f;
-		XMVectorFloor(albedo);
-		unsigned char c[4] = { static_cast<unsigned char>(albedo.m128_f32[0]), 
-			static_cast<unsigned char>(albedo.m128_f32[1]), 
-			static_cast<unsigned char>(albedo.m128_f32[2]), 
-			static_cast<unsigned char>(albedo.m128_f32[3])
+		albedo = albedo * 255.0f;
+		albedo = Floor(albedo);
+		unsigned char c[4] = { static_cast<unsigned char>(albedo.data[0]), 
+			static_cast<unsigned char>(albedo.data[1]), 
+			static_cast<unsigned char>(albedo.data[2]), 
+			static_cast<unsigned char>(albedo.data[3])
 		};
 
 
@@ -133,7 +130,7 @@ void TestGame::LoadContent()
 
 		for (float x = 1; x < 12; x++)
 		{
-			unsigned int roughness = ((x-1.0f)/ 11.0f) * 255;
+			unsigned int roughness = static_cast<unsigned int>(((x-1.0f)/ 11.0f) * 255);
 
 			desc.InitialData = &roughness;
 			desc.Format = Texture::Format::R8_UNORM;
@@ -142,7 +139,8 @@ void TestGame::LoadContent()
 			auto mem = allocator.allocate<Entity>();
 			auto matInstance = rowMaterial;
 			matInstance.SetResource("roughnessMap", Material::ResourceStage::PS, roughnessTex, Material::ResourceStorageType::Instance);
-			_objects.push_back(new (mem) Entity(XMFLOAT3{ x, y, 0 }, XMFLOAT4{ 0, 0, 0, 1 }, sphere, matInstance));
+			auto p = CreateVector3(x, y, 0);
+			_objects.push_back(new (mem) Entity(CreateVector3(x, y, 0), CreateQuaternionIdentity(), sphere, matInstance));
 		}
 	}
 }
@@ -164,7 +162,7 @@ void TestGame::Update(float deltaTime)
 void TestGame::Draw(float deltaTime)
 {
 	auto renderer = platform->GetRenderer();
-	const XMFLOAT4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
+	const Vector4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
 	renderer->Clear(color);
 	std::vector<Entity*> renderables;
 

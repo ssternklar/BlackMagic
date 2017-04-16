@@ -1,10 +1,10 @@
 struct Vertex
 {
-	float3 position : POSITION;
-	float3 normal : NORMAL;
-	float3 tangent : TANGENT;
-	float3 binormal : BINORMAL;
-	float2 uv : TEXCOORD;
+	float4 position : POSITION;
+	float4 normal : NORMAL;
+	float4 tangent : TANGENT;
+	float4 binormal : BINORMAL;
+	float4 uv : TEXCOORD;
 };
 
 struct VertexToPixel
@@ -23,7 +23,7 @@ cbuffer PerFrame : register(b0)
 VertexToPixel main(Vertex input)
 {
 	VertexToPixel output;
-	output.position = mul(float4(input.position + camPos, 1.0f), mul(view, proj)).xyww;
-	output.textureCoord = input.position;
+	output.position = mul(float4(input.position.xyz + camPos, 1.0f), mul(view, proj)).xyww;
+	output.textureCoord = input.position.xyz;
 	return output;
 }

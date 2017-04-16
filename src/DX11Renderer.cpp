@@ -7,11 +7,8 @@
 #include "DDSTextureLoader.h"
 #include "PlatformBase.h";
 
+using namespace DirectX;
 using namespace BlackMagic;
-using DirectX::XMFLOAT2;
-using DirectX::XMFLOAT4;
-using DirectX::XMFLOAT4X4;
-
 DX11Renderer::DX11Renderer()
 {}
 
@@ -84,7 +81,7 @@ D3D_FEATURE_LEVEL DX11Renderer::FeatureLevel() const
 	return _featureLevel;
 }
 
-void DX11Renderer::Clear(XMFLOAT4 color)
+void DX11Renderer::Clear(Vector4 color)
 {
 	FLOAT black[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_context->ClearRenderTargetView(_backBuffer.Get(), reinterpret_cast<const FLOAT*>(&color));
@@ -145,40 +142,40 @@ void DX11Renderer::OnResize(UINT width, UINT height)
 {
 	_width = width;
 	_height = height;
-	
+
 	/*if (_albedoMap)
 	{
-		delete _albedoMap;
+	delete _albedoMap;
 	}
 
 	if (_roughnessMap)
 	{
-		delete _roughnessMap;
+	delete _roughnessMap;
 	}
 
 	if (_metalMap)
 	{
-		delete _metalMap;
+	delete _metalMap;
 	}
 
 	if (_cavityMap)
 	{
-		delete _cavityMap;
+	delete _cavityMap;
 	}
 
 	if (_normalMap)
 	{
-		delete _normalMap;
+	delete _normalMap;
 	}
 
 	if (_positionMap)
 	{
-		delete _positionMap;
+	delete _positionMap;
 	}
 
 	if (_lightMap)
 	{
-		delete _lightMap;
+	delete _lightMap;
 	}*/
 
 	// Resize the underlying swap chain buffers
@@ -292,7 +289,7 @@ void DX11Renderer::Init(ContentManager* content)
 	_fxaaPS = content->UntrackedLoad<PixelShader>(("/shaders/FXAA_PS.cso"));
 	_projectionPS = content->UntrackedLoad<PixelShader>(("/shaders/ProjectorPS.cso"));
 	_mergePS = content->UntrackedLoad<PixelShader>(("/shaders/FinalMerge.cso"));
-    //_tonemapPS = content->Load<PixelShader>(("/shaders/ReinhardTonemapping.hlsl"));
+	//_tonemapPS = content->Load<PixelShader>(("/shaders/ReinhardTonemapping.hlsl"));
 
 	//Set up g-buffer sampler
 	D3D11_SAMPLER_DESC sampDesc = {};
@@ -375,8 +372,6 @@ void DX11Renderer::Init(ContentManager* content)
 	projectorBlend.RenderTarget->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	_device->CreateBlendState(&projectorBlend, _projectionBlend.ReleaseAndGetAddressOf());
 }
-
-
 //TODO: Fix BoundingFrustum generation issues (near&far planes are too close)
 void DX11Renderer::Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything)
 {
@@ -384,19 +379,19 @@ void DX11Renderer::Cull(const Camera& cam, const std::vector<Entity*> objects, s
 	//Collect objects with sphere colliders
 	for (auto* ent : gameWorld->each<Transform, Renderable, DirectX::BoundingSphere>())
 	{
-		if (debugDrawEverything || cam.Frustum().Contains(ent->get<DirectX::BoundingSphere>().get()) != DirectX::ContainmentType::DISJOINT)
-		{
-			objectsToDraw.push_back(ent);
-		}
+	if (debugDrawEverything || cam.Frustum().Contains(ent->get<DirectX::BoundingSphere>().get()) != DirectX::ContainmentType::DISJOINT)
+	{
+	objectsToDraw.push_back(ent);
+	}
 	}
 
 	//Collect objects with box colliders
 	for (auto* ent : gameWorld->each<Transform, Renderable, DirectX::BoundingBox>())
 	{
-		if (debugDrawEverything || cam.Frustum().Intersects(ent->get<DirectX::BoundingBox>().get()))
-		{
-			objectsToDraw.push_back(ent);
-		}
+	if (debugDrawEverything || cam.Frustum().Intersects(ent->get<DirectX::BoundingBox>().get()))
+	{
+	objectsToDraw.push_back(ent);
+	}
 	}
 	*/
 
@@ -408,13 +403,14 @@ void DX11Renderer::Cull(const Camera& cam, const std::vector<Entity*> objects, s
 
 void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight)
 {
-	using namespace DirectX;
-
 	const float coeff = (CAM_FAR_Z - CAM_NEAR_Z) / NUM_SHADOW_CASCADES;
 	auto frustum = cam.Frustum();
-	auto vT = cam.ViewMatrix();
-	auto dir = DirectX::XMVector3Normalize(XMLoadFloat3(&sceneLight.Direction));
-	auto up = XMLoadFloat3(&sceneLight.Up);
+	auto v = cam.ViewMatrix();
+	auto vT = *reinterpret_cast<XMMATRIX*>(&v);
+	auto bmDir = sceneLight.Direction;
+	auto bmUp = sceneLight.Up;
+	auto dir = XMVector3Normalize(XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&bmDir)));
+	auto up = XMVector3Normalize(XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&bmUp)));
 
 	XMFLOAT3 points[8];
 	XMVECTOR pointsV[8];
@@ -424,8 +420,8 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 		float zNear = CAM_NEAR_Z;
 		float zFar = (thisCascade + 1)*coeff;
 
-		auto subfrustum = BoundingFrustum(XMMatrixPerspectiveFovLH(CAM_FOV, static_cast<float>(_width) / _height, zNear, zFar));
-		subfrustum.Transform(subfrustum, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&vT))));
+		auto subfrustum = DirectX::BoundingFrustum(XMMatrixPerspectiveFovLH(CAM_FOV, static_cast<float>(_width) / _height, zNear, zFar));
+		subfrustum.Transform(subfrustum, XMMatrixTranspose(XMMatrixInverse(nullptr, vT)));
 		subfrustum.GetCorners(points);
 
 		XMVECTOR centroid = XMVectorZero();
@@ -439,9 +435,9 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 		centroid = XMVectorSetW(centroid, 1.0f);
 
 		float len;
-		XMStoreFloat(&len, XMVector3Length(pointsV[4] - pointsV[5]));
+		XMStoreFloat(&len, XMVector3Length(XMVectorSubtract(pointsV[4], pointsV[5])));
 		float dist = max(zFar - zNear, len) + 50.0f;
-		XMMATRIX shadowView = XMMatrixLookAtLH(centroid - dist*(dir), centroid, up);
+		XMMATRIX shadowView = XMMatrixLookAtLH(XMVectorSubtract(centroid, XMVectorScale(dir, dist)), centroid, up);
 
 		XMStoreFloat4x4(&_shadowViews[thisCascade], XMMatrixTranspose(shadowView));
 		subfrustum.Transform(subfrustum, shadowView);
@@ -452,12 +448,12 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 		XMFLOAT3 min, max;
 		BoundingBox::CreateFromPoints(box, 8, points, sizeof(XMFLOAT3));
 		XMVECTOR center = XMLoadFloat3(&box.Center), extents = XMLoadFloat3(&box.Extents);
-		minV = center - extents;
-		maxV = center + extents;
+		minV = XMVectorSubtract(center, extents);
+		maxV = XMVectorAdd(center, extents);
 		extent = max(extent, max(XMVectorGetX(maxV), max(XMVectorGetY(maxV), XMVectorGetZ(maxV))));
 		XMVECTOR unitsPerTexel = XMVectorSet(extent / SHADOWMAP_DIM, extent / SHADOWMAP_DIM, 1.0f, 1.0f);
-		XMStoreFloat3(&min, XMVectorFloor(minV / unitsPerTexel)*unitsPerTexel);
-		XMStoreFloat3(&max, XMVectorFloor(maxV / unitsPerTexel)*unitsPerTexel);
+		XMStoreFloat3(&min, XMVectorMultiply(XMVectorFloor(XMVectorDivide(minV, unitsPerTexel)), unitsPerTexel));
+		XMStoreFloat3(&max, XMVectorMultiply(XMVectorFloor(XMVectorDivide(maxV, unitsPerTexel)), unitsPerTexel));
 
 		XMMATRIX shadowProj = XMMatrixTranspose(XMMatrixOrthographicOffCenterLH(min.x, max.x, min.y, max.y, min.z, 1.1f*max.z));
 		XMStoreFloat4x4(&_shadowProjections[thisCascade], shadowProj);
@@ -481,8 +477,8 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 		//Don't need a pixel shader since we just want the depth information
 		_shadowMapVS->SetShader();
 		_context->PSSetShader(nullptr, nullptr, 0);
-		_shadowMapVS->SetMatrix4x4("view", _shadowViews[thisCascade]);
-		_shadowMapVS->SetMatrix4x4("projection", _shadowProjections[thisCascade]);
+		_shadowMapVS->SetMatrix4x4("view", _shadowViews[thisCascade].m[0]);
+		_shadowMapVS->SetMatrix4x4("projection", _shadowProjections[thisCascade].m[0]);
 		_shadowMapVS->CopyBufferData("PerFrame");
 
 		const UINT stride = sizeof(Vertex);
@@ -511,35 +507,35 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 /*
 void DX11Renderer::RenderProjectors(const std::vector<Projector>& projectors)
 {
-	const UINT stride = sizeof(XMFLOAT2);
-	const UINT offset = 0;
+const UINT stride = sizeof(XMFLOAT2);
+const UINT offset = 0;
 
-	_context->OMSetRenderTargets(1, &_backBuffer, nullptr);
+_context->OMSetRenderTargets(1, &_backBuffer, nullptr);
 
-	ID3D11BlendState* oldState;
-	float oldBlendColor[4], blendColor[4] = { 0,0,0,0 };
-	UINT oldSampleMask, sampleMask = 0xFFFFFFFF;
-	_context->OMGetBlendState(&oldState, oldBlendColor, &oldSampleMask);
-	_context->OMSetBlendState(_projectionBlend, blendColor, sampleMask);
+ID3D11BlendState* oldState;
+float oldBlendColor[4], blendColor[4] = { 0,0,0,0 };
+UINT oldSampleMask, sampleMask = 0xFFFFFFFF;
+_context->OMGetBlendState(&oldState, oldBlendColor, &oldSampleMask);
+_context->OMSetBlendState(_projectionBlend, blendColor, sampleMask);
 
-	_lightPassVS->SetShader();
-	_projectionPS->SetShader();
-	_projectionPS->SetShaderResourceView("positionMap", _positionMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
-	_projectionPS->SetSamplerState("mainSampler", _projectionSampler.get());
+_lightPassVS->SetShader();
+_projectionPS->SetShader();
+_projectionPS->SetShaderResourceView("positionMap", _positionMap->GetGraphicsTexture().GetAs<ID3D11ShaderResourceView*>());
+_projectionPS->SetSamplerState("mainSampler", _projectionSampler.get());
 
-	for(const auto& p : projectors)
-	{
-		_projectionPS->SetShaderResourceView("projectedTex", p.Texture().GetAs<ID3D11ShaderResourceView*>());
-		_projectionPS->SetMatrix4x4("vp", p.Matrix());
-		_projectionPS->CopyAllBufferData();
-		_context->IASetVertexBuffers(0, 1, &_quad, &stride, &offset);
-		_context->Draw(6, 0);
-	}
+for(const auto& p : projectors)
+{
+_projectionPS->SetShaderResourceView("projectedTex", p.Texture().GetAs<ID3D11ShaderResourceView*>());
+_projectionPS->SetMatrix4x4("vp", p.Matrix());
+_projectionPS->CopyAllBufferData();
+_context->IASetVertexBuffers(0, 1, &_quad, &stride, &offset);
+_context->Draw(6, 0);
+}
 
-	ID3D11ShaderResourceView* zeros[1] = { 0 };
-	_context->PSSetShaderResources(1, 1, zeros);
-	_context->OMSetBlendState(oldState, oldBlendColor, oldSampleMask);
-	_context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
+ID3D11ShaderResourceView* zeros[1] = { 0 };
+_context->PSSetShaderResources(1, 1, zeros);
+_context->OMSetBlendState(oldState, oldBlendColor, oldSampleMask);
+_context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
 }
 */
 
@@ -553,7 +549,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	const Material* currentMaterial = nullptr;
 
 	//RenderShadowMaps(cam, objects, sceneLight);
-	
+
 
 	//TODO: Sort renderables by material and texture to minimize state switches
 	ID3D11RenderTargetView* rts[] = {
@@ -564,24 +560,24 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 		_cavityMap->GetRenderTarget(),
 		_metalMap->GetRenderTarget()
 	};
-	_context->OMSetRenderTargets(sizeof(rts)/sizeof(ID3D11RenderTargetView*), rts, _depthStencil.Get());
+	_context->OMSetRenderTargets(sizeof(rts) / sizeof(ID3D11RenderTargetView*), rts, _depthStencil.Get());
 
 	auto view = cam.ViewMatrix();
 	auto proj = cam.ProjectionMatrix();
 
 	//Load object attributes into the g-buffer (geometry pass)
-	for(auto* object : objects)
+	for (auto* object : objects)
 	{
 		auto renderable = object->AsRenderable();
 
 		auto m = object->GetTransform().Matrix();
 
 		//Update per-object constant buffer
-		renderable->_material.SetResource("world", Material::VS, sizeof(XMFLOAT4X4),
+		renderable->_material.SetResource("world", Material::VS, sizeof(Mat4),
 			reinterpret_cast<void*>(m));
-		renderable->_material.SetResource("view", Material::VS, sizeof(XMFLOAT4X4),
+		renderable->_material.SetResource("view", Material::VS, sizeof(Mat4),
 			reinterpret_cast<void*>(&view));
-		renderable->_material.SetResource("projection", Material::VS, sizeof(XMFLOAT4X4),
+		renderable->_material.SetResource("projection", Material::VS, sizeof(Mat4),
 			reinterpret_cast<void*>(&proj));
 
 		//Upload buffers and draw
@@ -597,7 +593,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 		_context->IASetIndexBuffer(renderable->_mesh->IndexBuffer().As<BufferHandle>(), DXGI_FORMAT_R32_UINT, 0);
 		_context->DrawIndexed(static_cast<UINT>(renderable->_mesh->IndexCount()), 0, 0);
 	}
-	
+
 	auto lightMap = _lightMap->GetRenderTarget();
 	_context->OMSetRenderTargets(1, &lightMap, nullptr);
 	auto cPos = cam.Position();
@@ -607,8 +603,8 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetShader();
 	_lightPassPS->SetFloat3("cameraPosition", cPos);
 	_lightPassPS->SetData("sceneLight", &sceneLight, sizeof(DirectionalLight));
-	_lightPassPS->SetData("lightView", &_shadowViews[0], sizeof(XMFLOAT4X4)*NUM_SHADOW_CASCADES);
-	_lightPassPS->SetData("lightProjection", &_shadowProjections[0], sizeof(XMFLOAT4X4)*NUM_SHADOW_CASCADES);
+	_lightPassPS->SetData("lightView", &_shadowViews[0], sizeof(Mat4)*NUM_SHADOW_CASCADES);
+	_lightPassPS->SetData("lightProjection", &_shadowProjections[0], sizeof(Mat4)*NUM_SHADOW_CASCADES);
 	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
 	_lightPassPS->SetSamplerState("shadowSampler", _shadowSampler.As<SamplerHandle>());
 	_lightPassPS->SetSamplerState("envSampler", _envSampler.As<SamplerHandle>());
@@ -627,8 +623,8 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 
 	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
 	_context->Draw(6, 0);
-	_context->PSSetShaderResources(0, _lightPassPS->GetShaderResourceViewCount()+1, srvs);
-	
+	_context->PSSetShaderResources(0, _lightPassPS->GetShaderResourceViewCount() + 1, srvs);
+
 	ID3D11BlendState* oldBlendState = nullptr;
 	float blendFac[4];
 	UINT sampleMask = 0;
@@ -642,7 +638,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_context->Draw(6, 0);
 	RenderSkybox(cam);
 	_context->OMSetBlendState(oldBlendState, blendFac, sampleMask);
-	_context->PSSetShaderResources(0, _mergePS->GetShaderResourceViewCount()+1, srvs);
+	_context->PSSetShaderResources(0, _mergePS->GetShaderResourceViewCount() + 1, srvs);
 
 	/*_fxaaVS->SetShader();
 	_fxaaPS->SetShader();
@@ -693,12 +689,12 @@ Texture DX11Renderer::CreateTexture(BlackMagic::byte* data, size_t size, Texture
 	ID3D11Resource* tex = nullptr;
 	ID3D11ShaderResourceView* srv = nullptr;
 	HRESULT result;
-	switch(type)
+	switch (type)
 	{
 	case Texture::Type::FLAT_2D:
 		result = DirectX::CreateWICTextureFromMemory(_device.Get(), data, size, &tex, &srv);
 		break;
-	
+
 	case Texture::Type::CUBEMAP:
 		result = DirectX::CreateDDSTextureFromMemory(_device.Get(), data, size, &tex, &srv);
 		break;
@@ -721,99 +717,99 @@ DXGI_FORMAT TranslateTextureFormat(Texture::Format f)
 {
 	switch (f)
 	{
-		case Texture::Format::R32G32B32A32_FLOAT:
-			return DXGI_FORMAT_R32G32B32A32_FLOAT;
-		case Texture::Format::R32G32B32A32_UINT:
-			return DXGI_FORMAT_R32G32B32A32_UINT;
-		case Texture::Format::R32G32B32A32_SINT:
-			return DXGI_FORMAT_R32G32B32A32_SINT;
-		case Texture::Format::R32G32B32_FLOAT:
-			return DXGI_FORMAT_R32G32B32_FLOAT;
-		case Texture::Format::R32G32B32_UINT:
-			return DXGI_FORMAT_R32G32B32_UINT;
-		case Texture::Format::R32G32B32_SINT:
-			return DXGI_FORMAT_R32G32B32_SINT;
-		case Texture::Format::R16G16B16A16_FLOAT:
-			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		case Texture::Format::R16G16B16A16_UNORM:
-			return DXGI_FORMAT_R16G16B16A16_UNORM;
-		case Texture::Format::R16G16B16A16_UINT:
-			return DXGI_FORMAT_R16G16B16A16_UINT;
-		case Texture::Format::R16G16B16A16_SNORM:
-			return DXGI_FORMAT_R16G16B16A16_SNORM;
-		case Texture::Format::R16G16B16A16_SINT:
-			return DXGI_FORMAT_R16G16B16A16_SINT;
-		case Texture::Format::R32G32_FLOAT:
-			return DXGI_FORMAT_R32G32_FLOAT;
-		case Texture::Format::R32G32_UINT:
-			return DXGI_FORMAT_R32G32_UINT;
-		case Texture::Format::R32G32_SINT:
-			return DXGI_FORMAT_R32G32_SINT;
-		case Texture::Format::R10G10B10A2_UNORM:
-			return DXGI_FORMAT_R10G10B10A2_UNORM;
-		case Texture::Format::R10G10B10A2_UINT:
-			return DXGI_FORMAT_R10G10B10A2_UINT;
-		case Texture::Format::R11G11B10_FLOAT:
-			return DXGI_FORMAT_R11G11B10_FLOAT;
-		case Texture::Format::R8G8B8A8_UNORM:
-			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case Texture::Format::R8G8B8A8_UNORM_SRGB:
-			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		case Texture::Format::R8G8B8A8_UINT:
-			return DXGI_FORMAT_R8G8B8A8_UINT;
-		case Texture::Format::R8G8B8A8_SNORM:
-			return DXGI_FORMAT_R8G8B8A8_SNORM;
-		case Texture::Format::R8G8B8A8_SINT:
-			return DXGI_FORMAT_R8G8B8A8_SINT;
-		case Texture::Format::R16G16_FLOAT:
-			return DXGI_FORMAT_R16G16_FLOAT;
-		case Texture::Format::R16G16_UNORM:
-			return DXGI_FORMAT_R16G16_UNORM;
-		case Texture::Format::R16G16_UINT:
-			return DXGI_FORMAT_R16G16_UINT;
-		case Texture::Format::R16G16_SNORM:
-			return DXGI_FORMAT_R16G16_SNORM;
-		case Texture::Format::R16G16_SINT:
-			return DXGI_FORMAT_R16G16_SINT;
-		case Texture::Format::R32_FLOAT:
-			return DXGI_FORMAT_R32_FLOAT;
-		case Texture::Format::R32_UINT:
-			return DXGI_FORMAT_R32_UINT;
-		case Texture::Format::R32_SINT:
-			return DXGI_FORMAT_R32_SINT;
-		case Texture::Format::R8G8_UNORM:
-			return DXGI_FORMAT_R8G8_UNORM;
-		case Texture::Format::R8G8_UINT:
-			return DXGI_FORMAT_R8G8_UINT;
-		case Texture::Format::R8G8_SNORM:
-			return DXGI_FORMAT_R8G8_SNORM;
-		case Texture::Format::R8G8_SINT:
-			return DXGI_FORMAT_R8G8_SINT;
-		case Texture::Format::R16_FLOAT:
-			return DXGI_FORMAT_R16_FLOAT;
-		case Texture::Format::R16_UNORM:
-			return DXGI_FORMAT_R16_UNORM;
-		case Texture::Format::R16_UINT:
-			return DXGI_FORMAT_R16_UINT;
-		case Texture::Format::R16_SNORM:
-			return DXGI_FORMAT_R16_SNORM;
-		case Texture::Format::R16_SINT:
-			return DXGI_FORMAT_R16_SINT;
-		case Texture::Format::R8_UNORM:
-			return DXGI_FORMAT_R8_UNORM;
-		case Texture::Format::R8_UINT:
-			return DXGI_FORMAT_R8_UINT;
-		case Texture::Format::R8_SNORM:
-			return DXGI_FORMAT_R8_SNORM;
-		case Texture::Format::R8_SINT:
-			return DXGI_FORMAT_R8_SINT;
-		case Texture::Format::A8_UNORM:
-			return DXGI_FORMAT_A8_UNORM;
-		case Texture::Format::R1_UNORM:
-			return DXGI_FORMAT_R1_UNORM;
-		default:
-			assert(false, "Invalid texture format provided to TranslateTextureFormat\n");
-			return DXGI_FORMAT_UNKNOWN;
+	case Texture::Format::R32G32B32A32_FLOAT:
+		return DXGI_FORMAT_R32G32B32A32_FLOAT;
+	case Texture::Format::R32G32B32A32_UINT:
+		return DXGI_FORMAT_R32G32B32A32_UINT;
+	case Texture::Format::R32G32B32A32_SINT:
+		return DXGI_FORMAT_R32G32B32A32_SINT;
+	case Texture::Format::R32G32B32_FLOAT:
+		return DXGI_FORMAT_R32G32B32_FLOAT;
+	case Texture::Format::R32G32B32_UINT:
+		return DXGI_FORMAT_R32G32B32_UINT;
+	case Texture::Format::R32G32B32_SINT:
+		return DXGI_FORMAT_R32G32B32_SINT;
+	case Texture::Format::R16G16B16A16_FLOAT:
+		return DXGI_FORMAT_R16G16B16A16_FLOAT;
+	case Texture::Format::R16G16B16A16_UNORM:
+		return DXGI_FORMAT_R16G16B16A16_UNORM;
+	case Texture::Format::R16G16B16A16_UINT:
+		return DXGI_FORMAT_R16G16B16A16_UINT;
+	case Texture::Format::R16G16B16A16_SNORM:
+		return DXGI_FORMAT_R16G16B16A16_SNORM;
+	case Texture::Format::R16G16B16A16_SINT:
+		return DXGI_FORMAT_R16G16B16A16_SINT;
+	case Texture::Format::R32G32_FLOAT:
+		return DXGI_FORMAT_R32G32_FLOAT;
+	case Texture::Format::R32G32_UINT:
+		return DXGI_FORMAT_R32G32_UINT;
+	case Texture::Format::R32G32_SINT:
+		return DXGI_FORMAT_R32G32_SINT;
+	case Texture::Format::R10G10B10A2_UNORM:
+		return DXGI_FORMAT_R10G10B10A2_UNORM;
+	case Texture::Format::R10G10B10A2_UINT:
+		return DXGI_FORMAT_R10G10B10A2_UINT;
+	case Texture::Format::R11G11B10_FLOAT:
+		return DXGI_FORMAT_R11G11B10_FLOAT;
+	case Texture::Format::R8G8B8A8_UNORM:
+		return DXGI_FORMAT_R8G8B8A8_UNORM;
+	case Texture::Format::R8G8B8A8_UNORM_SRGB:
+		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	case Texture::Format::R8G8B8A8_UINT:
+		return DXGI_FORMAT_R8G8B8A8_UINT;
+	case Texture::Format::R8G8B8A8_SNORM:
+		return DXGI_FORMAT_R8G8B8A8_SNORM;
+	case Texture::Format::R8G8B8A8_SINT:
+		return DXGI_FORMAT_R8G8B8A8_SINT;
+	case Texture::Format::R16G16_FLOAT:
+		return DXGI_FORMAT_R16G16_FLOAT;
+	case Texture::Format::R16G16_UNORM:
+		return DXGI_FORMAT_R16G16_UNORM;
+	case Texture::Format::R16G16_UINT:
+		return DXGI_FORMAT_R16G16_UINT;
+	case Texture::Format::R16G16_SNORM:
+		return DXGI_FORMAT_R16G16_SNORM;
+	case Texture::Format::R16G16_SINT:
+		return DXGI_FORMAT_R16G16_SINT;
+	case Texture::Format::R32_FLOAT:
+		return DXGI_FORMAT_R32_FLOAT;
+	case Texture::Format::R32_UINT:
+		return DXGI_FORMAT_R32_UINT;
+	case Texture::Format::R32_SINT:
+		return DXGI_FORMAT_R32_SINT;
+	case Texture::Format::R8G8_UNORM:
+		return DXGI_FORMAT_R8G8_UNORM;
+	case Texture::Format::R8G8_UINT:
+		return DXGI_FORMAT_R8G8_UINT;
+	case Texture::Format::R8G8_SNORM:
+		return DXGI_FORMAT_R8G8_SNORM;
+	case Texture::Format::R8G8_SINT:
+		return DXGI_FORMAT_R8G8_SINT;
+	case Texture::Format::R16_FLOAT:
+		return DXGI_FORMAT_R16_FLOAT;
+	case Texture::Format::R16_UNORM:
+		return DXGI_FORMAT_R16_UNORM;
+	case Texture::Format::R16_UINT:
+		return DXGI_FORMAT_R16_UINT;
+	case Texture::Format::R16_SNORM:
+		return DXGI_FORMAT_R16_SNORM;
+	case Texture::Format::R16_SINT:
+		return DXGI_FORMAT_R16_SINT;
+	case Texture::Format::R8_UNORM:
+		return DXGI_FORMAT_R8_UNORM;
+	case Texture::Format::R8_UINT:
+		return DXGI_FORMAT_R8_UINT;
+	case Texture::Format::R8_SNORM:
+		return DXGI_FORMAT_R8_SNORM;
+	case Texture::Format::R8_SINT:
+		return DXGI_FORMAT_R8_SINT;
+	case Texture::Format::A8_UNORM:
+		return DXGI_FORMAT_A8_UNORM;
+	case Texture::Format::R1_UNORM:
+		return DXGI_FORMAT_R1_UNORM;
+	default:
+		assert(false, "Invalid texture format provided to TranslateTextureFormat\n");
+		return DXGI_FORMAT_UNKNOWN;
 	}
 }
 
@@ -821,65 +817,65 @@ unsigned int BytesPerPixel(Texture::Format f)
 {
 	switch (f)
 	{
-		case Texture::Format::R32G32B32A32_FLOAT:
-		case Texture::Format::R32G32B32A32_UINT:
-		case Texture::Format::R32G32B32A32_SINT:
-			return 16;
+	case Texture::Format::R32G32B32A32_FLOAT:
+	case Texture::Format::R32G32B32A32_UINT:
+	case Texture::Format::R32G32B32A32_SINT:
+		return 16;
 
-		case Texture::Format::R32G32B32_FLOAT:
-		case Texture::Format::R32G32B32_UINT:
-		case Texture::Format::R32G32B32_SINT:
-			return 12;
+	case Texture::Format::R32G32B32_FLOAT:
+	case Texture::Format::R32G32B32_UINT:
+	case Texture::Format::R32G32B32_SINT:
+		return 12;
 
-		case Texture::Format::R16G16B16A16_FLOAT:
-		case Texture::Format::R16G16B16A16_UNORM:
-		case Texture::Format::R16G16B16A16_UINT:
-		case Texture::Format::R16G16B16A16_SNORM:
-		case Texture::Format::R16G16B16A16_SINT:
-		case Texture::Format::R32G32_FLOAT:
-		case Texture::Format::R32G32_UINT:
-		case Texture::Format::R32G32_SINT:
-			return 8;
+	case Texture::Format::R16G16B16A16_FLOAT:
+	case Texture::Format::R16G16B16A16_UNORM:
+	case Texture::Format::R16G16B16A16_UINT:
+	case Texture::Format::R16G16B16A16_SNORM:
+	case Texture::Format::R16G16B16A16_SINT:
+	case Texture::Format::R32G32_FLOAT:
+	case Texture::Format::R32G32_UINT:
+	case Texture::Format::R32G32_SINT:
+		return 8;
 
-		case Texture::Format::R10G10B10A2_UNORM:
-		case Texture::Format::R10G10B10A2_UINT:
-		case Texture::Format::R11G11B10_FLOAT:
-		case Texture::Format::R16G16_FLOAT:
-		case Texture::Format::R16G16_UNORM:
-		case Texture::Format::R16G16_UINT:
-		case Texture::Format::R16G16_SNORM:
-		case Texture::Format::R16G16_SINT:
-		case Texture::Format::R32_FLOAT:
-		case Texture::Format::R32_UINT:
-		case Texture::Format::R32_SINT:
-		case Texture::Format::R8G8B8A8_UNORM:
-		case Texture::Format::R8G8B8A8_UNORM_SRGB:
-		case Texture::Format::R8G8B8A8_UINT:
-		case Texture::Format::R8G8B8A8_SNORM:
-		case Texture::Format::R8G8B8A8_SINT:
-			return 4;
-		
-		case Texture::Format::R8G8_UNORM:
-		case Texture::Format::R8G8_UINT:
-		case Texture::Format::R8G8_SNORM:
-		case Texture::Format::R8G8_SINT:
-		case Texture::Format::R16_FLOAT:
-		case Texture::Format::R16_UNORM:
-		case Texture::Format::R16_UINT:
-		case Texture::Format::R16_SNORM:
-		case Texture::Format::R16_SINT:
-			return 2;
+	case Texture::Format::R10G10B10A2_UNORM:
+	case Texture::Format::R10G10B10A2_UINT:
+	case Texture::Format::R11G11B10_FLOAT:
+	case Texture::Format::R16G16_FLOAT:
+	case Texture::Format::R16G16_UNORM:
+	case Texture::Format::R16G16_UINT:
+	case Texture::Format::R16G16_SNORM:
+	case Texture::Format::R16G16_SINT:
+	case Texture::Format::R32_FLOAT:
+	case Texture::Format::R32_UINT:
+	case Texture::Format::R32_SINT:
+	case Texture::Format::R8G8B8A8_UNORM:
+	case Texture::Format::R8G8B8A8_UNORM_SRGB:
+	case Texture::Format::R8G8B8A8_UINT:
+	case Texture::Format::R8G8B8A8_SNORM:
+	case Texture::Format::R8G8B8A8_SINT:
+		return 4;
 
-		case Texture::Format::R8_UNORM:
-		case Texture::Format::R8_UINT:
-		case Texture::Format::R8_SNORM:
-		case Texture::Format::R8_SINT:
-		case Texture::Format::A8_UNORM:
-		case Texture::Format::R1_UNORM:
-			return 1;
-		default:
-			assert(false, "Invalid texture format provided to BytesPerPixel\n");
-			return 0;
+	case Texture::Format::R8G8_UNORM:
+	case Texture::Format::R8G8_UINT:
+	case Texture::Format::R8G8_SNORM:
+	case Texture::Format::R8G8_SINT:
+	case Texture::Format::R16_FLOAT:
+	case Texture::Format::R16_UNORM:
+	case Texture::Format::R16_UINT:
+	case Texture::Format::R16_SNORM:
+	case Texture::Format::R16_SINT:
+		return 2;
+
+	case Texture::Format::R8_UNORM:
+	case Texture::Format::R8_UINT:
+	case Texture::Format::R8_SNORM:
+	case Texture::Format::R8_SINT:
+	case Texture::Format::A8_UNORM:
+	case Texture::Format::R1_UNORM:
+		return 1;
+	default:
+		assert(false, "Invalid texture format provided to BytesPerPixel\n");
+		return 0;
 	}
 }
 
@@ -889,121 +885,121 @@ Texture DX11Renderer::CreateTexture(const TextureDesc& desc)
 
 	switch (desc.Type)
 	{
-		case Texture::FLAT_1D:
+	case Texture::FLAT_1D:
+	{
+		D3D11_TEXTURE1D_DESC d3dDesc = { 0 };
+		d3dDesc.Width = desc.Width;
+		d3dDesc.ArraySize = 1;
+		d3dDesc.BindFlags = (desc.GPUUsage & Texture::Usage::READ ? D3D11_BIND_SHADER_RESOURCE : 0)
+			| (desc.GPUUsage & Texture::Usage::WRITE ? D3D11_BIND_RENDER_TARGET : 0);
+		d3dDesc.Usage = D3D11_USAGE_DEFAULT;
+		d3dDesc.Format = TranslateTextureFormat(desc.Format);
+		d3dDesc.MiscFlags = (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ?
+			D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
+
+		D3D11_SUBRESOURCE_DATA subDat = { 0 };
+		subDat.pSysMem = desc.InitialData;
+
+		ID3D11Texture1D* tex;
+		ID3D11ShaderResourceView* srv = nullptr;
+		ID3D11RenderTargetView* rtv = nullptr;
+		_device->CreateTexture1D(&d3dDesc, nullptr, &tex);
+		_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, 0);
+
+		if (desc.GPUUsage & Texture::Usage::READ)
 		{
-			D3D11_TEXTURE1D_DESC d3dDesc = { 0 };
-			d3dDesc.Width = desc.Width;
-			d3dDesc.ArraySize = 1;
-			d3dDesc.BindFlags = (desc.GPUUsage & Texture::Usage::READ ? D3D11_BIND_SHADER_RESOURCE : 0)
-				| (desc.GPUUsage & Texture::Usage::WRITE ? D3D11_BIND_RENDER_TARGET : 0);
-			d3dDesc.Usage = D3D11_USAGE_DEFAULT;
-			d3dDesc.Format = TranslateTextureFormat(desc.Format);
-			d3dDesc.MiscFlags = (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ? 
+			_device->CreateShaderResourceView(tex, nullptr, &srv);
+
+			if (d3dDesc.MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
+				_context->GenerateMips(srv);
+		}
+		if (desc.GPUUsage & Texture::Usage::WRITE)
+			_device->CreateRenderTargetView(tex, nullptr, &rtv);
+
+		return Texture(this, tex, srv, rtv);
+	}
+
+	case Texture::FLAT_2D:
+	case Texture::CUBEMAP:
+	{
+		D3D11_TEXTURE2D_DESC d3dDesc = { 0 };
+		d3dDesc.Height = desc.Height;
+		d3dDesc.Width = desc.Width;
+		d3dDesc.BindFlags = (desc.GPUUsage & Texture::Usage::READ ? D3D11_BIND_SHADER_RESOURCE : 0)
+			| (desc.GPUUsage & Texture::Usage::WRITE ? D3D11_BIND_RENDER_TARGET : 0);
+		d3dDesc.Usage = D3D11_USAGE_DEFAULT;
+		d3dDesc.ArraySize = (desc.Type == Texture::CUBEMAP ? 6 : 1);
+		d3dDesc.Format = TranslateTextureFormat(desc.Format);
+		d3dDesc.MiscFlags = (desc.Type == Texture::CUBEMAP ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0)
+			| (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ?
 				D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
+		d3dDesc.SampleDesc.Count = 1;
+		d3dDesc.SampleDesc.Quality = 0;
 
-			D3D11_SUBRESOURCE_DATA subDat = { 0 };
-			subDat.pSysMem = desc.InitialData;
+		D3D11_SUBRESOURCE_DATA subDat = { 0 };
+		subDat.pSysMem = desc.InitialData;
+		subDat.SysMemPitch = bpp * desc.Width;
 
-			ID3D11Texture1D* tex;
-			ID3D11ShaderResourceView* srv = nullptr;
-			ID3D11RenderTargetView* rtv = nullptr;
-			_device->CreateTexture1D(&d3dDesc, nullptr, &tex);
-			_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, 0);
+		ID3D11Texture2D* tex;
+		ID3D11ShaderResourceView* srv = nullptr;
+		ID3D11RenderTargetView* rtv = nullptr;
+		_device->CreateTexture2D(&d3dDesc, &subDat, &tex);
+		//_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, bpp * desc.Width * desc.Height);
 
-			if (desc.GPUUsage & Texture::Usage::READ)
-			{
-				_device->CreateShaderResourceView(tex, nullptr, &srv);
-
-				if (d3dDesc.MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
-					_context->GenerateMips(srv);
-			}
-			if (desc.GPUUsage & Texture::Usage::WRITE)
-				_device->CreateRenderTargetView(tex, nullptr, &rtv);
-
-			return Texture(this, tex, srv, rtv);
-		}
-
-		case Texture::FLAT_2D:
-		case Texture::CUBEMAP:
+		if (desc.GPUUsage & Texture::Usage::READ)
 		{
-			D3D11_TEXTURE2D_DESC d3dDesc = { 0 };
-			d3dDesc.Height = desc.Height;
-			d3dDesc.Width = desc.Width;
-			d3dDesc.BindFlags = (desc.GPUUsage & Texture::Usage::READ ? D3D11_BIND_SHADER_RESOURCE : 0)
-				| (desc.GPUUsage & Texture::Usage::WRITE ? D3D11_BIND_RENDER_TARGET : 0);
-			d3dDesc.Usage = D3D11_USAGE_DEFAULT;
-			d3dDesc.ArraySize = (desc.Type == Texture::CUBEMAP ? 6 : 1);
-			d3dDesc.Format = TranslateTextureFormat(desc.Format);
-			d3dDesc.MiscFlags = (desc.Type == Texture::CUBEMAP ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0) 
-				| (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ?
-					D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
-			d3dDesc.SampleDesc.Count = 1;
-			d3dDesc.SampleDesc.Quality = 0;
+			_device->CreateShaderResourceView(tex, nullptr, &srv);
 
-			D3D11_SUBRESOURCE_DATA subDat = { 0 };
-			subDat.pSysMem = desc.InitialData;
-			subDat.SysMemPitch = bpp * desc.Width;
-
-			ID3D11Texture2D* tex;
-			ID3D11ShaderResourceView* srv = nullptr;
-			ID3D11RenderTargetView* rtv = nullptr;
-			_device->CreateTexture2D(&d3dDesc, &subDat, &tex);
-			//_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, bpp * desc.Width * desc.Height);
-
-			if (desc.GPUUsage & Texture::Usage::READ)
-			{
-				_device->CreateShaderResourceView(tex, nullptr, &srv);
-
-				if (d3dDesc.MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
-					_context->GenerateMips(srv);
-			}
-			if (desc.GPUUsage & Texture::Usage::WRITE)
-				_device->CreateRenderTargetView(tex, nullptr, &rtv);
-
-			return Texture(this, tex, srv, rtv);
+			if (d3dDesc.MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
+				_context->GenerateMips(srv);
 		}
-		
-		case Texture::FLAT_3D:
+		if (desc.GPUUsage & Texture::Usage::WRITE)
+			_device->CreateRenderTargetView(tex, nullptr, &rtv);
+
+		return Texture(this, tex, srv, rtv);
+	}
+
+	case Texture::FLAT_3D:
+	{
+		D3D11_TEXTURE3D_DESC d3dDesc = { 0 };
+		d3dDesc.Height = desc.Height;
+		d3dDesc.Width = desc.Width;
+		d3dDesc.BindFlags = (desc.GPUUsage & Texture::Usage::READ ? D3D11_BIND_SHADER_RESOURCE : 0)
+			| (desc.GPUUsage & Texture::Usage::WRITE ? D3D11_BIND_RENDER_TARGET : 0);
+		d3dDesc.Usage = D3D11_USAGE_DEFAULT;
+		d3dDesc.Depth = desc.Depth;
+		d3dDesc.Format = TranslateTextureFormat(desc.Format);
+		d3dDesc.MiscFlags = (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ?
+			D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
+
+		D3D11_SUBRESOURCE_DATA subDat = { 0 };
+		subDat.pSysMem = desc.InitialData;
+		subDat.SysMemPitch = bpp * desc.Width;
+		subDat.SysMemSlicePitch = bpp * desc.Width * desc.Height;
+
+		ID3D11Texture3D* tex;
+		ID3D11ShaderResourceView* srv = nullptr;
+		ID3D11RenderTargetView* rtv = nullptr;
+		_device->CreateTexture3D(&d3dDesc, nullptr, &tex);
+		_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, bpp * desc.Width * desc.Height);
+
+		if (desc.GPUUsage & Texture::Usage::READ)
 		{
-			D3D11_TEXTURE3D_DESC d3dDesc = { 0 };
-			d3dDesc.Height = desc.Height;
-			d3dDesc.Width = desc.Width;
-			d3dDesc.BindFlags = (desc.GPUUsage & Texture::Usage::READ ? D3D11_BIND_SHADER_RESOURCE : 0)
-				| (desc.GPUUsage & Texture::Usage::WRITE ? D3D11_BIND_RENDER_TARGET : 0);
-			d3dDesc.Usage = D3D11_USAGE_DEFAULT;
-			d3dDesc.Depth = desc.Depth;
-			d3dDesc.Format = TranslateTextureFormat(desc.Format);
-			d3dDesc.MiscFlags = (d3dDesc.BindFlags == (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) ?
-				D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
+			_device->CreateShaderResourceView(tex, nullptr, &srv);
 
-			D3D11_SUBRESOURCE_DATA subDat = { 0 };
-			subDat.pSysMem = desc.InitialData;
-			subDat.SysMemPitch = bpp * desc.Width;
-			subDat.SysMemSlicePitch = bpp * desc.Width * desc.Height;
-
-			ID3D11Texture3D* tex;
-			ID3D11ShaderResourceView* srv = nullptr;
-			ID3D11RenderTargetView* rtv = nullptr;
-			_device->CreateTexture3D(&d3dDesc, nullptr, &tex);
-			_context->UpdateSubresource(tex, 0, nullptr, desc.InitialData, bpp * desc.Width, bpp * desc.Width * desc.Height);
-
-			if (desc.GPUUsage & Texture::Usage::READ)
-			{
-				_device->CreateShaderResourceView(tex, nullptr, &srv);
-
-				if (d3dDesc.MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
-					_context->GenerateMips(srv);
-			}
-			if (desc.GPUUsage & Texture::Usage::WRITE)
-				_device->CreateRenderTargetView(tex, nullptr, &rtv);
-
-			return Texture(this, tex, srv, rtv);
+			if (d3dDesc.MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
+				_context->GenerateMips(srv);
 		}
-		
-		default:
-			assert(false, "Invalid texture type provided to DX11Renderer::CreateTexture\n");
-			return Texture(nullptr, nullptr, nullptr, nullptr);
-		
+		if (desc.GPUUsage & Texture::Usage::WRITE)
+			_device->CreateRenderTargetView(tex, nullptr, &rtv);
+
+		return Texture(this, tex, srv, rtv);
+	}
+
+	default:
+		assert(false, "Invalid texture type provided to DX11Renderer::CreateTexture\n");
+		return Texture(nullptr, nullptr, nullptr, nullptr);
+
 	}
 }
 

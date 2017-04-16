@@ -113,6 +113,29 @@ void ContentManager::SetupManifest(ManifestEntry* entry, T* resource)
 		);
 }
 
+struct AssetFile
+{
+	BlackMagic::byte* memory;
+	BlackMagic::BestFitAllocator* allocator;
+	AssetFile(const char* dir, const char* name, BlackMagic::BestFitAllocator* allocator)
+		: allocator(allocator)
+	{
+		auto platform = PlatformBase::GetSingleton();
+		char path[256] = { 0 };
+		strcpy_s(path, dir);
+		strcat_s(path, name);
+		auto size = platform->GetFileSize(path);
+
+		memory = static_cast<BlackMagic::byte*>(allocator->allocate(size));
+		if (!platform->ReadFileIntoMemory(path, memory, size))
+		{
+			throw "Failed to load file into memory";
+		}
+	}
+
+	~AssetFile() { allocator->deallocate(memory); }
+};
+
 #define LOAD_FILE(X) \
 char path[256]; \
 memset(path, 0, 256); \
@@ -157,7 +180,8 @@ struct MeshHeader
 template<>
 Mesh* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
-	LOAD_FILE(meshSpace);
+	auto file = AssetFile{ directory, fileName, _allocator };
+	auto meshSpace = file.memory;
 
 	//block count
 	uint8_t blockCount = *meshSpace;
@@ -167,9 +191,7 @@ Mesh* ContentManager::load_Internal(const char* fileName, int fileSize)
 	MeshHeader::Block* indexMeta = (MeshHeader::Block*)(meshSpace + 1 + (sizeof(MeshHeader::Block) * 2));
 
 	Mesh* ret = AllocateAndConstruct<BestFitAllocator, Mesh>(_allocator, 1, &meshSpace[vertexMeta->offsetInBytes], vertexMeta->elementCount, &meshSpace[indexMeta->offsetInBytes], indexMeta->elementCount, renderer);
-	UNLOAD_FILE(meshSpace);
 	return ret;
-	
 }
 
 template<>
@@ -182,10 +204,10 @@ void ContentManager::SetupManifest(ManifestEntry* entry, Mesh* resource)
 template<>
 Texture* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
-	LOAD_FILE(textureSpace);
+	auto file = AssetFile{ directory, fileName, _allocator };
+	auto textureSpace = file.memory;
 	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
 	*tex = renderer->CreateTexture(textureSpace, fileSize, Texture::Type::FLAT_2D, Texture::Usage::READ);
-	UNLOAD_FILE(textureSpace);
 	return tex;
 }
 
@@ -199,10 +221,10 @@ void ContentManager::SetupManifest(ManifestEntry* entry, Texture* resource)
 template<>
 Cubemap* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
-	LOAD_FILE(textureSpace);
+	auto file = AssetFile{ directory, fileName, _allocator };
+	auto textureSpace = file.memory;
 	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
 	*tex = renderer->CreateTexture(textureSpace, fileSize, Texture::Type::CUBEMAP, Texture::Usage::READ);
-	UNLOAD_FILE(textureSpace);
 	return (Cubemap*)tex;
 }
 
