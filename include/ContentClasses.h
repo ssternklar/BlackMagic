@@ -22,13 +22,12 @@ namespace BlackMagic
 		ResourceType type;
 	};
 
-	template<typename T>
-	class AssetPointer
+	class AssetPointer_Base
 	{
-	private:
+	protected:
 		ManifestEntry* entry;
 	public:
-		AssetPointer(ManifestEntry* entry)
+		AssetPointer_Base(ManifestEntry* entry)
 		{
 			if (entry)
 			{
@@ -37,7 +36,7 @@ namespace BlackMagic
 			}
 		}
 
-		~AssetPointer()
+		~AssetPointer_Base()
 		{
 			if (entry)
 			{
@@ -45,28 +44,40 @@ namespace BlackMagic
 			}
 		}
 
-		AssetPointer(const AssetPointer& other)
+		AssetPointer_Base(const AssetPointer_Base& other)
 		{
 			if (other.entry)
 			{
-				entry = other->entry;
+				entry = other.entry;
 				entry->refcount++;
 			}
 		}
+	};
+
+	template<typename T>
+	class AssetPointer : public AssetPointer_Base
+	{
+		AssetPointer(ManifestEntry* entry) : AssetPointer_Base(entry) {};
+		AssetPointer(const AssetPointer& other) : AssetPointer_Base(other) {};
 
 		T& operator*()
 		{
 			return *(T*)(entry->resource);
 		}
 
-		T* get()
+		T* get() const
 		{
 			return (T*)(entry->resource);
 		}
 
-		T* operator->()
+		T* operator->() const
 		{
 			return (T*)(entry->resource);
+		}
+
+		operator bool() const
+		{
+			return entry != nullptr;
 		}
 
 		void reset()
