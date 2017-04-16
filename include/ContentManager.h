@@ -6,6 +6,7 @@
 
 #include "SimpleShader.h"
 
+#include <atomic>
 #include <allocators/AllocatorSTLAdapter.h>
 #include <allocators/BadBestFitAllocator.h>
 
@@ -24,14 +25,61 @@ namespace BlackMagic
 
 	class ContentManager
 	{
-	private:
+	public:
 		struct ManifestEntry
 		{
 			char* resourceName;
 			int uid;
 			int size;
 			void* resource;
+			std::atomic_int refcount = 0;
 		};
+
+		template<typename T>
+		class AssetPointer
+		{
+		private:
+			ManifestEntry* entry;
+		public:
+			AssetPointer(ManifestEntry* entry)
+			{
+				if(entry)
+				{
+					this->entry = entry;
+					entry->refcount++;
+				}
+			}
+
+			~AssetPointer()
+			{
+				if (entry)
+				{
+					entry->refcount--;
+				}
+			}
+
+			AssetPointer(const AssetPointer& other)
+			{
+				if (other.entry)
+				{
+					entry = other->entry;
+					entry->refcount++;
+				}
+			}
+
+			T& operator*()
+			{
+				return *(T*)(entry->resource);
+			}
+
+			T* operator->()
+			{
+				return (T*)(entry->resource);
+			}
+
+		};
+
+	private:
 		BlackMagic::BestFitAllocator* _allocator;
 		Renderer* renderer;
 		char* manifestStrings;
@@ -66,7 +114,7 @@ namespace BlackMagic
 		}
 
 		template<typename T>
-		T* Load(const char* resourceName)
+		AssetPointer<T> Load(const char* resourceName)
 		{
 			for (int i = 0; i < entryCount; i++)
 			{
@@ -74,12 +122,12 @@ namespace BlackMagic
 				{
 					if (entries[i].resource)
 					{
-						return (T*)entries[i].resource;
+						return AssetPointer<T>(&entries[i]);
 					}
 					else
 					{
 						entries[i].resource = load_Internal<T>(entries[i].resourceName, entries[i].size);
-						return (T*)entries[i].resource;
+						return AssetPointer<T>(&entries[i]);
 					}
 				}
 			}
@@ -88,7 +136,7 @@ namespace BlackMagic
 		}
 
 		template<typename T>
-		T* Load(int uid)
+		AssetPointer<T> Load(int uid)
 		{
 			for (int i = 0; i < entryCount; i++)
 			{
@@ -96,12 +144,12 @@ namespace BlackMagic
 				{
 					if (entries[i].resource)
 					{
-						return entries[i].resource;
+						return AssetPointer<T>(&entries[i]);
 					}
 					else
 					{
 						entries[i].resource = load_Internal<T>(entries[i].resourceName, entries[i].size); 
-						return (T*)entries[i].resource;
+						return AssetPointer<T>(&entries[i]);
 					}
 				}
 			}
@@ -115,7 +163,7 @@ namespace BlackMagic
 		std::shared_ptr<T> Load(std::string str)
 		{
 			BestFitAllocator* allocLocal = _allocator;
-			T* retLocal = Load<T>(str.c_str());
+			T* retLocal = &(*Load<T>(str.c_str()));
 			std::shared_ptr<T> ret(retLocal,
 				[=](T* foo) {
 				DestructAndDeallocate<BestFitAllocator, T>(allocLocal, retLocal, 1);
