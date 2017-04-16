@@ -68,7 +68,7 @@ typename ProxyHandler<T, S>::Handle ProxyHandler<T, S>::Get()
 		T* newData = new T[count];
 
 		for (size_t i = 0; i < count - growth; ++i)
-			newData[i] = std::move(data[i]);
+			newData[i] = data[i];
 
 		proxy.Move(data, newData, count - growth);
 
@@ -88,6 +88,6 @@ void ProxyHandler<T, S>::Revoke(Handle handle)
 	if (index != --size)
 	{
 		proxy.Move(data + size, data + index);
-		data[index] = std::move(data[size]);
+		data[index] = data[size];
 	}
 }

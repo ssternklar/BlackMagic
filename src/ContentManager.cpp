@@ -60,7 +60,7 @@ void BlackMagic::ContentManager::ProcessManifestFile(void* manifestFileLocation)
 
 
 template<typename T>
-T* ContentManager::load_Internal(ManifestEntry* manifest)
+T* ContentManager::load_Internal(char* fileName, int fileSize)
 {
 	static_assert(false,
 		"Invalid or unsupported content type provided. Supported types are:\n"
@@ -76,9 +76,9 @@ T* ContentManager::load_Internal(ManifestEntry* manifest)
 char path[256]; \
 memset(path, 0, 256); \
 strcpy_s(path, directory); \
-strcat_s(path, manifest->resourceName); \
-byte* ##X = (byte*)_allocator->allocate(manifest->size); \
-if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, manifest->size)) \
+strcat_s(path, fileName); \
+byte* ##X = (byte*)_allocator->allocate(fileSize); \
+if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, fileSize)) \
 { \
 	throw "Failed to load file into memory"; \
 } \
@@ -114,7 +114,7 @@ struct MeshHeader
 };
 
 template<>
-Mesh* ContentManager::load_Internal(ManifestEntry* manifest)
+Mesh* ContentManager::load_Internal(char* fileName, int fileSize)
 {
 	LOAD_FILE(meshSpace);
 
@@ -132,21 +132,21 @@ Mesh* ContentManager::load_Internal(ManifestEntry* manifest)
 }
 
 template<>
-Texture* ContentManager::load_Internal(ManifestEntry* manifest)
+Texture* ContentManager::load_Internal(char* fileName, int fileSize)
 {
 	LOAD_FILE(textureSpace);
 	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
-	*tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::FLAT_2D, Texture::Usage::READ);
+	*tex = renderer->CreateTexture(textureSpace, fileSize, Texture::Type::FLAT_2D, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
 	return tex;
 }
 
 template<>
-Cubemap* ContentManager::load_Internal(ManifestEntry* manifest)
+Cubemap* ContentManager::load_Internal(char* fileName, int fileSize)
 {
 	LOAD_FILE(textureSpace);
 	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
-	*tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::CUBEMAP, Texture::Usage::READ);
+	*tex = renderer->CreateTexture(textureSpace, fileSize, Texture::Type::CUBEMAP, Texture::Usage::READ);
 	UNLOAD_FILE(textureSpace);
 	return (Cubemap*)tex;
 }
@@ -162,12 +162,12 @@ GraphicsShader ContentManager::loadHandle_Internal(ManifestEntry* manifest)
 using namespace DirectX;
 
 template<>
-VertexShader* ContentManager::load_Internal(ManifestEntry* manifest)
+VertexShader* ContentManager::load_Internal(char* fileName, int fileSize)
 {
 	char path[256];
 	memset(path, 0, 256);
 	strcpy_s(path, directory);
-	strcat_s(path, manifest->resourceName);
+	strcat_s(path, fileName);
 	wchar_t widePath[256];
 	size_t size = 0;
 	mbstowcs_s(&size, widePath, path, 256);
@@ -175,17 +175,16 @@ VertexShader* ContentManager::load_Internal(ManifestEntry* manifest)
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
 	auto ptr = AllocateAndConstruct<BestFitAllocator, VertexShader>(_allocator, 1, device.Get(), context.Get());
 	ptr->LoadShaderFile(widePath);
-	manifest->resource = ptr;
 	return ptr;
 }
 
 template<>
-PixelShader* ContentManager::load_Internal(ManifestEntry* manifest)
+PixelShader* ContentManager::load_Internal(char* fileName, int fileSize)
 {
 	char path[256];
 	memset(path, 0, 256);
 	strcpy_s(path, directory);
-	strcat_s(path, manifest->resourceName);
+	strcat_s(path, fileName);
 	wchar_t widePath[256];
 	size_t size = 0;
 	mbstowcs_s(&size, widePath, path, 256);
@@ -193,7 +192,6 @@ PixelShader* ContentManager::load_Internal(ManifestEntry* manifest)
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
 	auto ptr = AllocateAndConstruct<BestFitAllocator, PixelShader>(_allocator, 1, device.Get(), context.Get());
 	ptr->LoadShaderFile(widePath);
-	manifest->resource = ptr;
 	return ptr;
 }
 

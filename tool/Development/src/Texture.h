@@ -47,7 +47,7 @@ public:
 	void Revoke(Handle handle);
 
 	void Export(std::string path, Handle handle);
-	Handle Load(std::string texturePath, TextureDesc::Type type, TextureDesc::Usage usage);
+	Handle Load(std::string path, TextureDesc::Type type, TextureDesc::Usage usage);
 	const std::string root = "assets/textures/";
 
 private:

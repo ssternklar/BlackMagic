@@ -1,7 +1,6 @@
 #include "Graphics.h"
 #include "Tool.h"
 #include "Mesh.h"
-#include "Shaders.h"
 #include "Scene.h"
 
 using namespace DirectX;
@@ -26,9 +25,6 @@ Graphics::~Graphics()
 	if (swapChain) { swapChain->Release(); }
 	if (context) { context->Release(); }
 	if (device) { device->Release(); }
-
-	delete vertexShader;
-	delete pixelShader;
 }
 
 HRESULT Graphics::Init(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
@@ -42,7 +38,8 @@ HRESULT Graphics::Init(HINSTANCE hInstance, unsigned int windowWidth, unsigned i
 	hr = InitDirectX();
 	if (FAILED(hr)) return hr;
 
-	ShaderData::Instance().Init(device, context);
+	ShaderData<SimpleVertexShader>::Instance().Init(device, context);
+	ShaderData<SimplePixelShader>::Instance().Init(device, context);
 	LoadShaders();
 	
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -262,17 +259,17 @@ void Graphics::Draw(float deltaTime)
 	if (!scene.ptr())
 		return;
 	
-	UINT stride = sizeof(Vertex);
+	UINT stride = sizeof(Mesh::Vertex);
 	UINT offset = 0;
 
 	for (size_t i = 0; i < scene->entities.size(); ++i)
 	{
-		vertexShader->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
-		vertexShader->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
-		vertexShader->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
-		vertexShader->CopyAllBufferData();
-		vertexShader->SetShader();
-		pixelShader->SetShader();
+		vertexShader->shader->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
+		vertexShader->shader->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
+		vertexShader->shader->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
+		vertexShader->shader->CopyAllBufferData();
+		vertexShader->shader->SetShader();
+		pixelShader->shader->SetShader();
 		context->IASetVertexBuffers(0, 1, &scene->entities[i]->mesh->vertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(scene->entities[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		context->DrawIndexed(scene->entities[i]->mesh->faceCount, 0, 0);
@@ -286,8 +283,8 @@ void Graphics::Present()
 
 void Graphics::LoadShaders()
 {
-	vertexShader = ShaderData::Instance().Load<SimpleVertexShader>(L"shaders/VertexShader.hlsl");
-	pixelShader = ShaderData::Instance().Load<SimplePixelShader>(L"shaders/PixelShader.hlsl");
+	vertexShader = VertexShaderData::Instance().Load("shaders/VertexShader.hlsl");
+	pixelShader = PixelShaderData::Instance().Load("shaders/PixelShader.hlsl");
 }
 
 HWND Graphics::GetHandle()

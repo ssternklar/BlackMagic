@@ -22,9 +22,9 @@ void TextureData::Init(ID3D11Device* device, ID3D11DeviceContext* context)
 	this->context = context;
 }
 
-TextureData::Handle TextureData::Get(std::string modelPath)
+TextureData::Handle TextureData::Get(std::string texturePath)
 {
-	std::string fullPath = root + modelPath;
+	std::string fullPath = root + texturePath;
 
 	Handle h = AssetManager::Instance().GetHandle<TextureData>(fullPath);
 	if (h.ptr())
@@ -40,7 +40,7 @@ TextureData::Handle TextureData::Get(std::string modelPath)
 	return h;
 }
 
-TextureData::Handle TextureData::Load(std::string texturePath, TextureDesc::Type type, TextureDesc::Usage usage)
+TextureData::Handle TextureData::Load(std::string path, TextureDesc::Type type, TextureDesc::Usage usage)
 {
 	HRESULT result = S_OK;
 
@@ -48,16 +48,16 @@ TextureData::Handle TextureData::Load(std::string texturePath, TextureDesc::Type
 	ID3D11ShaderResourceView* srv = nullptr;
 	ID3D11RenderTargetView* rtv = nullptr;
 
-	wstring path = StringManip::utf8_decode(texturePath);
+	wstring wpath = StringManip::utf8_decode(path);
 
 	switch (type)
 	{
 	case TextureDesc::Type::FLAT:
-		result = DirectX::CreateWICTextureFromFile(device, path.c_str(), &tex, &srv);
+		result = DirectX::CreateWICTextureFromFile(device, wpath.c_str(), &tex, &srv);
 		break;
 
 	case TextureDesc::Type::CUBEMAP:
-		result = DirectX::CreateDDSTextureFromFile(device, path.c_str(), &tex, &srv);
+		result = DirectX::CreateDDSTextureFromFile(device, wpath.c_str(), &tex, &srv);
 		break;
 	}
 

@@ -74,7 +74,7 @@ MeshData::Handle MeshData::Load(std::string modelPath)
 	}
 
 	UINT vertOffset = 0, faceOffset = 0;
-	h->verts = new Vertex[h->vertCount];
+	h->verts = new Mesh::Vertex[h->vertCount];
 	h->faces = new UINT[h->faceCount];
 
 	for (size_t m = 0; m < scene->mNumMeshes; ++m)
@@ -101,12 +101,12 @@ MeshData::Handle MeshData::Load(std::string modelPath)
 		faceOffset += mesh->mNumFaces * 3;
 	}
 
-	DirectX::BoundingOrientedBox::CreateFromPoints(h->obb, h->vertCount, &h->verts[0].position, sizeof(Vertex));
-	DirectX::BoundingSphere::CreateFromPoints(h->sphere, h->vertCount, &h->verts[0].position, sizeof(Vertex));
+	DirectX::BoundingOrientedBox::CreateFromPoints(h->obb, h->vertCount, &h->verts[0].position, sizeof(Mesh::Vertex));
+	DirectX::BoundingSphere::CreateFromPoints(h->sphere, h->vertCount, &h->verts[0].position, sizeof(Mesh::Vertex));
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex) * h->vertCount;
+	vbd.ByteWidth = sizeof(Mesh::Vertex) * h->vertCount;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
