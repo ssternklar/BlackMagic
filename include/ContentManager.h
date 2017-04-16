@@ -40,13 +40,20 @@ namespace BlackMagic
 		const char* directory;
 
 		template<typename T>
-		T* load_Internal(ManifestEntry* name);
+		T* load_Internal(char* fileName, int fileSize);
 
 	public:
 		ContentManager(Renderer* device, const char* assetDirectory, BlackMagic::BestFitAllocator* allocator);
 		~ContentManager();
 
 		void ProcessManifestFile(void* manifestFileLocation);
+
+		template<typename T>
+		T* UntrackedLoad(const char* fileName)
+		{
+			int fileSize = PlatformBase::GetSingleton()->GetFileSize(fileName);
+			return load_Internal<T>(fileName, fileSize);
+		}
 
 		template<typename T>
 		T* Load(const char* resourceName)
@@ -61,7 +68,7 @@ namespace BlackMagic
 					}
 					else
 					{
-						entries[i].resource = load_Internal<T>(&entries[i]);
+						entries[i].resource = load_Internal<T>(entries[i].resourceName, entries[i].size);
 						return (T*)entries[i].resource;
 					}
 				}
@@ -83,7 +90,7 @@ namespace BlackMagic
 					}
 					else
 					{
-						entries[i].resource = load_Internal<T>(&entries[i]);
+						entries[i].resource = load_Internal<T>(entries[i].resourceName, entries[i].size); 
 						return (T*)entries[i].resource;
 					}
 				}
