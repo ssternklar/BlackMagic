@@ -5,6 +5,7 @@
 #include "DirectXMath.h"
 #include "DirectXCollision.h"
 #include "DDSTextureLoader.h"
+#include "PlatformBase.h";
 
 using namespace BlackMagic;
 using DirectX::XMFLOAT2;
@@ -50,6 +51,21 @@ DX11Renderer::~DX11Renderer()
 	{
 		delete _lightMap;
 	}
+
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_skybox);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_skyboxTex);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_skyboxRadiance);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_skyboxIrradiance);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_cosLookup);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_lightPassVS);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_lightPassPS);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_shadowMapVS);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_skyboxVS);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_skyboxPS);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_fxaaVS);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_fxaaPS);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_projectionPS);
+	PlatformBase::GetSingleton()->GetContentManager()->UntrackedAssetCleanup(_mergePS);
 }
 
 
@@ -260,23 +276,23 @@ void DX11Renderer::Init(ContentManager* content)
 
 	_device->CreateBuffer(&vbDesc, &vbData, _quad.ReleaseAndGetAddressOf());
 
-	_skybox = content->Load<Mesh>(std::string("/models/skybox.bmmesh"));
-	_skyboxTex = content->Load<Cubemap>(std::string("/textures/park_skybox_env.dds"));
-	_skyboxRadiance = content->Load<Cubemap>(std::string("/textures/park_skybox_radiance.dds"));
-	_skyboxIrradiance = content->Load<Cubemap>(std::string("/textures/park_skybox_irradiance.dds"));
-	_cosLookup = content->Load<Texture>(std::string("/textures/cosLUT.png"));
+	_skybox = content->UntrackedLoad<Mesh>(("/models/skybox.bmmesh"));
+	_skyboxTex = content->UntrackedLoad<Cubemap>(("/textures/park_skybox_env.dds"));
+	_skyboxRadiance = content->UntrackedLoad<Cubemap>(("/textures/park_skybox_radiance.dds"));
+	_skyboxIrradiance = content->UntrackedLoad<Cubemap>(("/textures/park_skybox_irradiance.dds"));
+	_cosLookup = content->UntrackedLoad<Texture>(("/textures/cosLUT.png"));
 
 	//Load device-specific shaders
-	_lightPassVS = content->Load<VertexShader>(std::string("/shaders/QuadVS.cso"));
-	_lightPassPS = content->Load<PixelShader>(std::string("/shaders/LightPassPS.cso"));
-	_shadowMapVS = content->Load<VertexShader>(std::string("/shaders/ShadowMapVS.cso"));
-	_skyboxVS = content->Load<VertexShader>(std::string("/shaders/SkyboxVS.cso"));
-	_skyboxPS = content->Load<PixelShader>(std::string("/shaders/SkyboxPS.cso"));
-	_fxaaVS = content->Load<VertexShader>(std::string("/shaders/FXAA_VS.cso"));
-	_fxaaPS = content->Load<PixelShader>(std::string("/shaders/FXAA_PS.cso"));
-	_projectionPS = content->Load<PixelShader>(std::string("/shaders/ProjectorPS.cso"));
-	_mergePS = content->Load<PixelShader>(std::string("/shaders/FinalMerge.cso"));
-    //_tonemapPS = content->Load<PixelShader>(std::string("/shaders/ReinhardTonemapping.hlsl"));
+	_lightPassVS = content->UntrackedLoad<VertexShader>(("/shaders/QuadVS.cso"));
+	_lightPassPS = content->UntrackedLoad<PixelShader>(("/shaders/LightPassPS.cso"));
+	_shadowMapVS = content->UntrackedLoad<VertexShader>(("/shaders/ShadowMapVS.cso"));
+	_skyboxVS = content->UntrackedLoad<VertexShader>(("/shaders/SkyboxVS.cso"));
+	_skyboxPS = content->UntrackedLoad<PixelShader>(("/shaders/SkyboxPS.cso"));
+	_fxaaVS = content->UntrackedLoad<VertexShader>(("/shaders/FXAA_VS.cso"));
+	_fxaaPS = content->UntrackedLoad<PixelShader>(("/shaders/FXAA_PS.cso"));
+	_projectionPS = content->UntrackedLoad<PixelShader>(("/shaders/ProjectorPS.cso"));
+	_mergePS = content->UntrackedLoad<PixelShader>(("/shaders/FinalMerge.cso"));
+    //_tonemapPS = content->Load<PixelShader>(("/shaders/ReinhardTonemapping.hlsl"));
 
 	//Set up g-buffer sampler
 	D3D11_SAMPLER_DESC sampDesc = {};

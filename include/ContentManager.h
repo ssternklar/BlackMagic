@@ -40,7 +40,7 @@ namespace BlackMagic
 		const char* directory;
 
 		template<typename T>
-		T* load_Internal(char* fileName, int fileSize);
+		T* load_Internal(const char* fileName, int fileSize);
 
 	public:
 		ContentManager(Renderer* device, const char* assetDirectory, BlackMagic::BestFitAllocator* allocator);
@@ -49,10 +49,20 @@ namespace BlackMagic
 		void ProcessManifestFile(void* manifestFileLocation);
 
 		template<typename T>
-		T* UntrackedLoad(const char* fileName)
+		T* UntrackedLoad(char* fileName)
 		{
-			int fileSize = PlatformBase::GetSingleton()->GetFileSize(fileName);
+			char path[256];
+			memset(path, 0, 256);
+			strcpy_s(path, directory);
+			strcat_s(path, fileName);
+			int fileSize = PlatformBase::GetSingleton()->GetFileSize(path);
 			return load_Internal<T>(fileName, fileSize);
+		}
+
+		template<typename T>
+		void UntrackedAssetCleanup(T* thing)
+		{
+			DestructAndDeallocate<BestFitAllocator, T>(_allocator, thing, 1);
 		}
 
 		template<typename T>

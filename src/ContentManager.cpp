@@ -60,7 +60,7 @@ void BlackMagic::ContentManager::ProcessManifestFile(void* manifestFileLocation)
 
 
 template<typename T>
-T* ContentManager::load_Internal(char* fileName, int fileSize)
+T* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	static_assert(false,
 		"Invalid or unsupported content type provided. Supported types are:\n"
@@ -84,7 +84,7 @@ if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, fileSize)) \
 } \
 (void)(sizeof(0))
 
-#define UNLOAD_FILE(X) _allocator->deallocate(##X); \
+#define UNLOAD_FILE(X) _allocator->deallocate((void*)##X, fileSize); \
 (void)(sizeof(0))
 
 struct MeshHeader
@@ -114,7 +114,7 @@ struct MeshHeader
 };
 
 template<>
-Mesh* ContentManager::load_Internal(char* fileName, int fileSize)
+Mesh* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	LOAD_FILE(meshSpace);
 
@@ -132,7 +132,7 @@ Mesh* ContentManager::load_Internal(char* fileName, int fileSize)
 }
 
 template<>
-Texture* ContentManager::load_Internal(char* fileName, int fileSize)
+Texture* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	LOAD_FILE(textureSpace);
 	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
@@ -142,7 +142,7 @@ Texture* ContentManager::load_Internal(char* fileName, int fileSize)
 }
 
 template<>
-Cubemap* ContentManager::load_Internal(char* fileName, int fileSize)
+Cubemap* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	LOAD_FILE(textureSpace);
 	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
@@ -162,7 +162,7 @@ GraphicsShader ContentManager::loadHandle_Internal(ManifestEntry* manifest)
 using namespace DirectX;
 
 template<>
-VertexShader* ContentManager::load_Internal(char* fileName, int fileSize)
+VertexShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	char path[256];
 	memset(path, 0, 256);
@@ -179,7 +179,7 @@ VertexShader* ContentManager::load_Internal(char* fileName, int fileSize)
 }
 
 template<>
-PixelShader* ContentManager::load_Internal(char* fileName, int fileSize)
+PixelShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	char path[256];
 	memset(path, 0, 256);
