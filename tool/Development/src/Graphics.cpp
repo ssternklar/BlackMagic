@@ -262,12 +262,12 @@ void Graphics::Draw(float deltaTime)
 
 	for (size_t i = 0; i < scene->entities.size(); ++i)
 	{
-		vertexShader->shader->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
-		vertexShader->shader->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
-		vertexShader->shader->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
-		vertexShader->shader->CopyAllBufferData();
-		vertexShader->shader->SetShader();
-		pixelShader->shader->SetShader();
+		(*vertexShader)->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
+		(*vertexShader)->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
+		(*vertexShader)->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
+		(*vertexShader)->CopyAllBufferData();
+		(*vertexShader)->SetShader();
+		(*pixelShader)->SetShader();
 		context->IASetVertexBuffers(0, 1, &scene->entities[i]->mesh->vertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(scene->entities[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		context->DrawIndexed(scene->entities[i]->mesh->faceCount, 0, 0);

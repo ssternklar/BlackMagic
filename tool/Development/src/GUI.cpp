@@ -292,21 +292,21 @@ void Tool::PromptImport()
 				}
 
 				if (!vertexHandle.ptr() && !pixelHandle.ptr())
-					ImGui::OpenPopup("Bad shader path");
+					ImGui::OpenPopup("Bad shader path/type");
 				else
 					ImGui::CloseCurrentPopup();
 			}
 		}
 
-		if (ImGui::BeginPopupModal("Bad shader path"))
+		if (ImGui::BeginPopupModal("Bad shader path/type"))
 		{
 			switch (gui.shaderType)
 			{
 			case 0:
-				ImGui::Text("The path '%s%s' is invalid.", VertexShaderData::Instance().root.c_str(), path);
+				ImGui::Text("The path '%s%s' is invalid\nor it is not a vertex shader.", VertexShaderData::Instance().root.c_str(), path);
 				break;
 			case 1:
-				ImGui::Text("The path '%s%s' is invalid.", PixelShaderData::Instance().root.c_str(), path);
+				ImGui::Text("The path '%s%s' is invalid\nor it is not a pixel shader.", PixelShaderData::Instance().root.c_str(), path);
 				break;
 			}
 			

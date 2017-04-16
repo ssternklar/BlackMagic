@@ -99,6 +99,9 @@
     <ClCompile Include="src\Shader.cpp">
       <Filter>Source Files\data</Filter>
     </ClCompile>
+    <ClCompile Include="src\Material.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\dear imgui\imconfig.h">
@@ -174,6 +177,9 @@
       <Filter>Header Files\data</Filter>
     </ClInclude>
     <ClInclude Include="src\Shader.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Material.h">
       <Filter>Header Files\data</Filter>
     </ClInclude>
   </ItemGroup>

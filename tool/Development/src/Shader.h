@@ -4,13 +4,7 @@
 #include "SimpleShader.h"
 
 template <class T>
-struct Shader
-{
-	T* shader;
-};
-
-template <class T>
-class ShaderData : public ProxyHandler<Shader<T>, ShaderData<T>>
+class ShaderData : public ProxyHandler<T*, ShaderData<T>>
 {
 public:
 	~ShaderData();

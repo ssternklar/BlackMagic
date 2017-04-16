@@ -8,6 +8,7 @@
 #include "Scene.h"
 #include "Texture.h"
 #include "Shader.h"
+#include "Material.h"
 
 #define DX_RELEASE(ptr) if(ptr) { ptr->Release(); }
 
@@ -36,14 +37,16 @@ struct AssetTrackers :
 	Tracker<SceneData>,
 	Tracker<TextureData>,
 	Tracker<VertexShaderData>,
-	Tracker<PixelShaderData>
+	Tracker<PixelShaderData>,
+	Tracker<MaterialData>
 {};
 
 struct DefaultAssets :
 	MeshData::Handle,
 	TextureData::Handle,
 	VertexShaderData::Handle,
-	PixelShaderData::Handle
+	PixelShaderData::Handle,
+	MaterialData::Handle
 {};
 
 class AssetManager : public Singleton<AssetManager>

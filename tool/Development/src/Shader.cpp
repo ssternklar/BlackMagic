@@ -14,7 +14,7 @@ template <class T>
 ShaderData<T>::~ShaderData()
 {
 	for (size_t i = 0; i < size; ++i)
-		delete data[i].shader;
+		delete data[i];
 }
 
 template <class T>
@@ -46,7 +46,7 @@ typename ShaderData<T>::Handle ShaderData<T>::Get(std::string shaderPath)
 template <class T>
 void ShaderData<T>::Revoke(typename ShaderData<T>::Handle handle)
 {
-	delete handle->shader;
+	delete handle.ptr();
 
 	AssetManager::Instance().StopTrackingAsset<ShaderData<T>>(handle);
 	ProxyHandler::Revoke(handle);
@@ -82,7 +82,7 @@ typename ShaderData<T>::Handle ShaderData<T>::Load(std::string path)
 
 	Handle h = ProxyHandler::Get();
 
-	h->shader = shader;
+	data[size-1] = shader;
 
 	return h;
 }
