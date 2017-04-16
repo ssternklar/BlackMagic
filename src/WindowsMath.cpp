@@ -10,22 +10,22 @@ using namespace DirectX;
 namespace BlackMagic
 {
 
-inline XMVECTOR C(Vector3& vec)
+inline XMVECTOR C(Vector3 vec)
 {
 	return *reinterpret_cast<XMVECTOR*>(&vec);
 }
 
-inline XMVECTOR C(Vector4& vec)
+inline XMVECTOR C(Vector4 vec)
 {
 	return *reinterpret_cast<XMVECTOR*>(&vec);
 }
 
-inline XMVECTOR C(Quaternion& vec)
+inline XMVECTOR C(Quaternion vec)
 {
 	return *reinterpret_cast<XMVECTOR*>(&vec);
 }
 
-inline XMMATRIX C(Matrix4& mat)
+inline XMMATRIX C(Matrix4 mat)
 {
 	return *reinterpret_cast<XMMATRIX*>(&mat);
 }
@@ -41,27 +41,27 @@ inline DirectX::BoundingFrustum C(BlackMagic::BoundingFrustum& fr)
 		fr.Near, fr.Far);
 }
 
-inline Vector3 CV3(XMVECTOR& vec)
+inline Vector3 CV3(XMVECTOR vec)
 {
 	return *reinterpret_cast<Vector3*>(&vec);
 }
 
-inline Vector4 CV4(XMVECTOR& vec)
+inline Vector4 CV4(XMVECTOR vec)
 {
 	return *reinterpret_cast<Vector4*>(&vec);
 }
 
-inline Quaternion CQ(XMVECTOR& vec)
+inline Quaternion CQ(XMVECTOR vec)
 {
 	return *reinterpret_cast<Quaternion*>(&vec);
 }
 
-inline Matrix4 CM4(XMMATRIX& mat)
+inline Matrix4 CM4(XMMATRIX mat)
 {
 	return *reinterpret_cast<Matrix4*>(&mat);
 }
 
-inline BlackMagic::BoundingFrustum CBF(DirectX::BoundingFrustum& fr)
+inline BlackMagic::BoundingFrustum CBF(DirectX::BoundingFrustum fr)
 {
 	return BlackMagic::BoundingFrustum(CV3(XMLoadFloat3(&fr.Origin)), 
 		CQ(XMLoadFloat4(&fr.Orientation)), 
@@ -80,13 +80,13 @@ BoundingFrustum::BoundingFrustum()
 	Near(0.0f), Far(1.0f)
 {}
 
-BoundingFrustum::BoundingFrustum(Vector3& origin, Quaternion& orient, float rSlope, float lSlope, float tSlope, float bSlope, float n, float f)
+BoundingFrustum::BoundingFrustum(Vector3 origin, Quaternion orient, float rSlope, float lSlope, float tSlope, float bSlope, float n, float f)
 	: Origin(origin), Orientation(orient), 
 	RightSlope(rSlope), LeftSlope(lSlope), TopSlope(tSlope), BottomSlope(bSlope),
 	Near(n), Far(f)
 {}
 
-BoundingFrustum::BoundingFrustum( Mat4& proj)
+BoundingFrustum::BoundingFrustum(Mat4 proj)
 {
 	*this = CBF(DirectX::BoundingFrustum(C(proj)));
 }
@@ -214,6 +214,11 @@ Vector4 CreateVector4Zero()
 float Dot(Vector4& left, Vector4& right)
 {
 	return XMVectorGetX(XMVector4Dot(C(left), C(right)));
+}
+
+Vector4 Floor(Vector4 v)
+{
+	return CV4(XMVectorFloor(C(v)));
 }
 
 Vector4 Normalize(Vector4& vec)

@@ -4,6 +4,7 @@
 #include "GraphicsTypes.h"
 #include "Renderable.h"
 #include "Projector.h"
+#include "BMMath.h"
 #define NUM_SHADOW_CASCADES 5
 #define SHADOWMAP_DIM 1025
 
@@ -15,7 +16,7 @@ namespace BlackMagic
 	{
 	public:
 		virtual ~Renderer() = default;
-		virtual void Clear(DirectX::XMFLOAT4 color) = 0;
+		virtual void Clear(BlackMagic::Vector4 color) = 0;
 		virtual void Init(ContentManager* content) = 0;
 		virtual void OnResize(unsigned int width, unsigned int height) = 0;
 		virtual void Present(unsigned int interval, unsigned int flags) = 0;

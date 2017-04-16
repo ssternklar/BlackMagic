@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include <memory>
 #include <vector>
+#include "BMMath.h"
 #include "Renderer.h"
 #include "ContentManager.h"
 
@@ -18,7 +19,7 @@ namespace BlackMagic {
 		D3D_FEATURE_LEVEL FeatureLevel() const;
 	
 		HRESULT InitDx(HWND window, UINT width, UINT height);
-		virtual void Clear(DirectX::XMFLOAT4 color) override;
+		virtual void Clear(BlackMagic::Vector4 color) override;
 		virtual void Init(ContentManager* content) override;
 		virtual void OnResize(UINT width, UINT height) override;
 		virtual void Present(UINT interval, UINT flags) override;

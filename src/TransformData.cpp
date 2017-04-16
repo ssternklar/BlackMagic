@@ -63,13 +63,15 @@ void TransformData::UpdateTransforms()
 		auto r = _rotations[i];
 		auto p = _positions[i];
 		auto s = _scales[i];
-
-		_matrices[i] = CreateAffineTransformation(
-			_scales[i], 
-			CreateVector3Zero(), 
-			_rotations[i], 
+		auto rS = CreateVector3Zero();
+		auto mat = CreateAffineTransformation(
+			_scales[i],
+			rS,
+			_rotations[i],
 			_positions[i]
 		);
+
+		_matrices[i] = Transpose(mat);
 	}
 }
 

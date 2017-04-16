@@ -67,7 +67,7 @@ namespace BlackMagic
 		return _featureLevel;
 	}
 
-	void DX11Renderer::Clear(DirectX::XMFLOAT4 color)
+	void DX11Renderer::Clear(Vector4 color)
 	{
 		FLOAT black[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		_context->ClearRenderTargetView(_backBuffer.Get(), reinterpret_cast<const FLOAT*>(&color));

@@ -27,8 +27,8 @@ namespace BlackMagic
 		float Near, Far;
 
 		BoundingFrustum();
-		BoundingFrustum(Vector3& origin, Quaternion& orient, float rSlope, float lSlopt, float tSlope, float bSlope, float n, float f);
-		BoundingFrustum(Mat4& projection);
+		BoundingFrustum(Vector3 origin, Quaternion orient, float rSlope, float lSlopt, float tSlope, float bSlope, float n, float f);
+		BoundingFrustum(Mat4 projection);
 		BoundingFrustum(const BoundingFrustum&) = default;
 		BoundingFrustum& operator=(const BoundingFrustum&) = default;
 		
@@ -61,6 +61,7 @@ namespace BlackMagic
 	Vector4 CreateVector4(Vector3& other);
 	Vector4 CreateVector4Zero();
 	float Dot(Vector4& left, Vector4& right);
+	Vector4 Floor(Vector4 v);
 	Vector4 Normalize(Vector4& vec);
 	Vector4 Lerp(Vector4& t0, Vector4& t1, float t);
 	Vector4 operator*(Vector4& left, float scalar);
