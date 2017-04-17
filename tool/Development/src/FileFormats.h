@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "Material.h"
+
 // TODO clean swipe entire codebase for sizeof() usage against file formats and update them to not use types directly
 
 namespace Internal
@@ -15,10 +17,12 @@ namespace Internal
 			size_t defaultTextureUID;
 			size_t defaultVertexShaderUID;
 			size_t defaultPixelShaderUID;
+			size_t defaultMaterialUID;
 			size_t numMeshes;
 			size_t numTextures;
 			size_t numVertexShaders;
 			size_t numPixelShaders;
+			size_t numMaterials;
 			size_t numScenes;
 		};
 
@@ -66,6 +70,47 @@ namespace Internal
 			uint8_t willExport;
 			size_t numEntities;
 			Entity* l_entities;
+		};
+	}
+
+	namespace Mat
+	{
+		struct Shaders
+		{
+			size_t vertexShaderIndex;
+			size_t pixelShaderIndex;
+		};
+
+		struct TextureResource
+		{
+			Material::Resource::Stage stage;
+			size_t index;
+			char* name;
+		};
+
+		struct DataResource
+		{
+			Material::Resource::Stage stage;
+			size_t sizeInBytes;
+			uint8_t* bytes;
+			char* name;
+		};
+
+		struct SamplerResource
+		{
+			Material::Resource::Stage stage;
+			char* name;
+		};
+
+		struct File
+		{
+			Shaders shaders;
+			uint8_t numTextures;
+			uint8_t numDatas;
+			uint8_t numSamplers;
+			TextureResource* l_textures;
+			TextureResource* l_datas;
+			TextureResource* l_samplers;
 		};
 	}
 }
@@ -160,6 +205,48 @@ namespace Export
 			Bounds bounds;
 			Vertex* l_vertices;
 			uint32_t* l_indices;
+		};
+	}
+
+	namespace Mat
+	{
+		struct Shaders
+		{
+			uint16_t vertexShaderUID;
+			uint16_t pixelShaderUID;
+		};
+
+		struct TextureResource
+		{
+			Material::Resource::Stage stage;
+			uint16_t nameIndex;
+			uint16_t UID;
+		};
+
+		struct DataResource
+		{
+			Material::Resource::Stage stage;
+			uint16_t nameIndex;
+			uint16_t sizeInBytes;
+			uint8_t* bytes;
+		};
+
+		struct SamplerResource
+		{
+			Material::Resource::Stage stage;
+			uint16_t nameIndex;
+		};
+
+		struct File
+		{
+			Shaders shaders;
+			uint8_t numTextures;
+			uint8_t numDatas;
+			uint8_t numSamplers;
+			TextureResource* l_textures;
+			DataResource* l_datas;
+			SamplerResource* l_samplers;
+			char* l_names;
 		};
 	}
 }

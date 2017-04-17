@@ -25,6 +25,7 @@ bool AssetManager::CreateProject(std::string folder)
 	FileUtil::CreateDirectoryRecursive("assets/textures/");
 	FileUtil::CreateDirectoryRecursive("assets/scenes/");
 	FileUtil::CreateDirectoryRecursive("assets/shaders/");
+	FileUtil::CreateDirectoryRecursive("assets/materials/");
 
 	FILE* projFile;
 	fopen_s(&projFile, "churo.proj", "wb");
@@ -36,15 +37,17 @@ bool AssetManager::CreateProject(std::string folder)
 
 	// metadata
 	Internal::Proj::Meta meta = {};
-	meta.nextUID = 4;
+	meta.nextUID = 5;
 	meta.defaultMeshUID = 0;
 	meta.defaultTextureUID = 1;
 	meta.defaultVertexShaderUID = 2;
 	meta.defaultPixelShaderUID = 3;
+	meta.defaultMaterialUID = 4;
 	meta.numMeshes = 1;
 	meta.numTextures = 1;
 	meta.numVertexShaders = 1;
 	meta.numPixelShaders = 1;
+	meta.numMaterials = 1;
 	meta.numScenes = 0;
 	fwrite(&meta.nextUID, sizeof(Internal::Proj::Meta), 1, projFile);
 
@@ -54,6 +57,7 @@ bool AssetManager::CreateProject(std::string folder)
 	const char* defaultTexturePath = "assets/defaults/Texture.png";
 	const char* defaultVertexShaderPath = "assets/defaults/Vertex.hlsl";
 	const char* defaultPixelShaderPath = "assets/defaults/Pixel.hlsl";
+	const char* defaultMaterialPath = "assets/defaults/defaultMaterial.mat";
 
 	fwrite(&meta.defaultMeshUID, sizeof(Internal::Proj::Meta::defaultMeshUID), 1, projFile);
 	fwrite(defaultMeshPath, strlen(defaultMeshPath) + 1, 1, projFile);
@@ -71,6 +75,10 @@ bool AssetManager::CreateProject(std::string folder)
 	fwrite(defaultPixelShaderPath, strlen(defaultPixelShaderPath) + 1, 1, projFile);
 	fwrite(defaultName, strlen(defaultName) + 1, 1, projFile);
 
+	fwrite(&meta.defaultMaterialUID, sizeof(Internal::Proj::Meta::defaultMaterialUID), 1, projFile);
+	fwrite(defaultMaterialPath, strlen(defaultMaterialPath) + 1, 1, projFile);
+	fwrite(defaultName, strlen(defaultName) + 1, 1, projFile);
+
 	// camera
 	float origin[7] = {};
 	origin[6] = 1.0f;
@@ -83,6 +91,7 @@ bool AssetManager::CreateProject(std::string folder)
 	FileUtil::WriteResourceToDisk(IDB_PNG1, "png", defaultTexturePath);
 	FileUtil::WriteResourceToDisk(IDR_SHADER1, "shader", defaultVertexShaderPath);
 	FileUtil::WriteResourceToDisk(IDR_SHADER2, "shader", defaultPixelShaderPath);
+	//FileUtil::WriteResourceToDisk(IDR_MATERIAL1, "material", defaultMaterialPath);
 
 	LoadProject(folder);
 
@@ -172,6 +181,19 @@ bool AssetManager::LoadProject(std::string folder)
 			SetDefault<PixelShaderData>(pixelShaderAsset.handle);
 	}
 
+	Asset<MaterialData> materialAsset;
+	for (size_t i = 0; i < meta.numMaterials; ++i)
+	{
+		fread_s(&materialAsset.uID, sizeof(Internal::Proj::Asset::uID), sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		materialAsset.path = FileUtil::GetStringInFile(projFile);
+		materialAsset.name = FileUtil::GetStringInFile(projFile);
+		materialAsset.handle = MaterialData::Instance().Load(materialAsset.path);
+		AddAsset(materialAsset);
+
+		if (materialAsset.uID == meta.defaultMaterialUID)
+			SetDefault<MaterialData>(materialAsset.handle);
+	}
+
 	// load scene config
 	size_t sceneIndex;
 	for (size_t i = 0; i < meta.numScenes; ++i)
@@ -210,11 +232,13 @@ void AssetManager::SaveProject()
 	Tracker<SceneData>& sceneTracker = trackers;
 	Tracker<VertexShaderData> vertexShaderTracker = trackers;
 	Tracker<PixelShaderData> pixelShaderTracker = trackers;
+	Tracker<MaterialData> materialTracker = trackers;
 
 	MeshData::Handle& defaultMesh = defaults;
 	TextureData::Handle& defaultTexture = defaults;
 	VertexShaderData::Handle defaultVertexShader = defaults;
 	PixelShaderData::Handle defaultPixelShader = defaults;
+	MaterialData::Handle defaultMaterial = defaults;
 	
 	// save metadata
 	Internal::Proj::Meta meta = {
@@ -223,10 +247,12 @@ void AssetManager::SaveProject()
 		GetAsset<TextureData>(defaultTexture).uID,
 		GetAsset<VertexShaderData>(defaultVertexShader).uID,
 		GetAsset<PixelShaderData>(defaultPixelShader).uID,
+		GetAsset<MaterialData>(defaultMaterial).uID,
 		meshTracker.assets.size(),
 		textureTracker.assets.size(),
 		vertexShaderTracker.assets.size(),
 		pixelShaderTracker.assets.size(),
+		materialTracker.assets.size(),
 		sceneTracker.assets.size()
 	};
 	fwrite(&meta.nextUID, sizeof(Internal::Proj::Meta), 1, projFile);
@@ -266,6 +292,13 @@ void AssetManager::SaveProject()
 		fwrite(&pixelShaderTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
 		fwrite(pixelShaderTracker.assets[i].path.c_str(), pixelShaderTracker.assets[i].path.length() + 1, 1, projFile);
 		fwrite(pixelShaderTracker.assets[i].name.c_str(), pixelShaderTracker.assets[i].name.length() + 1, 1, projFile);
+	}
+
+	for (size_t i = 0; i < meta.numMaterials; ++i)
+	{
+		fwrite(&materialTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		fwrite(materialTracker.assets[i].path.c_str(), materialTracker.assets[i].path.length() + 1, 1, projFile);
+		fwrite(materialTracker.assets[i].name.c_str(), materialTracker.assets[i].name.length() + 1, 1, projFile);
 	}
 
 	// save scene config

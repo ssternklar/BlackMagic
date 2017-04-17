@@ -16,27 +16,14 @@ SceneData::Handle SceneData::Create(std::string name)
 	if (h.ptr())
 		return h;
 
-	FILE* sceneFile;
-	fopen_s(&sceneFile, fullPath.c_str(), "wb");
-	if (!sceneFile)
-	{
-		Handle e;
-		return e;
-	}
-
-	uint8_t willExport = 0;
-	size_t numEntities = 0;
-	fwrite(&willExport, sizeof(uint8_t), 1, sceneFile);
-	fwrite(&numEntities, sizeof(size_t), 1, sceneFile);
-
-	fclose(sceneFile);
-
 	h = ProxyHandler::Get();
 	h->willExport = false;
 
 	AssetManager::Instance().TrackAsset<SceneData>(h, fullPath);
 	sceneExportConfig.push_back(h);
 	activeScene = h;
+
+	Save(h);
 
 	return h;
 }
@@ -182,22 +169,26 @@ void SceneData::Export(std::string path, Handle handle)
 	Export::Scene::File fileData = {};
 	fileData.numEntities = (uint16_t)handle->entities.size();
 
+	vector<uint16_t> uniqueMeshUIDs;
 	vector<uint16_t> meshUIDs;
-	Asset<MeshData> meshAsset;
+	uint16_t meshUID;
 	size_t i;
 	for (i = 0; i < fileData.numEntities; ++i)
 	{
-		meshAsset = AssetManager::Instance().GetAsset<MeshData>(handle->entities[i]->mesh);
-		auto check = std::find(meshUIDs.begin(), meshUIDs.end(), meshAsset.uID);
-		if (check == meshUIDs.end())
-			meshUIDs.push_back((uint16_t)meshAsset.uID);
+		meshUID = (uint16_t)AssetManager::Instance().GetAsset<MeshData>(handle->entities[i]->mesh).uID;
+
+		meshUIDs.push_back(meshUID);
+
+		auto check = std::find(uniqueMeshUIDs.begin(), uniqueMeshUIDs.end(), meshUID);
+		if (check == uniqueMeshUIDs.end())
+			uniqueMeshUIDs.push_back(meshUID);
 	}
 
-	fileData.numAssets = (uint16_t)meshUIDs.size();
+	fileData.numAssets = (uint16_t)uniqueMeshUIDs.size();
 	fwrite(&fileData.numAssets, sizeof(Export::Scene::File::numAssets), 1, sceneFile);
 
 	if (fileData.numAssets > 0)
-		fwrite(&meshUIDs[0], sizeof(Export::Scene::Entity::meshUID), meshUIDs.size(), sceneFile);
+		fwrite(&uniqueMeshUIDs[0], sizeof(Export::Scene::Entity::meshUID), uniqueMeshUIDs.size(), sceneFile);
 
 	fwrite(&fileData.numEntities, sizeof(Export::Scene::File::numEntities), 1, sceneFile);
 

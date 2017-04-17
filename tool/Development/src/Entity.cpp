@@ -7,6 +7,7 @@ EntityData::Handle EntityData::Get()
 
 	h->transform = TransformData::Instance().Get();
 	h->mesh = AssetManager::Instance().defaults;
+	h->material = AssetManager::Instance().defaults;
 
 	return h;
 }
