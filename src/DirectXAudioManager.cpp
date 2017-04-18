@@ -14,12 +14,12 @@ DirectXAudioManager::~DirectXAudioManager()
 	audioEngine.release();
 }
 
-void BlackMagic::DirectXAudioManager::PlayOneShot(AudioFile file, float relativeVolume)
+void BlackMagic::DirectXAudioManager::PlayOneShotInternal(AudioFile file, float relativeVolume)
 {
 	file.GetAs<SoundEffect*>()->Play(relativeVolume, 0, 0);
 }
 
-void BlackMagic::DirectXAudioManager::PlayBGM(AudioFile file, float relativeVolume)
+void BlackMagic::DirectXAudioManager::PlayBGMInternal(AudioFile file, float relativeVolume)
 {
 	PauseBGM();
 	BGM = file.GetAs<SoundEffect*>()->CreateInstance();
@@ -27,7 +27,7 @@ void BlackMagic::DirectXAudioManager::PlayBGM(AudioFile file, float relativeVolu
 	BGM->Play(true);
 }
 
-void BlackMagic::DirectXAudioManager::PauseBGM()
+void BlackMagic::DirectXAudioManager::PauseBGMInternal()
 {
 	if (BGM)
 	{
@@ -35,7 +35,7 @@ void BlackMagic::DirectXAudioManager::PauseBGM()
 	}
 }
 
-void BlackMagic::DirectXAudioManager::StopBGM()
+void BlackMagic::DirectXAudioManager::StopBGMInternal()
 {
 	if (BGM)
 	{
@@ -43,7 +43,7 @@ void BlackMagic::DirectXAudioManager::StopBGM()
 	}
 }
 
-void BlackMagic::DirectXAudioManager::ResumeBGM(float relativeVolume)
+void BlackMagic::DirectXAudioManager::ResumeBGMInternal(float relativeVolume)
 {
 	if(BGM)
 	{

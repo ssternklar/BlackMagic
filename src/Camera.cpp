@@ -51,7 +51,7 @@ void Camera::Update(Transform& transform)
 	frustum.Transform(frustum, Inverse(view));
 }
 
-void Camera::UpdateProjectionMatrix(UINT width, UINT height)
+void Camera::UpdateProjectionMatrix(unsigned int width, unsigned int height)
 {
 	float aspect = static_cast<float>(width) / height;
 

@@ -9,18 +9,18 @@ namespace BlackMagic
 	class DirectXAudioManager :
 		public AudioManager
 	{
+	private:
+		virtual void PlayOneShotInternal(AudioFile file, float relativeVolume) override;
+		virtual void PlayBGMInternal(AudioFile file, float relativeVolume) override;
+		virtual void PauseBGMInternal() override;
+		virtual void StopBGMInternal() override;
+		virtual void ResumeBGMInternal(float relativeVolume) override;
 	public:
-		std::queue<AudioFile> queuedOneShots;
 		std::unique_ptr<DirectX::AudioEngine> audioEngine;
 		std::unique_ptr<DirectX::SoundEffectInstance> BGM;
 
 		DirectXAudioManager();
 		~DirectXAudioManager();
-		virtual void PlayOneShot(AudioFile file, float relativeVolume) override;
-		virtual void PlayBGM(AudioFile file, float relativeVolume) override;
-		virtual void PauseBGM() override;
-		virtual void StopBGM() override;
-		virtual void ResumeBGM(float relativeVolume) override;
 		virtual void UpdateAudio() override;
 	};
 

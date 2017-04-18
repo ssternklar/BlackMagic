@@ -5,15 +5,21 @@
 
 namespace BlackMagic
 {
-	class PlatformBase;
 	class AudioManager
 	{
+		friend class AudioJob;
+	protected:
+		virtual void PlayOneShotInternal(AudioFile file, float relativeVolume) = 0;
+		virtual void PlayBGMInternal(AudioFile file, float relativeVolume) = 0;
+		virtual void PauseBGMInternal() = 0;
+		virtual void StopBGMInternal() = 0;
+		virtual void ResumeBGMInternal(float relativeVolume) = 0;
 	public:
-		virtual void PlayOneShot(AudioFile file, float relativeVolume) = 0;
-		virtual void PlayBGM(AudioFile file, float relativeVolume) = 0;
-		virtual void PauseBGM() = 0;
-		virtual void StopBGM() = 0;
-		virtual void ResumeBGM(float relativeVolume) = 0;
+		void PlayOneShot(AudioFile file, float relativeVolume);
+		void PlayBGM(AudioFile file, float relativeVolume);
+		void PauseBGM();
+		void StopBGM();
+		void ResumeBGM(float relativeVolume);
 		virtual void UpdateAudio() = 0;
 		virtual ~AudioManager(){}
 	};

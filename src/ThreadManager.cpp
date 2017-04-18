@@ -204,41 +204,14 @@ void BlackMagic::ThreadManager::DestroyRenderJob(RenderJob * job)
 {
 }
 
-AudioJob* BlackMagic::ThreadManager::CreatePlayAudioJob(bool isBGM, AudioFile file, float relativeVolume)
+AudioJob* BlackMagic::ThreadManager::CreateAudioJob(bool isBGM, AudioFile file, float relativeVolume, byte status)
 {
 	PlatformLockMutex(allocatorMutex);
 	AudioJob* job = AllocateAndConstruct<BestFitAllocator, AudioJob>(&allocator, 1);
 	job->fileToPlay = file;
 	job->relativeVolume = relativeVolume;
 	job->isBGM = isBGM;
-	if (job)
-	{
-		LinkedList* next = AllocateAndConstruct<BestFitAllocator, LinkedList, AudioJob*>(&allocator, 1, job);
-		PlatformUnlockMutex(allocatorMutex);
-		PlatformLockMutex(AudioTaskListMutex);
-		if (AudioTaskList == nullptr)
-		{
-			AudioTaskList = next;
-		}
-		else
-		{
-			AudioTaskList->next = next;
-		}
-		PlatformUnlockMutex(AudioTaskListMutex);
-	}
-	else
-	{
-		PlatformUnlockMutex(allocatorMutex);
-	}
-	return job;
-}
-
-AudioJob* BlackMagic::ThreadManager::CreateStopBGMAudioJob()
-{
-	PlatformLockMutex(allocatorMutex);
-	AudioJob* job = AllocateAndConstruct<BestFitAllocator, AudioJob>(&allocator, 1);
-	job->isBGM = true;
-	job->bgmPlayPauseStopResume = 2;
+	job->bgmPlayPauseStopResume = status;
 	if (job)
 	{
 		LinkedList* next = AllocateAndConstruct<BestFitAllocator, LinkedList, AudioJob*>(&allocator, 1, job);
