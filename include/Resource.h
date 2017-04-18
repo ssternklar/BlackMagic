@@ -1,7 +1,9 @@
 #pragma once
 
+#ifdef BM_PLATFORM_WINDOWS
 #include <wrl/client.h>
 using Microsoft::WRL::ComPtr;
+#endif
 
 #include "PlatformResourceTypes.h"
 

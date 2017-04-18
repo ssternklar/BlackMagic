@@ -1,7 +1,5 @@
 #pragma once
 #include <BMMath.h>
-#include <DirectXCollision.h>
-#include <Windows.h>
 
 #include "Transform.h"
 

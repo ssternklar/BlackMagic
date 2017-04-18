@@ -1,8 +1,8 @@
 #pragma once
 
+#if defined(BM_PLATFORM_WINDOWS)
 #include <d3d11.h>
 
-#if defined(BM_PLATFORM_WINDOWS)
 using ShaderResource = ID3D11ShaderResourceView;
 using RenderTarget = ID3D11RenderTargetView;
 using BufferHandle = ID3D11Buffer;
