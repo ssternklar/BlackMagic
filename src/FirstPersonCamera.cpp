@@ -4,8 +4,6 @@
 
 using namespace BlackMagic;
 
-#define KEYPRESSED(char) ((GetAsyncKeyState(char) & 0x8000)>>15)
-
 FirstPersonCamera::FirstPersonCamera(Vector3 pos, Quaternion dir)
 	: GameObject(pos, dir, {1,1,1}),
 	Camera({0,0,0})
@@ -15,7 +13,7 @@ FirstPersonCamera::FirstPersonCamera(Vector3 pos, Quaternion dir)
 
 void FirstPersonCamera::Update(float delta)
 {
-	auto input = WindowsPlatform::GetInstance()->GetInputData();
+	auto input = PlatformBase::GetSingleton()->GetInputData();
 
 	if (input->GetButton(MouseButton::Left))
 	{

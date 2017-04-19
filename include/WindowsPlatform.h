@@ -9,7 +9,6 @@ namespace BlackMagic
 {
 	class WindowsPlatform : public PlatformBase
 	{
-		static WindowsPlatform* singletonRef;
 		HINSTANCE hInstance;
 		HWND hWnd;
 		MSG msg = {};
@@ -40,7 +39,6 @@ namespace BlackMagic
 			WPARAM wParam, // Message's first parameter
 			LPARAM lParam // Message's second parameter
 		);
-		static WindowsPlatform* GetInstance();
 		WindowsPlatform(HINSTANCE instance);
 		~WindowsPlatform();
 		HINSTANCE GetHINSTANCE();

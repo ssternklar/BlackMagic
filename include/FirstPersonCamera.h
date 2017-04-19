@@ -3,8 +3,6 @@
 #include "Camera.h"
 #include "GameObject.h"
 
-#include "Windows.h"
-
 namespace BlackMagic
 {
 	class FirstPersonCamera : public GameObject, public Camera

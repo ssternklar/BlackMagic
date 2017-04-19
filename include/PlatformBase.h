@@ -26,8 +26,8 @@ namespace BlackMagic {
 		ThreadManager* threadManager;
 		TransformData* transformData;
 		AudioManager* audioManager;
-		int windowWidth = 1280;
-		int windowHeight = 720;
+		unsigned int windowWidth = 1280;
+		unsigned int windowHeight = 720;
 		static PlatformBase* singleton;
 	public:
 		virtual bool InitWindow() = 0;
@@ -43,6 +43,7 @@ namespace BlackMagic {
 		virtual bool ReadFileIntoMemory(const char* fileName, byte* fileBuffer, size_t bufferSize) = 0;
 		virtual unsigned int GetFileSize(const char* fileName) = 0;
 		virtual void ShutdownPlatform() = 0;
+		void SetScreenDimensions(unsigned int width, unsigned int height);
 		void GetScreenDimensions(unsigned int* width, unsigned int* height);
 		bool BlackMagicInit();
 		void BlackMagicCleanup();

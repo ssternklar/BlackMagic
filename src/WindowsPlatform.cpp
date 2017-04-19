@@ -4,8 +4,6 @@
 #include <fstream>
 using namespace BlackMagic;
 
-WindowsPlatform* WindowsPlatform::singletonRef = nullptr;
-
 bool WindowsPlatform::GetSystemMemory(size_t size, BlackMagic::byte** ptr)
 {
 	(*ptr = (BlackMagic::byte*)(::operator new(size)));
@@ -48,45 +46,40 @@ LRESULT BlackMagic::WindowsPlatform::WindowProc(HWND hWnd, UINT uMsg, WPARAM wPa
 		// Sent when the window size changes
 	case WM_SIZE:
 		// Save the new client area dimensions.
-		singletonRef->windowWidth = LOWORD(lParam);
-		singletonRef->windowHeight = HIWORD(lParam);
-
-		// If DX is initialized, resize 
-		// our required buffers
-		singletonRef->renderer->OnResize(singletonRef->windowWidth, singletonRef->windowHeight);
+		PlatformBase::GetSingleton()->SetScreenDimensions(LOWORD(lParam), HIWORD(lParam));
 
 		return 0;
 
 		// Mouse button being pressed (while the cursor is currently over our window)
 	case WM_LBUTTONDOWN:
-		singletonRef->inputData.SetButton(MouseButton::Left, true);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Left, true);
 		SetCapture(hWnd);
 		return 0;
 	case WM_MBUTTONDOWN:
-		singletonRef->inputData.SetButton(MouseButton::Middle, true);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Middle, true);
 		return 0;
 	case WM_RBUTTONDOWN:
-		singletonRef->inputData.SetButton(MouseButton::Right, true);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Right, true);
 		//OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 		// Mouse button being released (while the cursor is currently over our window)
 	case WM_LBUTTONUP:
-		singletonRef->inputData.SetButton(MouseButton::Left, false);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Left, false);
 		ReleaseCapture();
 		return 0;
 	case WM_MBUTTONUP:
-		singletonRef->inputData.SetButton(MouseButton::Middle, false);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Middle, false);
 		return 0;
 	case WM_RBUTTONUP:
-		singletonRef->inputData.SetButton(MouseButton::Right, false);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Right, false);
 		return 0;
 		//OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		//return 0;
 
 		// Cursor moves over the window (or outside, while we're currently capturing it)
 	case WM_MOUSEMOVE:
-		singletonRef->HandleMouseMovement(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		((WindowsPlatform*)PlatformBase::GetSingleton())->HandleMouseMovement(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		//OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
@@ -260,7 +253,6 @@ float BlackMagic::WindowsPlatform::GetDeltaTime()
 WindowsPlatform::WindowsPlatform(HINSTANCE instance)
 {
 	hInstance = instance;
-	singletonRef = this;
 
 #if defined(DEBUG) | defined(_DEBUG)
 	// Enable memory leak detection as a quick and dirty
@@ -363,11 +355,6 @@ HWND BlackMagic::WindowsPlatform::GetHWND()
 MSG BlackMagic::WindowsPlatform::GetMSG()
 {
 	return msg;
-}
-
-WindowsPlatform* WindowsPlatform::GetInstance()
-{
-	return singletonRef;
 }
 
 void WindowsPlatform::ShutdownPlatform()
