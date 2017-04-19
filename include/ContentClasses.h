@@ -18,7 +18,7 @@ namespace BlackMagic
 		int uid;
 		int size;
 		void* resource;
-		volatile unsigned int refcount = 0;
+		BM_PLATFORM_ATOMIC_TYPE refcount = 0;
 		ResourceType type;
 	};
 
@@ -31,8 +31,9 @@ namespace BlackMagic
 		{
 			if (entry)
 			{
+				sizeof(long);
 				this->entry = entry;
-				BM_PLATFORM_ATOMIC_INCREMENT(&(entry->refcount));
+				BM_PLATFORM_ATOMIC_ADD(&(entry->refcount), 1);
 			}
 		}
 
@@ -46,7 +47,7 @@ namespace BlackMagic
 			if (other.entry)
 			{
 				entry = other.entry;
-				BM_PLATFORM_ATOMIC_INCREMENT(&(entry->refcount));
+				BM_PLATFORM_ATOMIC_ADD(&(entry->refcount), 1);
 			}
 		}
 
@@ -54,7 +55,7 @@ namespace BlackMagic
 		{
 			if (entry)
 			{
-				BM_PLATFORM_ATOMIC_DECREMENT(&(entry->refcount));
+				BM_PLATFORM_ATOMIC_ADD(&(entry->refcount), -1);
 			}
 		}
 

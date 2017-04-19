@@ -91,7 +91,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BM_PLATFORM_WINDOWS;BM_PLATFORM_SAMPLER=ID3D11SamplerState;BM_PLATFORM_TEXTURE=ID3D11ShaderResourceView;BM_PLATFORM_RENDERTARGET=ID3D11RenderTargetView;BM_PLATFORM_RESOURCE=ID3D11DeviceChild;BM_PLATFORM_BUFFER=ID3D11Buffer;BM_PLATFORM_ATOMIC_LIBRARY=&lt;Windows.h&gt;;BM_PLATFORM_ATOMIC_INCREMENT=_InterlockedIncrement;BM_PLATFORM_ATOMIC_DECREMENT=_InterlockedDecrement;BM_PLATFORM_ATOMIC_FETCH=*;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BM_PLATFORM_WINDOWS;BM_PLATFORM_SAMPLER=ID3D11SamplerState;BM_PLATFORM_TEXTURE=ID3D11ShaderResourceView;BM_PLATFORM_RENDERTARGET=ID3D11RenderTargetView;BM_PLATFORM_RESOURCE=ID3D11DeviceChild;BM_PLATFORM_BUFFER=ID3D11Buffer;BM_PLATFORM_ATOMIC_LIBRARY=&lt;Windows.h&gt;;BM_PLATFORM_ATOMIC_TYPE=volatile long;BM_PLATFORM_ATOMIC_ADD=InterlockedAdd;BM_PLATFORM_ATOMIC_FETCH=*;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -135,7 +135,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BM_PLATFORM_WINDOWS;BM_PLATFORM_SAMPLER=ID3D11SamplerState;BM_PLATFORM_TEXTURE=ID3D11ShaderResourceView;BM_PLATFORM_RENDERTARGET=ID3D11RenderTargetView;BM_PLATFORM_RESOURCE=ID3D11DeviceChild;BM_PLATFORM_BUFFER=ID3D11Buffer;BM_PLATFORM_ATOMIC_LIBRARY=&lt;Windows.h&gt;;BM_PLATFORM_ATOMIC_INCREMENT=_InterlockedIncrement;BM_PLATFORM_ATOMIC_DECREMENT=_InterlockedDecrement;BM_PLATFORM_ATOMIC_FETCH=*;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BM_PLATFORM_WINDOWS;BM_PLATFORM_SAMPLER=ID3D11SamplerState;BM_PLATFORM_TEXTURE=ID3D11ShaderResourceView;BM_PLATFORM_RENDERTARGET=ID3D11RenderTargetView;BM_PLATFORM_RESOURCE=ID3D11DeviceChild;BM_PLATFORM_BUFFER=ID3D11Buffer;BM_PLATFORM_ATOMIC_LIBRARY=&lt;Windows.h&gt;;BM_PLATFORM_ATOMIC_TYPE=volatile long;BM_PLATFORM_ATOMIC_ADD=InterlockedAdd;BM_PLATFORM_ATOMIC_FETCH=*;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
