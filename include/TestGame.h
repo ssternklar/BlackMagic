@@ -10,7 +10,7 @@ class TestGame : public BlackMagic::GameAbstraction
 {
 public:
 	TestGame(BlackMagic::PlatformBase* platformBase);
-	virtual void Init(byte* gameMemory, size_t memorySize) override;
+	virtual void Init(BlackMagic::byte* gameMemory, size_t memorySize) override;
 	virtual void Update(float deltaTime) override;
 	virtual void Draw(float deltaTime) override;
 	virtual void Destroy() override;

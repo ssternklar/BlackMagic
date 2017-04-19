@@ -5,8 +5,7 @@
 
 using namespace BlackMagic;
 
-TestGame::TestGame(BlackMagic::PlatformBase* platformBase)
-	: GameAbstraction(platformBase),
+TestGame::TestGame(BlackMagic::PlatformBase* platformBase) :
 	_camera({ 0, 0, -10 }, { 0, 0, 0, 1 })
 {
 }
@@ -25,7 +24,7 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 	LoadContent();
 
 	unsigned int width, height;
-	platform->GetScreenDimensions(&width, &height);
+	PlatformBase::GetSingleton()->GetScreenDimensions(&width, &height);
 	_camera.UpdateProjectionMatrix(width, height);
 
 	_globalLight = {
@@ -38,7 +37,7 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 
 void TestGame::LoadContent()
 {
-	auto content = platform->GetContentManager();
+	auto content = PlatformBase::GetSingleton()->GetContentManager();
 	Quaternion quatIdentity = CreateQuaternionIdentity();
 	Vector3 defaultScale = CreateVector3(1.0f, 1.0f, 1.0f);
 	auto sphere = std::shared_ptr<Mesh>(content->UntrackedLoad<Mesh>("/models/sphere.bmmesh"));
@@ -46,7 +45,7 @@ void TestGame::LoadContent()
 	auto gPassPS = content->Load<PixelShader>(std::string("/shaders/GBufferPS.cso"));
 	auto sphereTex = content->Load<Texture>(std::string("/textures/test_texture.png"));
 	auto sphereNormals = content->Load<Texture>(std::string("/textures/blank_normals.png"));
-	auto sampler = platform->GetRenderer()->CreateSampler();
+	auto sampler = PlatformBase::GetSingleton()->GetRenderer()->CreateSampler();
 	auto mat = Material(
 		allocator,
 		gPassVS, gPassPS
@@ -118,11 +117,11 @@ void TestGame::LoadContent()
 		desc.GPUUsage = Texture::Usage::READ;
 		desc.InitialData = c;
 		desc.Type = Texture::Type::FLAT_2D;
-		auto albedoTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));
+		auto albedoTex = std::make_shared<Texture>(PlatformBase::GetSingleton()->GetRenderer()->CreateTexture(desc));
 
 		desc.Format = Texture::Format::R8_UNORM;
 		desc.InitialData = &metalness;
-		auto metalnessTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));
+		auto metalnessTex = std::make_shared<Texture>(PlatformBase::GetSingleton()->GetRenderer()->CreateTexture(desc));
 
 		auto rowMaterial = mat;
 		rowMaterial.SetResource("albedoMap", Material::ResourceStage::PS, albedoTex, Material::ResourceStorageType::Static);
@@ -134,7 +133,7 @@ void TestGame::LoadContent()
 
 			desc.InitialData = &roughness;
 			desc.Format = Texture::Format::R8_UNORM;
-			auto roughnessTex = std::make_shared<Texture>(platform->GetRenderer()->CreateTexture(desc));
+			auto roughnessTex = std::make_shared<Texture>(PlatformBase::GetSingleton()->GetRenderer()->CreateTexture(desc));
 
 			auto mem = allocator.allocate<Entity>();
 			auto matInstance = rowMaterial;
@@ -147,7 +146,7 @@ void TestGame::LoadContent()
 
 void TestGame::Update(float deltaTime)
 {
-	if (platform->GetInputData()->GetButton(15))
+	if (PlatformBase::GetSingleton()->GetInputData()->GetButton(15))
 	{
 		shouldExit = true;
 	}
@@ -161,7 +160,7 @@ void TestGame::Update(float deltaTime)
 
 void TestGame::Draw(float deltaTime)
 {
-	auto renderer = platform->GetRenderer();
+	auto renderer = PlatformBase::GetSingleton()->GetRenderer();
 	const Vector4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
 	renderer->Clear(color);
 	std::vector<Entity*> renderables;
