@@ -18,7 +18,7 @@ namespace BlackMagic
 		int uid;
 		int size;
 		void* resource;
-		BM_PLATFORM_ATOMIC_TYPE refcount = 0;
+		AtomicInt refcount = 0;
 		ResourceType type;
 	};
 

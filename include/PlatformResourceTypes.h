@@ -8,5 +8,5 @@ using SamplerHandle = ID3D11SamplerState;
 using ResourceHandle = ID3D11DeviceChild;
 
 #define BM_PLATFORM_ATOMIC_ADD(X, Y) InterlockedAdd(X, Y)
-#define BM_PLATFORM_ATOMIC_TYPE volatile long
 #define BM_PLATFORM_ATOMIC_FETCH *
+using AtomicInt = volatile signed long;
