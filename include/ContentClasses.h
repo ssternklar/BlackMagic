@@ -1,8 +1,6 @@
 #pragma once
 
-#ifdef BM_PLATFORM_WINDOWS
-#include <atomic>
-#endif
+#include BM_PLATFORM_ATOMIC_LIBRARY
 
 namespace BlackMagic
 {
@@ -20,11 +18,7 @@ namespace BlackMagic
 		int uid;
 		int size;
 		void* resource;
-#ifdef BM_PLATFORM_WINDOWS
-		std::atomic_int refcount = 0;
-#else
-		volatile int refcount = 0;
-#endif
+		volatile unsigned int refcount = 0;
 		ResourceType type;
 	};
 
@@ -38,16 +32,13 @@ namespace BlackMagic
 			if (entry)
 			{
 				this->entry = entry;
-				entry->refcount++;
+				BM_PLATFORM_ATOMIC_INCREMENT(&(entry->refcount));
 			}
 		}
 
 		~AssetPointer_Base()
 		{
-			if (entry)
-			{
-				entry->refcount--;
-			}
+			reset();
 		}
 
 		AssetPointer_Base(const AssetPointer_Base& other)
@@ -55,8 +46,21 @@ namespace BlackMagic
 			if (other.entry)
 			{
 				entry = other.entry;
-				entry->refcount++;
+				BM_PLATFORM_ATOMIC_INCREMENT(&(entry->refcount));
 			}
+		}
+
+		void reset()
+		{
+			if (entry)
+			{
+				BM_PLATFORM_ATOMIC_DECREMENT(&(entry->refcount));
+			}
+		}
+
+		operator bool() const
+		{
+			return entry != nullptr;
 		}
 	};
 
@@ -81,19 +85,5 @@ namespace BlackMagic
 		{
 			return (T*)(entry->resource);
 		}
-
-		operator bool() const
-		{
-			return entry != nullptr;
-		}
-
-		void reset()
-		{
-			if (entry)
-			{
-				entry->refcount--;
-			}
-		}
-
 	};
 }

@@ -27,7 +27,7 @@ void ContentManager::AssetGC()
 {
 	for (int i = 0; i < entryCount; i++)
 	{
-		if (entries[i].refcount == 0 && entries[i].resource)
+		if (BM_PLATFORM_ATOMIC_FETCH(&(entries[i].refcount)) == 0 && entries[i].resource)
 		{
 			switch (entries[i].type)
 			{
