@@ -1,4 +1,5 @@
 #pragma once
+#ifdef BM_PLATFORM_WINDOWS
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -346,3 +347,9 @@ protected:
 	void SetShaderAndCBs();
 	void CleanUp();
 };
+#else
+//If not on Windows include the correct header
+//Relies on the platform specific includes appearing sooner in the project's include directories
+//	than this file
+#include <SimpleShader.h>
+#endif

@@ -1,6 +1,8 @@
 #pragma once
 
+#ifdef BM_PLATFORM_WINDOWS
 #include <atomic>
+#endif
 
 namespace BlackMagic
 {
@@ -18,7 +20,11 @@ namespace BlackMagic
 		int uid;
 		int size;
 		void* resource;
+#ifdef BM_PLATFORM_WINDOWS
 		std::atomic_int refcount = 0;
+#else
+		volatile int refcount = 0;
+#endif
 		ResourceType type;
 	};
 

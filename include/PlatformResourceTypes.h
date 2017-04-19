@@ -1,8 +1,7 @@
 #pragma once
 
-#if defined(BM_PLATFORM_WINDOWS)
-#include <d3d11.h>
-#endif
+//Deliberately using brackets instead of quotes
+#include <PlatformResourceHeaders.inl>
 
 using ShaderResource = BM_PLATFORM_TEXTURE;
 using RenderTarget = BM_PLATFORM_RENDERTARGET;

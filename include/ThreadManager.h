@@ -8,7 +8,6 @@
 #include "AudioJob.h"
 #include "LinkedList.h"
 #include "Handles.h"
-#include <atomic>
 
 namespace BlackMagic {
 

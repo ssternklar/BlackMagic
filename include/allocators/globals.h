@@ -9,7 +9,7 @@ namespace BlackMagic
 	template<typename Alloc, typename T, typename... Args>
 	inline T* AllocateAndConstruct(Alloc* allocator, int num, Args... args)
 	{
-		T* space = allocator->allocate<T>(num);
+		T* space = allocator->template allocate<T>(num);
 		if (space)
 		{
 			space = new (space) T(args...);
@@ -20,7 +20,7 @@ namespace BlackMagic
 	template<typename Alloc, typename T>
 	inline T* AllocateAndConstruct(Alloc* allocator, int num)
 	{
-		T* space = allocator->allocate<T>(num);
+		T* space = allocator->template allocate<T>(num);
 		if (space)
 		{
 			space = new (space) T;

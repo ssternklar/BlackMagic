@@ -302,6 +302,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\ShaderBase.hlsli" />
+    <None Include="include\PlatformResourceHeaders.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
