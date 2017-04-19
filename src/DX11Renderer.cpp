@@ -5,7 +5,7 @@
 #include "DirectXMath.h"
 #include "DirectXCollision.h"
 #include "DDSTextureLoader.h"
-#include "PlatformBase.h";
+#include "PlatformBase.h"
 
 using namespace DirectX;
 using namespace BlackMagic;

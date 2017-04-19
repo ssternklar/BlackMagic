@@ -1,3 +1,4 @@
+#ifdef BM_PLATFORM_WINDOWS
 #include "SimpleShader.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1747,3 +1748,5 @@ int SimpleComputeShader::GetUnorderedAccessViewIndex(std::string name)
 	// Success
 	return result->second;
 }
+
+#endif

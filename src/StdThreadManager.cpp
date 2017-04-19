@@ -33,6 +33,11 @@ void BlackMagic::StdThreadManager::PlatformUnlockMutex(Mutex m)
 	m.GetAs<mutex*>()->unlock();
 }
 
+void BlackMagic::StdThreadManager::PlatformSleepThisThread(unsigned int s)
+{
+	std::this_thread::sleep_for(std::chrono::milliseconds(s));
+}
+
 StdThreadManager::StdThreadManager(PlatformBase* base, BlackMagic::byte* spaceLocation, size_t spaceSize) : ThreadManager(base, spaceLocation, spaceSize)
 {
 	allocatorMutex = PlatformCreateMutex();

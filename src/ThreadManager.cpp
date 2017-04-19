@@ -74,6 +74,10 @@ void ThreadManager::RunGenericWorker()
 			job->Run(); //run the job
 			job->done = true;
 		}
+		else
+		{
+			PlatformSleepThisThread(16);
+		}
 	}
 }
 
@@ -104,6 +108,10 @@ void ThreadManager::RunRenderWorker()
 			DestructAndDeallocate(&allocator, job, 1);
 			PlatformUnlockMutex(allocatorMutex);
 		}
+		else
+		{
+			PlatformSleepThisThread(16);
+		}
 	}
 }
 
@@ -131,6 +139,10 @@ void ThreadManager::RunContentWorker()
 		{
 			//Run the job
 			job->Run();
+		}
+		else
+		{
+			PlatformSleepThisThread(16);
 		}
 	}
 }
@@ -168,6 +180,10 @@ void BlackMagic::ThreadManager::RunAudioWorker()
 				PlatformLockMutex(allocatorMutex);
 				DestructAndDeallocate(&allocator, job, 1);
 				PlatformUnlockMutex(allocatorMutex);
+			}
+			else
+			{
+				PlatformSleepThisThread(16);
 			}
 		}
 		PlatformBase::GetSingleton()->GetAudioManager()->UpdateAudio();

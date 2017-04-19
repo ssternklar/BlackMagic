@@ -47,6 +47,7 @@ namespace BlackMagic {
 		virtual Mutex PlatformCreateMutex() = 0;
 		virtual void PlatformLockMutex(Mutex mutex) = 0;
 		virtual void PlatformUnlockMutex(Mutex mutex) = 0;
+		virtual void PlatformSleepThisThread(unsigned int t) = 0;
 
 	public:
 		//These are public because lambdas

@@ -112,7 +112,7 @@ namespace BlackMagic
 		std::shared_ptr<T> Load(std::string str)
 		{
 			BestFitAllocator* allocLocal = _allocator;
-			T* retLocal = &(*Load<T>(str.c_str()));
+			T* retLocal = (Load<T>(str.c_str()).get());
 			std::shared_ptr<T> ret(retLocal,
 				[=](T* foo) {
 				//Do nothing, AssetGC takes care of cleanup
