@@ -1,10 +1,12 @@
 #pragma once
+#include <Windows.h>
+#include <d3d11.h>
+using ShaderResource = ID3D11ShaderResourceView;
+using RenderTarget = ID3D11RenderTargetView;
+using BufferHandle = ID3D11Buffer;
+using SamplerHandle = ID3D11SamplerState;
+using ResourceHandle = ID3D11DeviceChild;
 
-//Deliberately using brackets instead of quotes
-#include <PlatformResourceHeaders.inl>
-
-using ShaderResource = BM_PLATFORM_TEXTURE;
-using RenderTarget = BM_PLATFORM_RENDERTARGET;
-using BufferHandle = BM_PLATFORM_BUFFER;
-using SamplerHandle = BM_PLATFORM_SAMPLER;
-using ResourceHandle = BM_PLATFORM_RESOURCE;
+#define BM_PLATFORM_ATOMIC_ADD(X, Y) InterlockedAdd(X, Y)
+#define BM_PLATFORM_ATOMIC_TYPE volatile long
+#define BM_PLATFORM_ATOMIC_FETCH *

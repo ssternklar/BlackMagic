@@ -1,6 +1,6 @@
 #pragma once
 
-#include BM_PLATFORM_ATOMIC_LIBRARY
+#include <PlatformResourceTypes.h>
 
 namespace BlackMagic
 {

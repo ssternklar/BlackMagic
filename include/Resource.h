@@ -5,7 +5,9 @@
 using Microsoft::WRL::ComPtr;
 #endif
 
-#include "PlatformResourceTypes.h"
+//Intentionally using angle brackets to ensure that the
+//correct platform's .h file is being used
+#include <PlatformResourceTypes.h>
 
 namespace BlackMagic
 {

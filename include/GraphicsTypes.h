@@ -1,6 +1,5 @@
 #pragma once
 #include "Resource.h"
-#include "PlatformResourceTypes.h"
 
 namespace BlackMagic
 {
