@@ -11,7 +11,7 @@ void BlackMagic::AudioJob::Run()
 		switch (bgmPlayPauseStopResume)
 		{
 		case 0:
-			manager->PlayBGMInternal(fileToPlay, relativeVolume);
+			manager->PlayBGMInternal(fileToPlay, channelCount, relativeVolume);
 			break;
 		case 1:
 			manager->PauseBGMInternal();
@@ -28,6 +28,6 @@ void BlackMagic::AudioJob::Run()
 	}
 	else
 	{
-		manager->PlayOneShotInternal(fileToPlay, relativeVolume);
+		manager->PlayOneShotInternal(fileToPlay, channelCount, relativeVolume);
 	}
 }

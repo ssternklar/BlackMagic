@@ -177,6 +177,7 @@
     <ClCompile Include="src\ThreadManager.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\TransformData.cpp" />
+    <ClCompile Include="src\WAVFile.cpp" />
     <ClCompile Include="src\WindowsMath.cpp" />
     <ClCompile Include="src\WindowsPlatform.cpp" />
   </ItemGroup>
@@ -224,6 +225,7 @@
     <ClInclude Include="include\Transform.h" />
     <ClInclude Include="include\TransformData.h" />
     <ClInclude Include="include\Vertex.h" />
+    <ClInclude Include="include\WAVFile.h" />
     <ClInclude Include="include\WindowsPlatform.h" />
   </ItemGroup>
   <ItemGroup>

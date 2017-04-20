@@ -49,6 +49,7 @@
     <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\Resource.cpp" />
     <ClCompile Include="src\WindowsMath.cpp" />
+    <ClCompile Include="src\WAVFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -95,6 +96,7 @@
     <ClInclude Include="include\PlatformResourceTypes.h" />
     <ClInclude Include="include\BMMath.h" />
     <ClInclude Include="include\ContentClasses.h" />
+    <ClInclude Include="include\WAVFile.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\ShaderBase.hlsli" />

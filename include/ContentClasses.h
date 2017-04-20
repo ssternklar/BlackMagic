@@ -13,6 +13,7 @@ namespace BlackMagic
 			CUBEMAP,
 			VERTEX_SHADER,
 			PIXEL_SHADER,
+			WAVFILE
 		};
 		char* resourceName;
 		int uid;

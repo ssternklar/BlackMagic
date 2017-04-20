@@ -11,6 +11,7 @@
 #include "Mesh.h"
 #include "DX11Renderer.h"
 #include "DDSTextureLoader.h"
+#include "WAVFile.h"
 
 using namespace BlackMagic;
 
@@ -45,6 +46,12 @@ void ContentManager::AssetGC()
 				break;
 			case ManifestEntry::PIXEL_SHADER:
 				DestructAndDeallocate(_allocator, (PixelShader*)entries[i].resource, 1);
+				break;
+			case ManifestEntry::WAVFILE:
+				_allocator->deallocate(((WAVFile*)(entries[i].resource))->audioFile.GetAs<void*>(), entries[i].size);
+				DestructAndDeallocate(_allocator, ((WAVFile*)(entries[i].resource)), 1);
+				break;
+			default:
 				break;
 			}
 			entries[i].resource = nullptr;
@@ -233,6 +240,21 @@ void ContentManager::SetupManifest(ManifestEntry* entry, Cubemap* resource)
 {
 	entry->resource = resource;
 	entry->type = ManifestEntry::CUBEMAP;
+}
+
+template<>
+WAVFile* ContentManager::load_Internal(const char* fileName, int fileSize)
+{
+	LOAD_FILE(audioFile);
+	WAVFile* wav = AllocateAndConstruct<BestFitAllocator, WAVFile>(_allocator, 1, audioFile);
+	return wav;
+}
+
+template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, WAVFile* resource)
+{
+	entry->resource = resource;
+	entry->type = ManifestEntry::WAVFILE;
 }
 
 #if defined(BM_PLATFORM_WINDOWS)

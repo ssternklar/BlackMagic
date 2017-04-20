@@ -116,7 +116,7 @@ namespace BlackMagic {
 		RenderJob* CreateRenderJob();
 		void DestroyRenderJob(RenderJob* job);
 
-		AudioJob* CreateAudioJob(bool isBGM, AudioFile file, float relativeVolume, byte type);
+		AudioJob* CreateAudioJob(bool isBGM, AudioFile file, int channelCount, float relativeVolume, byte type);
 
 		template<class T>
 		ContentJob<T>* CreateContentJob(char* resourceName)

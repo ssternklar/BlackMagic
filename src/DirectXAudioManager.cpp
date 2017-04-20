@@ -14,14 +14,42 @@ DirectXAudioManager::~DirectXAudioManager()
 	audioEngine.release();
 }
 
-void BlackMagic::DirectXAudioManager::PlayOneShotInternal(AudioFile file, float relativeVolume)
+void BlackMagic::DirectXAudioManager::PlayOneShotInternal(AudioFile file, int channelCount, float relativeVolume)
 {
-	file.GetAs<SoundEffect*>()->Play(relativeVolume, 0, 0);
+	if (map.find(file.GetAs<void*>()) == map.end())
+	{
+		WAVFile wavFile(file);
+		WAVEFORMATEX ex;
+		ex.wFormatTag = WAVE_FORMAT_PCM;
+		ex.nChannels = wavFile.channelCount;
+		ex.nSamplesPerSec = wavFile.samplesPerSecond;
+		ex.nBlockAlign = (wavFile.channelCount * wavFile.bitsPerSample) / 8;
+		ex.nAvgBytesPerSec = ex.nBlockAlign * wavFile.samplesPerSecond;
+		ex.wBitsPerSample = wavFile.bitsPerSample;
+		ex.cbSize = 0;
+		std::shared_ptr<SoundEffect> effect = std::make_shared<SoundEffect>(audioEngine.get(), std::unique_ptr<uint8_t[]>(nullptr), &ex, (uint8_t*)wavFile.pcmData, wavFile.dataSize);
+		map[file.GetAs<void*>()] = effect;
+	}
+	map[file.GetAs<void*>()]->Play(relativeVolume, 0, 0);
 }
 
-void BlackMagic::DirectXAudioManager::PlayBGMInternal(AudioFile file, float relativeVolume)
+void BlackMagic::DirectXAudioManager::PlayBGMInternal(AudioFile file, int channelCount, float relativeVolume)
 {
 	PauseBGM();
+	if (map.find(file.GetAs<void*>()) == map.end())
+	{
+		WAVFile wavFile(file);
+		WAVEFORMATEX ex;
+		ex.wFormatTag = WAVE_FORMAT_PCM;
+		ex.nChannels = wavFile.channelCount;
+		ex.nSamplesPerSec = wavFile.samplesPerSecond;
+		ex.nBlockAlign = (wavFile.channelCount * wavFile.bitsPerSample) / 8;
+		ex.nAvgBytesPerSec = ex.nBlockAlign * wavFile.samplesPerSecond;
+		ex.wBitsPerSample = wavFile.bitsPerSample;
+		ex.cbSize = 0;
+		std::shared_ptr<SoundEffect> effect = std::make_shared<SoundEffect>(audioEngine.get(), std::unique_ptr<uint8_t[]>(nullptr), &ex, (uint8_t*)wavFile.pcmData, wavFile.dataSize);
+		map[file.GetAs<void*>()] = effect;
+	}
 	BGM = file.GetAs<SoundEffect*>()->CreateInstance();
 	BGM->SetVolume(relativeVolume);
 	BGM->Play(true);

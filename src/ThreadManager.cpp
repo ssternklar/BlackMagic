@@ -220,7 +220,7 @@ void BlackMagic::ThreadManager::DestroyRenderJob(RenderJob * job)
 {
 }
 
-AudioJob* BlackMagic::ThreadManager::CreateAudioJob(bool isBGM, AudioFile file, float relativeVolume, byte status)
+AudioJob* BlackMagic::ThreadManager::CreateAudioJob(bool isBGM, AudioFile file, int channelCount, float relativeVolume, byte status)
 {
 	PlatformLockMutex(allocatorMutex);
 	AudioJob* job = AllocateAndConstruct<BestFitAllocator, AudioJob>(&allocator, 1);

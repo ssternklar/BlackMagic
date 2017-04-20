@@ -2,7 +2,7 @@
 #include "DX11Renderer.h"
 #include "TestJob.h"
 #include "BMMath.h"
-
+#include "WAVFile.h"
 using namespace BlackMagic;
 
 TestGame::TestGame(BlackMagic::PlatformBase* platformBase) :
@@ -142,6 +142,10 @@ void TestGame::LoadContent()
 			_objects.push_back(new (mem) Entity(CreateVector3(x, y, 0), CreateQuaternionIdentity(), sphere, matInstance));
 		}
 	}
+
+	char* name = "EBT.wav";
+	WAVFile* file = PlatformBase::GetSingleton()->GetContentManager()->UntrackedLoad<WAVFile>(name);
+	PlatformBase::GetSingleton()->GetAudioManager()->PlayBGM(file->audioFile, file->channelCount, 1);
 }
 
 void TestGame::Update(float deltaTime)

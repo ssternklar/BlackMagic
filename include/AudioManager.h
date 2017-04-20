@@ -9,14 +9,14 @@ namespace BlackMagic
 	{
 		friend class AudioJob;
 	protected:
-		virtual void PlayOneShotInternal(AudioFile file, float relativeVolume) = 0;
-		virtual void PlayBGMInternal(AudioFile file, float relativeVolume) = 0;
+		virtual void PlayOneShotInternal(AudioFile file, int channelCount, float relativeVolume) = 0;
+		virtual void PlayBGMInternal(AudioFile file, int channelCount, float relativeVolume) = 0;
 		virtual void PauseBGMInternal() = 0;
 		virtual void StopBGMInternal() = 0;
 		virtual void ResumeBGMInternal(float relativeVolume) = 0;
 	public:
-		void PlayOneShot(AudioFile file, float relativeVolume);
-		void PlayBGM(AudioFile file, float relativeVolume);
+		void PlayOneShot(AudioFile file, int channelCount, float relativeVolume);
+		void PlayBGM(AudioFile file, int channelCount, float relativeVolume);
 		void PauseBGM();
 		void StopBGM();
 		void ResumeBGM(float relativeVolume);
