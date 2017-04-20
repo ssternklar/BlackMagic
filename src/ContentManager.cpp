@@ -48,8 +48,8 @@ void ContentManager::AssetGC()
 				DestructAndDeallocate(_allocator, (PixelShader*)entries[i].resource, 1);
 				break;
 			case ManifestEntry::WAVFILE:
-				_allocator->deallocate(((WAVFile*)(entries[i].resource))->audioFile.GetAs<void*>(), entries[i].size);
-				DestructAndDeallocate(_allocator, ((WAVFile*)(entries[i].resource)), 1);
+				((WAVFile*)(entries[i].resource))->~WAVFile();
+				_allocator->deallocate(entries[i].resource, sizeof(WAVFile) + entries[i].size);
 				break;
 			default:
 				break;
@@ -245,8 +245,14 @@ void ContentManager::SetupManifest(ManifestEntry* entry, Cubemap* resource)
 template<>
 WAVFile* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
-	LOAD_FILE(audioFile);
-	WAVFile* wav = AllocateAndConstruct<BestFitAllocator, WAVFile>(_allocator, 1, audioFile);
+	char path[256];
+	memset(path, 0, 256);
+	strcpy_s(path, directory);
+	strcat_s(path, fileName);
+	byte* audioSpace = (byte*)_allocator->allocate(sizeof(WAVFile) + fileSize);
+	byte* audioFile = audioSpace + sizeof(WAVFile);
+	PlatformBase::GetSingleton()->ReadFileIntoMemory(path, audioFile, fileSize);
+	WAVFile* wav = new (audioSpace) WAVFile(audioFile);
 	return wav;
 }
 

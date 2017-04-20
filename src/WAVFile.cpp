@@ -10,11 +10,10 @@ T ReadType(BlackMagic::byte*& data)
 	return x;
 }
 
-WAVFile::WAVFile(AudioFile audioFile)
+WAVFile::WAVFile(byte* audioFile)
 {
-	this->audioFile = audioFile;
 	//Process the audio file
-	byte* data = audioFile.GetAs<byte*>();
+	byte* data = audioFile;
 	int chunkID = 0;
 	bool dataChunk = false;
 	while (!dataChunk)
@@ -45,7 +44,9 @@ WAVFile::WAVFile(AudioFile audioFile)
 
 			this->channelCount = channelCount;
 			this->samplesPerSecond = sampleRate;
-			this->bitsPerSample = bitsPerSecond / sampleRate;
+			this->blockAlign = formatBlockAlign;
+			this->bitsPerSample = 16;// bitsPerSecond / sampleRate * blockAlign;
+			this->avgBytesPerSecond = sampleRate * blockAlign;
 		}
 		else if(chunkID == *(int*)"RIFF")
 		{
@@ -65,7 +66,7 @@ WAVFile::WAVFile(AudioFile audioFile)
 			this->pcmData = data;
 			this->dataSize = dataSize;
 		}
-		else
+		else //Some other section, like Junk
 		{
 			int skipSize = ReadType<int>(data);
 			data += skipSize;

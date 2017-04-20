@@ -1,4 +1,5 @@
 #include "DirectXAudioManager.h"
+#include <iostream>
 
 using namespace BlackMagic;
 using namespace DirectX;
@@ -14,43 +15,51 @@ DirectXAudioManager::~DirectXAudioManager()
 	audioEngine.release();
 }
 
-void BlackMagic::DirectXAudioManager::PlayOneShotInternal(AudioFile file, int channelCount, float relativeVolume)
+void BlackMagic::DirectXAudioManager::PlayOneShotInternal(WAVFile* file, float relativeVolume)
 {
-	if (map.find(file.GetAs<void*>()) == map.end())
+	if (map.find(file) == map.end())
 	{
-		WAVFile wavFile(file);
-		WAVEFORMATEX ex;
-		ex.wFormatTag = WAVE_FORMAT_PCM;
-		ex.nChannels = wavFile.channelCount;
-		ex.nSamplesPerSec = wavFile.samplesPerSecond;
-		ex.nBlockAlign = (wavFile.channelCount * wavFile.bitsPerSample) / 8;
-		ex.nAvgBytesPerSec = ex.nBlockAlign * wavFile.samplesPerSecond;
-		ex.wBitsPerSample = wavFile.bitsPerSample;
-		ex.cbSize = 0;
-		std::shared_ptr<SoundEffect> effect = std::make_shared<SoundEffect>(audioEngine.get(), std::unique_ptr<uint8_t[]>(nullptr), &ex, (uint8_t*)wavFile.pcmData, wavFile.dataSize);
-		map[file.GetAs<void*>()] = effect;
+		byte* x = (byte*)::operator new(sizeof(WAVFile) + file->dataSize);
+		WAVFile* tmpWav = (WAVFile*)x;
+		*tmpWav = *file;
+		tmpWav->pcmData = x + sizeof(WAVFile);
+		memcpy_s(tmpWav->pcmData, file->dataSize, file->pcmData, file->dataSize);
+
+		auto bs = std::unique_ptr<uint8_t[]>((uint8_t*)x);
+
+		std::shared_ptr<SoundEffect> effect = std::make_shared<SoundEffect>(
+			audioEngine.get(),
+			bs,
+			reinterpret_cast<WAVEFORMATEX*>(file),
+			(uint8_t*)file->pcmData,
+			file->dataSize);
+		map[file] = effect;
 	}
-	map[file.GetAs<void*>()]->Play(relativeVolume, 0, 0);
+	map[file]->Play(relativeVolume, 0, 0);
 }
 
-void BlackMagic::DirectXAudioManager::PlayBGMInternal(AudioFile file, int channelCount, float relativeVolume)
+void BlackMagic::DirectXAudioManager::PlayBGMInternal(WAVFile* file, float relativeVolume)
 {
-	PauseBGM();
-	if (map.find(file.GetAs<void*>()) == map.end())
+	PauseBGMInternal();
+	if (map.find(file) == map.end())
 	{
-		WAVFile wavFile(file);
-		WAVEFORMATEX ex;
-		ex.wFormatTag = WAVE_FORMAT_PCM;
-		ex.nChannels = wavFile.channelCount;
-		ex.nSamplesPerSec = wavFile.samplesPerSecond;
-		ex.nBlockAlign = (wavFile.channelCount * wavFile.bitsPerSample) / 8;
-		ex.nAvgBytesPerSec = ex.nBlockAlign * wavFile.samplesPerSecond;
-		ex.wBitsPerSample = wavFile.bitsPerSample;
-		ex.cbSize = 0;
-		std::shared_ptr<SoundEffect> effect = std::make_shared<SoundEffect>(audioEngine.get(), std::unique_ptr<uint8_t[]>(nullptr), &ex, (uint8_t*)wavFile.pcmData, wavFile.dataSize);
-		map[file.GetAs<void*>()] = effect;
+		byte* x = (byte*)::operator new(sizeof(WAVFile) + file->dataSize);
+		WAVFile* tmpWav = (WAVFile*)x;
+		*tmpWav = *file;
+		tmpWav->pcmData = x + sizeof(WAVFile);
+		memcpy_s(tmpWav->pcmData, file->dataSize, file->pcmData, file->dataSize);
+
+		auto bs = std::unique_ptr<uint8_t[]>((uint8_t*)x);
+
+		std::shared_ptr<SoundEffect> effect = std::make_shared<SoundEffect>(
+			audioEngine.get(),
+			bs,
+			reinterpret_cast<WAVEFORMATEX*>(file),
+			(uint8_t*)file->pcmData,
+			file->dataSize);
+		map[file] = effect;
 	}
-	BGM = file.GetAs<SoundEffect*>()->CreateInstance();
+	BGM = map[file]->CreateInstance();
 	BGM->SetVolume(relativeVolume);
 	BGM->Play(true);
 }
@@ -90,4 +99,8 @@ void BlackMagic::DirectXAudioManager::ResumeBGMInternal(float relativeVolume)
 void BlackMagic::DirectXAudioManager::UpdateAudio()
 {
 	audioEngine->Update();
+	if(BGM)
+	{
+		std::cout << BGM->GetState() << std::endl;
+	}
 }

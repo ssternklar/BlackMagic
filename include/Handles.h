@@ -15,9 +15,4 @@ namespace BlackMagic
 	{
 		_BM_HANDLE_TYPE_INFO(Mutex)
 	};
-
-	class AudioFile
-	{
-		_BM_HANDLE_TYPE_INFO(AudioFile)
-	};
 }

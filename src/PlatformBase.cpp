@@ -84,10 +84,8 @@ void PlatformBase::BlackMagicCleanup()
 	
 	if (threadManager)
 		threadManager->~ThreadManager();
-	
 	if (audioManager)
 		audioManager->~AudioManager();
-
 	ReturnSystemMemory(TheCPUMemory);
 }
 

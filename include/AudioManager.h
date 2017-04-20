@@ -1,22 +1,21 @@
 #pragma once
 
 #include "allocators\globals.h"
-#include "Handles.h"
-
+#include "WAVFile.h"
 namespace BlackMagic
 {
 	class AudioManager
 	{
 		friend class AudioJob;
 	protected:
-		virtual void PlayOneShotInternal(AudioFile file, int channelCount, float relativeVolume) = 0;
-		virtual void PlayBGMInternal(AudioFile file, int channelCount, float relativeVolume) = 0;
+		virtual void PlayOneShotInternal(WAVFile* file, float relativeVolume) = 0;
+		virtual void PlayBGMInternal(WAVFile* file, float relativeVolume) = 0;
 		virtual void PauseBGMInternal() = 0;
 		virtual void StopBGMInternal() = 0;
 		virtual void ResumeBGMInternal(float relativeVolume) = 0;
 	public:
-		void PlayOneShot(AudioFile file, int channelCount, float relativeVolume);
-		void PlayBGM(AudioFile file, int channelCount, float relativeVolume);
+		void PlayOneShot(WAVFile* file, float relativeVolume);
+		void PlayBGM(WAVFile* file, float relativeVolume);
 		void PauseBGM();
 		void StopBGM();
 		void ResumeBGM(float relativeVolume);

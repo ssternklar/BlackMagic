@@ -181,10 +181,6 @@ void BlackMagic::ThreadManager::RunAudioWorker()
 				DestructAndDeallocate(&allocator, job, 1);
 				PlatformUnlockMutex(allocatorMutex);
 			}
-			else
-			{
-				PlatformSleepThisThread(16);
-			}
 		}
 		PlatformBase::GetSingleton()->GetAudioManager()->UpdateAudio();
 	}
@@ -220,7 +216,7 @@ void BlackMagic::ThreadManager::DestroyRenderJob(RenderJob * job)
 {
 }
 
-AudioJob* BlackMagic::ThreadManager::CreateAudioJob(bool isBGM, AudioFile file, int channelCount, float relativeVolume, byte status)
+AudioJob* BlackMagic::ThreadManager::CreateAudioJob(bool isBGM, WAVFile* file, float relativeVolume, byte status)
 {
 	PlatformLockMutex(allocatorMutex);
 	AudioJob* job = AllocateAndConstruct<BestFitAllocator, AudioJob>(&allocator, 1);
