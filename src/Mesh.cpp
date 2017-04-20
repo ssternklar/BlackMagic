@@ -8,7 +8,6 @@
 #include "GraphicsTypes.h"
 
 using namespace BlackMagic;
-using namespace DirectX;
 /*
 void OrthonormalizeTB(Vertex& v, Vector3 tO, Vector3 uO)
 {
@@ -63,8 +62,8 @@ Mesh::Mesh(BlackMagic::byte* vertexData, int vertexCount, BlackMagic::byte* inde
 	: Resource()
 {
 	_numIndices = indexCount;
-	_vBuf = device->CreateBuffer(Buffer::Type::VERTEX_BUFFER, vertexData, static_cast<UINT>(vertexCount * sizeof(Vertex)));
-	_iBuf = device->CreateBuffer(Buffer::Type::INDEX_BUFFER, indexData, static_cast<UINT>(indexCount * sizeof(UINT)));
+	_vBuf = device->CreateBuffer(Buffer::Type::VERTEX_BUFFER, vertexData, static_cast<unsigned int>(vertexCount * sizeof(Vertex)));
+	_iBuf = device->CreateBuffer(Buffer::Type::INDEX_BUFFER, indexData, static_cast<unsigned int>(indexCount * sizeof(unsigned int)));
 }
 
 

@@ -2,6 +2,7 @@
 
 #include <string>
 #include "GraphicsTypes.h"
+#include "allocators\globals.h"
 
 namespace BlackMagic
 {

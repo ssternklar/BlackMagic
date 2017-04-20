@@ -9,7 +9,7 @@ namespace BlackMagic
 {
 	class TransformData
 	{
-		friend class Transform;
+		friend class ::Transform;
 
 	public:
 		TransformData();

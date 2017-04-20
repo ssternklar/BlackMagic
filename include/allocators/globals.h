@@ -1,12 +1,13 @@
 #pragma once
 
 #include <new>
+#include <cassert>
 
 namespace BlackMagic
 {
 	typedef unsigned char byte;
 
-	template<typename Alloc, typename T, typename... Args>
+	template<typename T, typename Alloc, typename... Args>
 	inline T* AllocateAndConstruct(Alloc* allocator, int num, Args... args)
 	{
 		T* space = allocator->template allocate<T>(num);
@@ -17,7 +18,7 @@ namespace BlackMagic
 		return space;
 	}
 
-	template<typename Alloc, typename T>
+	template<typename T, typename Alloc>
 	inline T* AllocateAndConstruct(Alloc* allocator, int num)
 	{
 		T* space = allocator->template allocate<T>(num);
@@ -28,7 +29,7 @@ namespace BlackMagic
 		return space;
 	}
 
-	template<typename Alloc, typename T>
+	template<typename T, typename Alloc>
 	inline void DestructAndDeallocate(Alloc* allocator, T* thing, int num)
 	{
 		for (int i = 0; i < num; i++)

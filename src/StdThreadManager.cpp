@@ -20,7 +20,7 @@ Mutex BlackMagic::StdThreadManager::PlatformCreateMutex()
 		currentMutexCount++;
 		return ret;
 	}
-	throw "No more mutexes remaining, increase mutex pool count";
+	assert(false);// "No more mutexes remaining, increase mutex pool count";
 }
 
 void BlackMagic::StdThreadManager::PlatformLockMutex(Mutex m)

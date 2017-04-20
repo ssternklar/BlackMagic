@@ -1,6 +1,5 @@
 #include "FirstPersonCamera.h"
-
-#include "WindowsPlatform.h"
+#include "PlatformBase.h"
 
 using namespace BlackMagic;
 

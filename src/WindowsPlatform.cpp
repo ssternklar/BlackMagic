@@ -196,7 +196,7 @@ bool WindowsPlatform::InitWindow()
 
 void BlackMagic::WindowsPlatform::InitPlatformAudioManager()
 {
-	audioManager = AllocateAndConstruct<StackAllocator, DirectXAudioManager>(allocatorAllocator, 1);
+	audioManager = AllocateAndConstruct<DirectXAudioManager>(allocatorAllocator, 1);
 	return;
 }
 

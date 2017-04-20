@@ -1,7 +1,6 @@
 #pragma once
 
 #include "BMMath.h"
-#include <DirectXMath.h>
 
 // --------------------------------------------------------
 // A custom vertex definition

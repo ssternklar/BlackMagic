@@ -37,6 +37,7 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 
 void TestGame::LoadContent()
 {
+#ifdef BM_PLATFORM_WINDOWS	
 	auto content = PlatformBase::GetSingleton()->GetContentManager();
 	Quaternion quatIdentity = CreateQuaternionIdentity();
 	Vector3 defaultScale = CreateVector3(1.0f, 1.0f, 1.0f);
@@ -142,6 +143,7 @@ void TestGame::LoadContent()
 			_objects.push_back(new (mem) Entity(CreateVector3(x, y, 0), CreateQuaternionIdentity(), sphere, matInstance));
 		}
 	}
+#endif
 }
 
 void TestGame::Update(float deltaTime)

@@ -197,7 +197,7 @@ Mesh* ContentManager::load_Internal(const char* fileName, int fileSize)
 	MeshHeader::Block* vertexMeta = (MeshHeader::Block*)(meshSpace + 1 + (sizeof(MeshHeader::Block)));
 	MeshHeader::Block* indexMeta = (MeshHeader::Block*)(meshSpace + 1 + (sizeof(MeshHeader::Block) * 2));
 
-	Mesh* ret = AllocateAndConstruct<BestFitAllocator, Mesh>(_allocator, 1, &meshSpace[vertexMeta->offsetInBytes], vertexMeta->elementCount, &meshSpace[indexMeta->offsetInBytes], indexMeta->elementCount, renderer);
+	Mesh* ret = AllocateAndConstruct<Mesh>(_allocator, 1, &meshSpace[vertexMeta->offsetInBytes], vertexMeta->elementCount, &meshSpace[indexMeta->offsetInBytes], indexMeta->elementCount, renderer);
 	return ret;
 }
 
@@ -213,7 +213,7 @@ Texture* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	auto file = AssetFile{ directory, fileName, _allocator };
 	auto textureSpace = file.memory;
-	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
+	Texture* tex = AllocateAndConstruct<Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
 	*tex = renderer->CreateTexture(textureSpace, fileSize, Texture::Type::FLAT_2D, Texture::Usage::READ);
 	return tex;
 }
@@ -230,7 +230,7 @@ Cubemap* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	auto file = AssetFile{ directory, fileName, _allocator };
 	auto textureSpace = file.memory;
-	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
+	Texture* tex = AllocateAndConstruct<Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
 	*tex = renderer->CreateTexture(textureSpace, fileSize, Texture::Type::CUBEMAP, Texture::Usage::READ);
 	return (Cubemap*)tex;
 }
@@ -278,7 +278,7 @@ VertexShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 	mbstowcs_s(&size, widePath, path, 256);
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
-	auto ptr = AllocateAndConstruct<BestFitAllocator, VertexShader>(_allocator, 1, device.Get(), context.Get());
+	auto ptr = AllocateAndConstruct<VertexShader>(_allocator, 1, device.Get(), context.Get());
 	ptr->LoadShaderFile(widePath);
 	return ptr;
 }
@@ -302,7 +302,7 @@ PixelShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 	mbstowcs_s(&size, widePath, path, 256);
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
-	auto ptr = AllocateAndConstruct<BestFitAllocator, PixelShader>(_allocator, 1, device.Get(), context.Get());
+	auto ptr = AllocateAndConstruct<PixelShader>(_allocator, 1, device.Get(), context.Get());
 	ptr->LoadShaderFile(widePath);
 	return ptr;
 }

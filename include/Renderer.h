@@ -30,6 +30,7 @@ namespace BlackMagic
 		virtual void AddResourceRef(void*) = 0;
 		virtual void ReleaseResource(void*) = 0;
 		virtual Sampler CreateSampler() = 0;
+		virtual BestFitAllocator* GetGraphicsAllocator() = 0;
 		/*virtual GraphicsShader CreateShader(GraphicsShader::ShaderType shaderType, const char* shaderPath);
 		virtual void CleanupShader(GraphicsShader::ShaderType shaderType, GraphicsShader shader);
 		*/

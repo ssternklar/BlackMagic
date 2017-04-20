@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <BMMath.h>
 
 using TransformID = size_t;

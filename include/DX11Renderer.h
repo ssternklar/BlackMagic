@@ -1,4 +1,5 @@
 #pragma once
+#ifdef BM_PLATFORM_WINDOWS
 #pragma comment (lib, "d3d11.lib")
 #include <d3d11.h>
 #include <memory>
@@ -35,6 +36,7 @@ namespace BlackMagic {
 		virtual Texture CreateTexture(const TextureDesc& desc) override;
 		virtual void ReleaseResource(void* resource) override;
 		virtual void AddResourceRef(void* resource) override;
+		virtual BestFitAllocator* GetGraphicsAllocator() override;
 
 	private:
 		ComPtr<ID3D11Device> _device;
@@ -102,3 +104,4 @@ namespace BlackMagic {
 		void RenderShadowMaps(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight);
 	};
 }
+#endif

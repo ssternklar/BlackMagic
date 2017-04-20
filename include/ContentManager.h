@@ -1,6 +1,5 @@
 #pragma once
 
-#include <d3d11.h>
 #include <memory>
 #include <unordered_map>
 
@@ -54,7 +53,7 @@ namespace BlackMagic
 		template<typename T>
 		void UntrackedAssetCleanup(T* thing)
 		{
-			DestructAndDeallocate<BestFitAllocator, T>(_allocator, thing, 1);
+			DestructAndDeallocate<T>(_allocator, thing, 1);
 		}
 		void AssetGC();
 
