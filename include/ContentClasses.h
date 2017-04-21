@@ -32,7 +32,6 @@ namespace BlackMagic
 		{
 			if (entry)
 			{
-				sizeof(long);
 				this->entry = entry;
 				BM_PLATFORM_ATOMIC_ADD(&(entry->refcount), 1);
 			}

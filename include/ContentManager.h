@@ -10,11 +10,11 @@
 #include <allocators/AllocatorSTLAdapter.h>
 #include <allocators/BadBestFitAllocator.h>
 
-using VertexShader = SimpleVertexShader;
-using PixelShader = SimplePixelShader;
 
 namespace BlackMagic
 {
+	using VertexShader = SimpleVertexShader;
+	using PixelShader = SimplePixelShader;
 	class Renderer;
 
 	class ContentManager

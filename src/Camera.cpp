@@ -7,7 +7,7 @@
 
 using namespace BlackMagic;
 
-Camera::Camera() : offset(CreateVector3Zero()), pos(CreateVector3Zero())
+Camera::Camera() : pos(CreateVector3Zero()), offset(CreateVector3Zero())
 {
 }
 
@@ -43,10 +43,10 @@ void Camera::Update(Transform& transform)
 	auto position = transform.GetPosition();
 	auto view = CreateMatrixLookToLH(position + offsetV, transform.GetForward(), up);//XMMatrixLookToLH(position + offsetV, XMLoadFloat3(&transform.GetForward()), up);
 	
-	_viewMat = Transpose(view);
+	_viewMat = view;
 	pos = position + offsetV;
 
-	auto proj = Transpose(_projMat);
+	auto proj = _projMat;
 	BoundingFrustum frustum{ proj };
 	frustum.Transform(frustum, Inverse(view));
 }
@@ -56,5 +56,5 @@ void Camera::UpdateProjectionMatrix(unsigned int width, unsigned int height)
 	float aspect = static_cast<float>(width) / height;
 
 	//using 2pi/5 instead of pi/4 for fov
-	_projMat = Transpose(CreateMatrixPerspectiveFovLH(0.4f * 3.14f, aspect, CAM_NEAR_Z, CAM_FAR_Z));
+	_projMat = CreateMatrixPerspectiveFovLH(0.4f * 3.14f, aspect, CAM_NEAR_Z, CAM_FAR_Z);
 }

@@ -26,7 +26,7 @@ void ContentManager::AssetGC()
 {
 	for (int i = 0; i < entryCount; i++)
 	{
-		if (BM_PLATFORM_ATOMIC_FETCH(&(entries[i].refcount)) == 0 && entries[i].resource)
+		if (BM_PLATFORM_ATOMIC_FETCH((&(entries[i].refcount))) == 0 && entries[i].resource)
 		{
 			switch (entries[i].type)
 			{
@@ -134,7 +134,7 @@ struct AssetFile
 		memory = static_cast<BlackMagic::byte*>(allocator->allocate(size));
 		if (!platform->ReadFileIntoMemory(path, memory, size))
 		{
-			throw "Failed to load file into memory";
+			assert(false);// "Failed to load file into memory";
 		}
 	}
 
@@ -149,7 +149,7 @@ strcat_s(path, fileName); \
 byte* ##X = (byte*)_allocator->allocate(fileSize); \
 if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, fileSize)) \
 { \
-	throw "Failed to load file into memory"; \
+	assert(false);// "Failed to load file into memory"; \
 } \
 (void)(sizeof(0))
 
@@ -279,10 +279,11 @@ VertexShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
 	auto ptr = AllocateAndConstruct<VertexShader>(_allocator, 1, device.Get(), context.Get());
+	ptr->LoadShaderFile(widePath);
 #else
 	auto ptr = AllocateAndConstruct<VertexShader>(_allocator, 1, renderer);
+	ptr->LoadShaderFile(path);
 #endif
-	ptr->LoadShaderFile(widePath);
 	return ptr;
 }
 
@@ -307,10 +308,11 @@ PixelShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
 	auto ptr = AllocateAndConstruct<PixelShader>(_allocator, 1, device.Get(), context.Get());
+	ptr->LoadShaderFile(widePath);
 #else
 	auto ptr = AllocateAndConstruct<PixelShader>(_allocator, 1, renderer);
+	ptr->LoadShaderFile(path);
 #endif
-	ptr->LoadShaderFile(widePath);
 	return ptr;
 }
 

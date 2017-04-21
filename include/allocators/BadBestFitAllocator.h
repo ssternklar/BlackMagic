@@ -26,7 +26,6 @@ namespace BlackMagic
 		{
 			size = maxSize;
 			this->alignment = alignment;
-			byte* ptr = buffer;
 			if (buffer == nullptr)
 			{
 				buffer = reinterpret_cast<byte*>(this);

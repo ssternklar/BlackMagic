@@ -562,8 +562,8 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	};
 	_context->OMSetRenderTargets(sizeof(rts) / sizeof(ID3D11RenderTargetView*), rts, _depthStencil.Get());
 
-	auto view = cam.ViewMatrix();
-	auto proj = cam.ProjectionMatrix();
+	auto view = Transpose(cam.ViewMatrix());
+	auto proj = Transpose(cam.ProjectionMatrix());
 
 	//Load object attributes into the g-buffer (geometry pass)
 	for (auto* object : objects)
@@ -662,8 +662,8 @@ void DX11Renderer::RenderSkybox(const Camera& cam)
 	_skyboxVS->SetShader();
 	_skyboxPS->SetShader();
 	_skyboxVS->SetFloat3("camPos", cam.Position());
-	_skyboxVS->SetMatrix4x4("view", cam.ViewMatrix());
-	_skyboxVS->SetMatrix4x4("proj", cam.ProjectionMatrix());
+	_skyboxVS->SetMatrix4x4("view", Transpose(cam.ViewMatrix()));
+	_skyboxVS->SetMatrix4x4("proj", Transpose(cam.ProjectionMatrix()));
 	_skyboxPS->SetShaderResourceView("skyboxTex", _skyboxTex->GetShaderResource());
 	_skyboxPS->SetSamplerState("mainSampler", _skyboxSampler.As<SamplerHandle>());
 	_skyboxVS->CopyAllBufferData();
