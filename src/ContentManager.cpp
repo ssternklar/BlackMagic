@@ -9,8 +9,6 @@
 #include "GraphicsTypes.h"
 #include "Texture.h"
 #include "Mesh.h"
-#include "DX11Renderer.h"
-#include "DDSTextureLoader.h"
 #include "WAVFile.h"
 
 using namespace BlackMagic;
@@ -264,7 +262,8 @@ void ContentManager::SetupManifest(ManifestEntry* entry, WAVFile* resource)
 }
 
 #if defined(BM_PLATFORM_WINDOWS)
-using namespace DirectX;
+#include "DX11Renderer.h"
+#endif
 
 template<>
 VertexShader* ContentManager::load_Internal(const char* fileName, int fileSize)
@@ -273,12 +272,16 @@ VertexShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 	memset(path, 0, 256);
 	strcpy_s(path, directory);
 	strcat_s(path, fileName);
+#if defined(BM_PLATFORM_WINDOWS)
 	wchar_t widePath[256];
 	size_t size = 0;
 	mbstowcs_s(&size, widePath, path, 256);
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
 	auto ptr = AllocateAndConstruct<VertexShader>(_allocator, 1, device.Get(), context.Get());
+#else
+	auto ptr = AllocateAndConstruct<VertexShader>(_allocator, 1, renderer);
+#endif
 	ptr->LoadShaderFile(widePath);
 	return ptr;
 }
@@ -297,12 +300,16 @@ PixelShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 	memset(path, 0, 256);
 	strcpy_s(path, directory);
 	strcat_s(path, fileName);
+#if defined(BM_PLATFORM_WINDOWS)
 	wchar_t widePath[256];
 	size_t size = 0;
 	mbstowcs_s(&size, widePath, path, 256);
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
 	auto ptr = AllocateAndConstruct<PixelShader>(_allocator, 1, device.Get(), context.Get());
+#else
+	auto ptr = AllocateAndConstruct<PixelShader>(_allocator, 1, renderer);
+#endif
 	ptr->LoadShaderFile(widePath);
 	return ptr;
 }
@@ -312,35 +319,6 @@ void ContentManager::SetupManifest(ManifestEntry* entry, PixelShader* resource)
 {
 	entry->resource = resource;
 	entry->type = ManifestEntry::PIXEL_SHADER;
-}
-
-/*
-template<>
-std::shared_ptr<VertexShader> ContentManager::load_Internal(ManifestEntry* manifest)
-{
-	auto fullPath = directory + L"/" + name;
-	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device().Get();
-	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context().Get();
-	auto ptr = std::allocate_shared<VertexShader>(ContentAllocatorAdapter(_allocator), 
-		device,
-		context);
-	ptr->LoadShaderFile(fullPath.c_str());
-	_resources[name] = ptr;
-	return ptr;
-}
-
-template<>
-std::shared_ptr<PixelShader> ContentManager::load_Internal(const std::wstring& name)
-{
-	auto fullPath = directory + L"/" + name;
-	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device().Get();
-	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context().Get();
-	auto ptr = std::allocate_shared<PixelShader>(ContentAllocatorAdapter(_allocator), 
-		device,
-		context);
-	ptr->LoadShaderFile(fullPath.c_str());
-	_resources[name] = ptr;
-	return ptr;
 }
 
 /*
@@ -380,18 +358,3 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	return ret;
 }*/
 
-
-#endif
-/*
-template<typename T>
-std::shared_ptr<T> ContentManager::load_Internal(const std::wstring& name)
-{
-	static_assert(false,
-		"Invalid or unsupported content type provided. Supported types are:\n"
-		"Mesh\n"
-		"Texture\n"
-		"VertexShader\n"
-		"PixelShader\n"
-		"Spline\n"
-		);
-}*/

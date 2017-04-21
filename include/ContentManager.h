@@ -10,10 +10,8 @@
 #include <allocators/AllocatorSTLAdapter.h>
 #include <allocators/BadBestFitAllocator.h>
 
-#if defined(BM_PLATFORM_WINDOWS)
 using VertexShader = SimpleVertexShader;
 using PixelShader = SimplePixelShader;
-#endif
 
 namespace BlackMagic
 {
