@@ -1222,7 +1222,12 @@ Texture* DX11Renderer::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
 	return new Texture(this, tex, srv, rtv);
 }
 
-BestFitAllocator* DX11Renderer::GetGraphicsAllocator()
+BestFitAllocator* DX11Renderer::GetGPUAllocator()
+{
+	return nullptr;
+}
+
+GraphicsContext* DX11Renderer::GetCurrentContext()
 {
 	return nullptr;
 }

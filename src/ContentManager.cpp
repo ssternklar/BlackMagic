@@ -96,26 +96,29 @@ void BlackMagic::ContentManager::ProcessManifestFile(void* manifestFileLocation)
 template<typename T>
 T* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
-	static_assert(false,
+	assert(false);
+	/*
 		"Invalid or unsupported content type provided. Supported types are:\n"
 		"Mesh\n"
 		"Texture\n"
 		"VertexShader\n"
 		"PixelShader\n"
 		"Spline\n"
-		);
+	*/
 }
 
 template<typename T>
 void ContentManager::SetupManifest(ManifestEntry* entry, T* resource)
 {
-	static_assert(false, "Manifest loading not supported for this type. Supported types are:\n"
+	assert(false);
+	/*
+		"Manifest loading not supported for this type. Supported types are:\n"
 		"Mesh\n"
 		"Texture\n"
 		"VertexShader\n"
 		"PixelShader\n"
 		"Spline\n"
-		);
+	*/
 }
 
 struct AssetFile
