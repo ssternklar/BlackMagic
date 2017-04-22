@@ -199,18 +199,3 @@ void Material::UploadData(std::string name, const ResourceData& dat) const
 		break;
 	}
 }
-
-size_t Material::GetTotalResourceMem(ISimpleShader* shader)
-{
-	size_t buffers = 0;
-	size_t srvs = shader->GetShaderResourceViewCount() * sizeof(std::shared_ptr<Texture>);
-	size_t samplers = shader->GetSamplerCount() * sizeof(Sampler);
-
-	for (unsigned int i = 0; i < shader->GetBufferCount(); i++)
-	{
-		buffers += shader->GetBufferSize(i);
-	}
-
-	return buffers + srvs + samplers;
-}
-

@@ -37,6 +37,7 @@ namespace BlackMagic {
 		virtual void ReleaseResource(void* resource) override;
 		virtual void AddResourceRef(void* resource) override;
 		virtual BestFitAllocator* GetGPUAllocator() override;
+		virtual BestFitAllocator* GetCPUAllocator() override;
 		virtual GraphicsContext* GetCurrentContext() override;
 
 	private:

@@ -53,10 +53,13 @@ bool PlatformBase::BlackMagicInit()
 	strcpy_s(path, GetAssetDirectory());
 	strcat_s(path, "manifest.bm");
 	unsigned int fileSize = GetFileSize(path);
-	BlackMagic::byte* manifestFile = (byte*)allocatorAllocator->allocate(fileSize, 1);
-	ReadFileIntoMemory(path, manifestFile, fileSize);
-	contentManager->ProcessManifestFile(manifestFile);
-	allocatorAllocator->deallocate(manifestFile, fileSize, 1);
+	if (fileSize > 0)
+	{
+		BlackMagic::byte* manifestFile = (byte*)allocatorAllocator->allocate(fileSize, 1);
+		ReadFileIntoMemory(path, manifestFile, fileSize);
+		contentManager->ProcessManifestFile(manifestFile);
+		allocatorAllocator->deallocate(manifestFile, fileSize, 1);
+	}
 	
 	renderer->Init(contentManager);
 

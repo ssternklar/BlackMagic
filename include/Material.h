@@ -91,7 +91,6 @@ namespace BlackMagic
 		std::shared_ptr<SimplePixelShader> _pixelShader;
 		BestFitAllocator* _allocator;
 
-		size_t GetTotalResourceMem(ISimpleShader* shader);
 		void UploadData(std::string name, const ResourceData& dat) const;
 	};
 }

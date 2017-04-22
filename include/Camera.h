@@ -12,6 +12,7 @@ class Camera
 public:
 	Camera();
 	Camera(BlackMagic::Vector3 offset);
+	virtual ~Camera() = default;
 	BlackMagic::Mat4 ViewMatrix() const;
 	BlackMagic::Mat4 ProjectionMatrix() const;
 

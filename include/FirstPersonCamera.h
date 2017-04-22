@@ -9,6 +9,7 @@ namespace BlackMagic
 	{
 	public:
 		FirstPersonCamera(Vector3 pos, Quaternion dir);
+		~FirstPersonCamera() = default;
 		void Update(float delta);
 	private:
 		float _rotation[2];

@@ -1227,6 +1227,11 @@ BestFitAllocator* DX11Renderer::GetGPUAllocator()
 	return nullptr;
 }
 
+BestFitAllocator* DX11Renderer::GetCPUAllocator()
+{
+	return nullptr;
+}
+
 GraphicsContext* DX11Renderer::GetCurrentContext()
 {
 	return nullptr;

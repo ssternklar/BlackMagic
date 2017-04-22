@@ -10,6 +10,7 @@ namespace BlackMagic
 	public:
 		GameObject() = default;
 		GameObject(Vector3 pos, Quaternion rot, Vector3 scale);
+		virtual ~GameObject() = default;
 
 		Transform& GetTransform();
 	protected:

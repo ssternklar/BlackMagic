@@ -8,7 +8,8 @@ namespace BlackMagic
 		enum Type
 		{
 			VERTEX_BUFFER,
-			INDEX_BUFFER
+			INDEX_BUFFER,
+			CONSTANT_BUFFER
 		};
 		
 		Buffer(Renderer* r, BufferHandle* buffer)
