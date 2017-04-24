@@ -6,6 +6,7 @@
 #include "DirectXCollision.h"
 #include "DDSTextureLoader.h"
 #include "PlatformBase.h"
+#include "SimpleShader.h"
 
 using namespace DirectX;
 using namespace BlackMagic;
@@ -1222,7 +1223,7 @@ Texture* DX11Renderer::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
 	return new Texture(this, tex, srv, rtv);
 }
 
-GraphicsContext* DX11Renderer::GetCurrentContext()
+GraphicsContext DX11Renderer::GetCurrentContext()
 {
 	return _context.Get();
 }

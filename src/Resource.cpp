@@ -8,7 +8,7 @@ Resource::Resource()
 	_resource(nullptr)
 {}
 
-Resource::Resource(Renderer* renderer, ResourceHandle* handle)
+Resource::Resource(Renderer* renderer, ResourceHandle handle)
 	: _renderer(renderer),
 	_resource(handle)
 {}

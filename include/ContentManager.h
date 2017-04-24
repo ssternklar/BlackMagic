@@ -37,7 +37,7 @@ namespace BlackMagic
 		void ProcessManifestFile(void* manifestFileLocation);
 
 		template<typename T>
-		T* UntrackedLoad(char* fileName)
+		T* UntrackedLoad(const char* fileName)
 		{
 			char path[256] = { 0 };
 			strcpy_s(path, directory);

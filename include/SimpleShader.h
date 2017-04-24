@@ -353,3 +353,9 @@ protected:
 //	than this file
 #include <SimpleShader.h>
 #endif
+
+namespace BlackMagic
+{
+	using VertexShader = SimpleVertexShader;
+	using PixelShader = SimplePixelShader;
+}

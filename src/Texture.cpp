@@ -3,7 +3,7 @@
 
 using namespace BlackMagic;
 
-Texture::Texture(Renderer* renderer, ResourceHandle* tex, ShaderResource* srView, RenderTarget* rtView)
+Texture::Texture(Renderer* renderer, ResourceHandle tex, ShaderResource srView, RenderTarget rtView)
 	: _rtView(rtView),
 	_srView(srView),
 	Resource(renderer, tex)
@@ -30,12 +30,12 @@ Texture& Texture::operator=(const Texture& t)
 	return *this;
 }
 
-ShaderResource* Texture::GetShaderResource() const
+ShaderResource Texture::GetShaderResource() const
 {
 	return _srView;
 }
 
-RenderTarget* Texture::GetRenderTarget() const
+RenderTarget Texture::GetRenderTarget() const
 {
 	return _rtView;
 }
