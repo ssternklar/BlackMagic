@@ -13,8 +13,6 @@
 
 namespace BlackMagic
 {
-	using VertexShader = SimpleVertexShader;
-	using PixelShader = SimplePixelShader;
 	class Renderer;
 
 	class ContentManager

@@ -22,7 +22,8 @@ Resource& Resource::operator=(const Resource& r)
 {
 	_renderer = r._renderer;
 	_resource = r._resource;
-	_renderer->AddResourceRef(_resource);
+	if (_renderer)
+		_renderer->AddResourceRef(_resource);
 	return *this;
 }
 
