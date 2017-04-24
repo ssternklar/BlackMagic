@@ -29,7 +29,7 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 
 	_globalLight = {
 		CreateVector4(0.0f, 0.0f, 0.0f, 1.0f),
-		CreateVector4(1.0f, 1.0f, 1.0f, 1.0f),
+		CreateVector4(10.0f, 10.0f, 10.0f, 1.0f),
 		CreateVector3(1, -1, 1),
 		CreateVector3(0, 1, 1)
 	};

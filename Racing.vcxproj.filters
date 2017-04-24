@@ -15,7 +15,6 @@
     <FxCompile Include="assets\shaders\SkyboxVS.hlsl" />
     <FxCompile Include="assets\shaders\QuadVS.hlsl" />
     <FxCompile Include="assets\shaders\ProjectorPS.hlsl" />
-    <FxCompile Include="assets\shaders\ReinhardTonemapping.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />

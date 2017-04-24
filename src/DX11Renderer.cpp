@@ -211,7 +211,7 @@ HRESULT DX11Renderer::InitDx(HWND window, UINT width, UINT height)
 	swapDesc.BufferDesc.Height = height;
 	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
 	swapDesc.BufferDesc.RefreshRate.Denominator = 1;
-	swapDesc.BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+	swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -290,7 +290,7 @@ void DX11Renderer::Init(ContentManager* content)
 	_fxaaPS = content->UntrackedLoad<PixelShader>(("/shaders/FXAA_PS.cso"));
 	_projectionPS = content->UntrackedLoad<PixelShader>(("/shaders/ProjectorPS.cso"));
 	_mergePS = content->UntrackedLoad<PixelShader>(("/shaders/FinalMerge.cso"));
-	//_tonemapPS = content->Load<PixelShader>(("/shaders/ReinhardTonemapping.hlsl"));
+	//_tonemapPS = content->UntrackedLoad<PixelShader>(("/shaders/ReinhardTonemapping.hlsl"));
 
 	//Set up g-buffer sampler
 	D3D11_SAMPLER_DESC sampDesc = {};
@@ -1039,7 +1039,7 @@ void DX11Renderer::InitBuffers()
 	albedoMapDesc.ArraySize = 1;
 	albedoMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	albedoMapDesc.CPUAccessFlags = 0;
-	albedoMapDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+	albedoMapDesc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
 	albedoMapDesc.MipLevels = 0;
 	albedoMapDesc.MiscFlags = 0;
 	albedoMapDesc.SampleDesc.Count = 1;
@@ -1065,7 +1065,7 @@ void DX11Renderer::InitBuffers()
 	normalMapDesc.ArraySize = 1;
 	normalMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	normalMapDesc.CPUAccessFlags = 0;
-	normalMapDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	normalMapDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	normalMapDesc.MipLevels = 0;
 	normalMapDesc.MiscFlags = 0;
 	normalMapDesc.SampleDesc.Count = 1;
@@ -1146,7 +1146,7 @@ void DX11Renderer::InitBuffers()
 	lightMapDesc.ArraySize = 1;
 	lightMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	lightMapDesc.CPUAccessFlags = 0;
-	lightMapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	lightMapDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	lightMapDesc.MipLevels = 1;
 	lightMapDesc.MiscFlags = 0;
 	lightMapDesc.SampleDesc.Count = 1;

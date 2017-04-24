@@ -120,7 +120,7 @@ float3 colorFromScenelight(GBuffer input)
     float3 indirectDiffuse = (pow(skyboxIrradianceMap.Sample(envSampler, dir).rgb * diffuseColor, 2.2));
     float3 indirectSpecular = ApproximateIBL(specColor, input.roughness, input.normal, v);
 
-    return saturate(dot(input.normal, l)) * (directDiffuse + directSpecular) + indirectDiffuse + indirectSpecular;
+    return sceneLight.DiffuseColor.rgb * saturate(dot(input.normal, l)) * (directDiffuse + directSpecular) + indirectDiffuse + indirectSpecular;
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
@@ -183,5 +183,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 		shadow = lerp(nextShadow, shadow, t);
 	}
 #endif
-	return float4(pow(colorFromScenelight(buffer), 1/2.2), linearDepth < 1);
+	return float4(colorFromScenelight(buffer), linearDepth < 1);
 }
