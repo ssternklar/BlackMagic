@@ -101,6 +101,7 @@ namespace BlackMagic
 		unsigned int Height;
 		unsigned int Width;
 		unsigned int Depth;
+		bool GenMipmaps;
 		Texture::Format Format;
 		Texture::Type Type;
 		Texture::Usage GPUUsage;

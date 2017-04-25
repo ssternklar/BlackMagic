@@ -63,7 +63,7 @@ Mesh::Mesh(BlackMagic::byte* vertexData, int vertexCount, BlackMagic::byte* inde
 {
 	_numIndices = indexCount;
 	_vBuf = device->CreateBuffer(Buffer::Type::VERTEX_BUFFER, vertexData, static_cast<unsigned int>(vertexCount * sizeof(Vertex)));
-	_iBuf = device->CreateBuffer(Buffer::Type::INDEX_BUFFER, indexData, static_cast<unsigned int>(indexCount * sizeof(unsigned int)));
+	_iBuf = device->CreateBuffer(Buffer::Type::INDEX_BUFFER, indexData, static_cast<unsigned int>(indexCount * sizeof(IndexType)));
 }
 
 

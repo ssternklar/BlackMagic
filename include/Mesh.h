@@ -10,6 +10,8 @@ namespace BlackMagic
 	class Mesh : public Resource
 	{
 	public:
+		using IndexType = unsigned int;
+
 		Mesh();
 		Mesh(byte* vertexData, int vertexCount, byte* indexData, int indexCount, Renderer* device);
 		~Mesh();
