@@ -1,8 +1,10 @@
 #include "TestGame.h"
-#include "DX11Renderer.h"
+#include "Renderer.h"
 #include "TestJob.h"
 #include "BMMath.h"
 #include "WAVFile.h"
+#include "ContentManager.h"
+#include "PlatformBase.h"
 using namespace BlackMagic;
 
 TestGame::TestGame(BlackMagic::PlatformBase* platformBase) :
@@ -144,6 +146,8 @@ void TestGame::LoadContent()
 		}
 	}
 #endif
+	auto sdr = PlatformBase::GetSingleton()->GetContentManager()->UntrackedLoad<WAVFile>("CityEscape.wav");
+	PlatformBase::GetSingleton()->GetAudioManager()->PlayBGM(sdr, .6f);
 }
 
 void TestGame::Update(float deltaTime)
@@ -153,7 +157,7 @@ void TestGame::Update(float deltaTime)
 		shouldExit = true;
 	}
 	_camera.Update(deltaTime);
-
+	printf("%f\n", deltaTime);
 	TransformData::GetSingleton()->UpdateTransforms();
 	/*auto job = platform->GetThreadManager()->CreateGenericJob<TestJob>();
 	job->WaitUntilJobIsComplete();

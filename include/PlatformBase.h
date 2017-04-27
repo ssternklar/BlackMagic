@@ -9,6 +9,8 @@
 #include "TransformData.h"
 #include "Transform.h"
 
+
+
 namespace BlackMagic {
 
 	class ContentManager;
@@ -30,6 +32,8 @@ namespace BlackMagic {
 		unsigned int windowHeight = 720;
 		static PlatformBase* singleton;
 	public:
+		static const int CPU_MEMORY_SIZE = 1024 * 1024 * 1024;
+
 		virtual bool InitWindow() = 0;
 		virtual void InitPlatformAudioManager() = 0;
 		virtual void InitPlatformThreadManager() = 0;

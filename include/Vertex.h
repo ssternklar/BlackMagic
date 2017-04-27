@@ -2,11 +2,6 @@
 
 #include "BMMath.h"
 
-// --------------------------------------------------------
-// A custom vertex definition
-//
-// You will eventually ADD TO this, and/or make more of these!
-// --------------------------------------------------------
 struct Vertex
 {
 	BlackMagic::Vector3 Position; // The position of the vertex

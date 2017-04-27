@@ -99,8 +99,4 @@ void BlackMagic::DirectXAudioManager::ResumeBGMInternal(float relativeVolume)
 void BlackMagic::DirectXAudioManager::UpdateAudio()
 {
 	audioEngine->Update();
-	if(BGM)
-	{
-		std::cout << BGM->GetState() << std::endl;
-	}
 }

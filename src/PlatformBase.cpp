@@ -7,8 +7,6 @@
 
 using namespace BlackMagic;
 
-const int CPU_MEMORY_SIZE = 1024 * 1024 * 1024;
-
 PlatformBase* PlatformBase::singleton = nullptr;
 
 void BlackMagic::PlatformBase::SetScreenDimensions(unsigned int width, unsigned int height)
