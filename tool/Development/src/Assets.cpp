@@ -301,6 +301,7 @@ void AssetManager::SaveProject()
 
 	for (size_t i = 0; i < meta.numMaterials; ++i)
 	{
+		MaterialData::Instance().Save(materialTracker.assets[i].handle);
 		fwrite(&materialTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
 		fwrite(materialTracker.assets[i].path.c_str(), materialTracker.assets[i].path.length() + 1, 1, projFile);
 		fwrite(materialTracker.assets[i].name.c_str(), materialTracker.assets[i].name.length() + 1, 1, projFile);

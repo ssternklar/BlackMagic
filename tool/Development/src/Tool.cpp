@@ -23,6 +23,7 @@ Tool::Tool()
 	resizing = false;
 
 	gui.entityData.meshIndex = -1;
+	gui.entityData.materialIndex = -1;
 	gui.meshImporter = false;
 	gui.textureImporter = false;
 	gui.shaderImporter = false;
@@ -33,6 +34,11 @@ Tool::Tool()
 	gui.exportData.prompt = false;
 	gui.exportData.sceneCount = 0;
 	gui.exportData.dragIndex = -1;
+	gui.materialData.create = false;
+	gui.materialData.index = 0;
+	gui.materialData.edit = false;
+	gui.materialData.vertexShaderIndex = 0;
+	gui.materialData.pixelShaderIndex = 0;
 
 	CreateConsoleWindow(500, 120, 32, 120);
 }
@@ -44,6 +50,7 @@ Tool::~Tool()
 
 HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
 {
+	// dirty solution for now
 	FileUtil::WriteResourceToDisk(IDR_MESH2, "mesh", "engine/skybox.obj");
 	FileUtil::WriteResourceToDisk(IDR_CUBEMAP1, "cubemap", "engine/park_skybox_env.dds");
 	FileUtil::WriteResourceToDisk(IDR_CUBEMAP2, "cubemap", "engine/park_skybox_radiance.dds");

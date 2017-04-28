@@ -144,6 +144,7 @@ void SceneData::SelectEntity(EntityData::Handle entity)
 	if (entity.ptr() && std::find(activeScene->entities.begin(), activeScene->entities.end(), entity) != activeScene->entities.end())
 	{
 		gui->meshIndex = (int)AssetManager::Instance().GetIndex<MeshData>(entity->mesh);
+		gui->materialIndex = (int)AssetManager::Instance().GetIndex<MaterialData>(entity->material);
 		activeScene->selectedEntity = entity;
 	}
 	else
@@ -151,6 +152,7 @@ void SceneData::SelectEntity(EntityData::Handle entity)
 		EntityData::Handle e;
 		activeScene->selectedEntity = e;
 		gui->meshIndex = -1;
+		gui->materialIndex = -1;
 	}
 }
 

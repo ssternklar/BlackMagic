@@ -10,7 +10,17 @@ struct GuiData
 	struct EntityEditorData
 	{
 		int meshIndex;
+		int materialIndex;
 	}entityData;
+	struct MaterialEditorData
+	{
+		bool create;
+		int index;
+		bool edit;
+		int vertexShaderIndex;
+		int pixelShaderIndex;
+		std::vector<int> textureIndices;
+	}materialData;
 	bool meshImporter;
 	bool textureImporter;
 	bool shaderImporter;
@@ -53,6 +63,8 @@ private:
 	void ExitToolGUI();
 	void InvokeGUI();
 	void PromptImport();
+	void PromptCreate();
+	void PromptEdit();
 	void PromptExport();
 	GuiData gui;
 };

@@ -75,7 +75,7 @@ MaterialData::Handle MaterialData::Load(std::string materialPath)
 	fread_s(&fileData.vertexShaderIndex, sizeof(size_t) * 3, sizeof(size_t), 3, materialFile);
 
 	h->vertexShader = AssetManager::Instance().GetAsset<VertexShaderData>(fileData.vertexShaderIndex).handle;
-	FlushPixelShader(h, AssetManager::Instance().GetAsset<PixelShaderData>(fileData.vertexShaderIndex).handle);
+	FlushPixelShader(h, AssetManager::Instance().GetAsset<PixelShaderData>(fileData.PixelShaderIndex).handle);
 
 	size_t textureIndex;
 	for (size_t i = 0; i < fileData.numTextures; ++i)
@@ -168,6 +168,9 @@ void MaterialData::Use(Handle handle)
 
 void MaterialData::FlushPixelShader(Handle handle, PixelShaderData::Handle newPixelShader)
 {
+	if (newPixelShader == handle->pixelShader)
+		return;
+
 	handle->pixelShader = newPixelShader;
 	handle->textures.clear();
 

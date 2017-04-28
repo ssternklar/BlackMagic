@@ -106,10 +106,33 @@ void Tool::InvokeGUI()
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::BeginMenu("Material"))
+		{
+			if (ImGui::MenuItem("New Material"))
+				gui.materialData.create = true;
+
+			ImGui::Combo("Material", &gui.materialData.index, ComboAssetNames<MaterialData>, NULL, AssetManager::Instance().GetAssetCount<MaterialData>());
+			if (ImGui::Button("Edit"))
+			{
+				gui.materialData.edit = true;
+				MaterialData::Handle mat = AssetManager::Instance().GetAsset<MaterialData>(gui.materialData.index).handle;
+				gui.materialData.vertexShaderIndex = AssetManager::Instance().GetIndex<VertexShaderData>(mat->vertexShader);
+				gui.materialData.pixelShaderIndex = AssetManager::Instance().GetIndex<PixelShaderData>(mat->pixelShader);
+
+				gui.materialData.textureIndices.clear();
+				for (size_t i = 0; i < mat->textures.size(); ++i)
+					gui.materialData.textureIndices.push_back(AssetManager::Instance().GetIndex<TextureData>(mat->textures[i]));
+			}
+
+			ImGui::EndMenu();
+		}
+
 		ImGui::EndMainMenuBar();
 	}
 
 	PromptImport();
+	PromptCreate();
+	PromptEdit();
 
 	// status info window
 	ImGui::SetNextWindowPos(ImVec2((float)Graphics::Instance().GetWidth() - 309, 19));
@@ -140,7 +163,9 @@ void Tool::InvokeGUI()
 				ImGui::DragFloat3("Position", &scene->selectedEntity->transform->pos.x, 0.005f);
 				ImGui::DragFloat("Scale", &scene->selectedEntity->transform->scale, 0.005f);
 				ImGui::Combo("Mesh", &gui.entityData.meshIndex, ComboAssetNames<MeshData>, NULL, AssetManager::Instance().GetAssetCount<MeshData>());
+				ImGui::Combo("Material", &gui.entityData.materialIndex, ComboAssetNames<MaterialData>, NULL, AssetManager::Instance().GetAssetCount<MaterialData>());
 				scene->selectedEntity->mesh = AssetManager::Instance().GetAsset<MeshData>(gui.entityData.meshIndex).handle;
+				scene->selectedEntity->material = AssetManager::Instance().GetAsset<MaterialData>(gui.entityData.materialIndex).handle;
 			}
 		}
 
@@ -309,7 +334,7 @@ void Tool::PromptImport()
 				ImGui::Text("The path '%s%s' is invalid\nor it is not a pixel shader.", PixelShaderData::Instance().root.c_str(), path);
 				break;
 			}
-			
+
 			if (ImGui::Button("OK", ImVec2(60, 0)))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
@@ -320,7 +345,10 @@ void Tool::PromptImport()
 			ImGui::CloseCurrentPopup();
 		ImGui::EndPopup();
 	}
+}
 
+void Tool::PromptCreate()
+{
 	// scene create
 	if (gui.sceneCreate)
 	{
@@ -366,6 +394,87 @@ void Tool::PromptImport()
 		if (ImGui::Button("Cancel", ImVec2(60, 0)))
 			ImGui::CloseCurrentPopup();
 		ImGui::EndPopup();
+	}
+
+	// material create
+	if (gui.materialData.create)
+	{
+		ImGui::OpenPopup("Name your new material:");
+		gui.materialData.create = false;
+	}
+
+	if (ImGui::BeginPopupModal("Name your new material:", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Omit the file extension.\n");
+		ImGui::Separator();
+
+		ImGui::Text(MaterialData::Instance().root.c_str());
+		ImGui::SameLine();
+		static char name[128] = "";
+
+		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+			ImGui::SetKeyboardFocusHere(0);
+
+		if (ImGui::InputText("", name, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Create", ImVec2(60, 0)))
+		{
+			if (strnlen_s(name, 128) > 0)
+			{
+				MaterialData::Handle h = MaterialData::Instance().Create(name);
+				if (!h.ptr())
+					ImGui::OpenPopup("Failed to create the material...");
+				else
+				{
+					ImGui::CloseCurrentPopup();
+					gui.materialData.index = AssetManager::Instance().GetIndex<MaterialData>(h);
+				}
+			}
+		}
+
+		if (ImGui::BeginPopupModal("Failed to create the material..."))
+		{
+			if (ImGui::Button("Yell at David.", ImVec2(120, 0)))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(60, 0)))
+			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+	}
+}
+
+void Tool::PromptEdit()
+{
+	if (gui.materialData.edit)
+	{
+		if (ImGui::Begin("Material Editor", &gui.materialData.edit))
+		{
+			Asset<MaterialData> mat = AssetManager::Instance().GetAsset<MaterialData>(gui.materialData.index);
+
+			ImGui::Text("Name: %s", mat.name.c_str());
+			ImGui::Separator();
+
+			ImGui::Combo("Vertex Shader", &gui.materialData.vertexShaderIndex, ComboAssetNames<VertexShaderData>, NULL, AssetManager::Instance().GetAssetCount<VertexShaderData>());
+			ImGui::Combo("Pixel Shader", &gui.materialData.pixelShaderIndex, ComboAssetNames<PixelShaderData>, NULL, AssetManager::Instance().GetAssetCount<PixelShaderData>());
+			mat.handle->vertexShader = AssetManager::Instance().GetAsset<VertexShaderData>(gui.materialData.vertexShaderIndex).handle;
+			MaterialData::Instance().FlushPixelShader(mat.handle, AssetManager::Instance().GetAsset<PixelShaderData>(gui.materialData.pixelShaderIndex).handle);
+
+			ImGui::Separator();
+			ImGui::Text("Textures:");
+
+			for (size_t i = 0; i < mat.handle->textures.size(); ++i)
+			{
+				ImGui::PushID(i);
+
+				ImGui::Combo(mat.handle->pixelShader->textures[i].c_str(), &gui.materialData.textureIndices[i], ComboAssetNames<TextureData>, NULL, AssetManager::Instance().GetAssetCount<TextureData>());
+				mat.handle->textures[i] = AssetManager::Instance().GetAsset<TextureData>(gui.materialData.textureIndices[i]).handle;
+
+				ImGui::PopID();
+			}
+		}
+
+		ImGui::End();
 	}
 }
 
