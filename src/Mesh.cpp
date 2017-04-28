@@ -8,54 +8,48 @@
 #include "GraphicsTypes.h"
 
 using namespace BlackMagic;
-using namespace DirectX;
-
-void OrthonormalizeTB(Vertex& v, XMVECTOR tO, XMVECTOR uO)
+/*
+void OrthonormalizeTB(Vertex& v, Vector3 tO, Vector3 uO)
 {
-	XMVECTOR n = XMLoadFloat3(&v.Normal);
-	XMVECTOR t = tO - XMVector3Dot(tO, n)*n;
-	XMVECTOR u = uO - XMVector3Dot(uO, n)*n - XMVector3Dot(uO, t)*t;
+	auto n = v.Normal;
+	auto t = tO - Dot(tO, n)*n;
+	auto u = uO - Dot(uO, n)*n - Dot(uO, t)*t;
 
-	XMVector3Normalize(t);
-	XMVector3Normalize(u);
+	t = Normalize(t);
+	u = Normalize(u);
 
-	if (XMVector3Dot(XMVector3Cross(n, t), u).m128_f32[0] < 0.0f)
-		XMVectorNegate(t);
+	if (Dot(Cross(n, t), u) < 0.0f)
+		t = t * -1.0f;
 
-
-	XMFLOAT3 tangent, binormal;
-	XMStoreFloat3(&tangent, t);
-	XMStoreFloat3(&binormal, u);
-
-	v.Tangent = tangent;
-	v.Binormal = binormal;
+	v.Tangent = t;
+	v.Binormal = u;
 }
 
 void CalculateTBN(Vertex& v1, Vertex& v2, Vertex& v3)
 {
-	XMVECTOR p1 = XMLoadFloat3(&v1.Position);
-	XMVECTOR p2 = XMLoadFloat3(&v2.Position);
-	XMVECTOR p3 = XMLoadFloat3(&v3.Position);
+	auto p1 = v1.Position;
+	auto p2 = v2.Position;
+	auto p3 = v3.Position;
 
-	XMVECTOR n = XMLoadFloat3(&v1.Normal);
+	auto n = v1.Normal;
 
-	XMVECTOR t1 = XMLoadFloat2(&v1.UV);
-	XMVECTOR t2 = XMLoadFloat2(&v2.UV);
-	XMVECTOR t3 = XMLoadFloat2(&v3.UV);
+	auto t1 = v1.UV;
+	auto t2 = v2.UV;
+	auto t3 = v3.UV;
 
-	XMVECTOR x = p2 - p1;
-	XMVECTOR y = p3 - p1;
-	XMVECTOR a = t2 - t1;
-	XMVECTOR b = t3 - t1;
+	auto x = p2 - p1;
+	auto y = p3 - p1;
+	auto a = t2 - t1;
+	auto b = t3 - t1;
 
-	float det = 1 / (a.m128_f32[0] * b.m128_f32[1] - a.m128_f32[1] * b.m128_f32[0]);
-	XMVECTOR t = (x * b.m128_f32[1] - y * a.m128_f32[1])*det;
-	XMVECTOR u = (y * a.m128_f32[0] - x * b.m128_f32[0])*det;
+	float det = 1 / (a.data[0] * b.data[1] - a.data[1] * b.data[0]);
+	auto t = (x * b.data[1] - y * a.data[1])*det;
+	auto u = (y * a.data[0] - x * b.data[0])*det;
 
 	OrthonormalizeTB(v1, t, u);
 	OrthonormalizeTB(v2, t, u);
 	OrthonormalizeTB(v3, t, u);
-}
+}*/
 
 Mesh::Mesh() : Resource(),
 	_vBuf(nullptr, nullptr),
@@ -68,8 +62,8 @@ Mesh::Mesh(BlackMagic::byte* vertexData, int vertexCount, BlackMagic::byte* inde
 	: Resource()
 {
 	_numIndices = indexCount;
-	_vBuf = device->CreateBuffer(Buffer::Type::VERTEX_BUFFER, vertexData, static_cast<UINT>(vertexCount * sizeof(Vertex)));
-	_iBuf = device->CreateBuffer(Buffer::Type::INDEX_BUFFER, indexData, static_cast<UINT>(indexCount * sizeof(UINT)));
+	_vBuf = device->CreateBuffer(Buffer::Type::VERTEX_BUFFER, vertexData, static_cast<unsigned int>(vertexCount * sizeof(Vertex)));
+	_iBuf = device->CreateBuffer(Buffer::Type::INDEX_BUFFER, indexData, static_cast<unsigned int>(indexCount * sizeof(IndexType)));
 }
 
 

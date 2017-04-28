@@ -2,15 +2,14 @@
 #include "TransformData.h"
 #include "Transform.h"
 
-using namespace DirectX;
 using namespace BlackMagic;
 
 TransformData* TransformData::singletonRef = nullptr;
 
 TransformData::TransformData() : matrixAllocator(
 	64,
-	sizeof(XMFLOAT4X4) * 400,
-	sizeof(XMFLOAT4X4),
+	sizeof(Mat4) * 400,
+	sizeof(Mat4),
 	(byte*)&(_matrices[0]))
 {
 	singletonRef = this;
@@ -23,9 +22,9 @@ TransformData* TransformData::GetSingleton()
 
 TransformID TransformData::AllocateTransform()
 {
-	XMFLOAT4X4* alloc = matrixAllocator.allocate<XMFLOAT4X4>();
+	Mat4* alloc = matrixAllocator.allocate<Mat4>();
 	TransformID res = alloc - _matrices;
-	_matrices[res]._44 = 1;
+	_matrices[res].data[15] = 1;
 	if (res > highestAllocated)
 	{
 		highestAllocated = res;
@@ -47,8 +46,8 @@ TransformID TransformData::AllocateTransform()
 
 void TransformData::DeallocateTransform(TransformID id)
 {
-	memset(&(_matrices[id]), 0, sizeof(XMFLOAT4X4));
-	matrixAllocator.deallocate<XMFLOAT4X4>(&(_matrices[id]));
+	memset(&(_matrices[id]), 0, sizeof(Mat4));
+	matrixAllocator.deallocate<Mat4>(&(_matrices[id]));
 	if (id == highestAllocated)
 	{
 		//decrease it. Figure out who has the next highest.
@@ -61,16 +60,22 @@ void TransformData::UpdateTransforms()
 	for(size_t i = 0; i < highestAllocated + 1; i++)
 	{
 		//perhaps don't process invalid transforms?
-		auto r = XMLoadFloat4(&_rotations[i]);
-		auto p = XMLoadFloat3(&_positions[i]);
-		auto s = XMLoadFloat3(&_scales[i]);
+		auto r = _rotations[i];
+		auto p = _positions[i];
+		auto s = _scales[i];
+		auto rS = CreateVector3Zero();
+		auto mat = CreateAffineTransformation(
+			_scales[i],
+			rS,
+			_rotations[i],
+			_positions[i]
+		);
 
-		auto mat = XMMatrixAffineTransformation(s, XMVectorZero(), r, p);
-		XMStoreFloat4x4(&_matrices[i], XMMatrixTranspose(mat));
+		_matrices[i] = Transpose(mat);
 	}
 }
 
-DirectX::XMFLOAT4X4* TransformData::GetMatrix(TransformID id)
+Mat4* TransformData::GetMatrix(TransformID id)
 {
 	return &_matrices[id];
 }

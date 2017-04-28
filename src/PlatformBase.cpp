@@ -1,14 +1,20 @@
 #include "PlatformBase.h"
-#ifdef _WIN32
+#include "ContentManager.h"
+
+#ifdef BM_PLATFORM_WINDOWS
 #include <new>
-#include <Windows.h>
 #endif
 
 using namespace BlackMagic;
 
-const int CPU_MEMORY_SIZE = 1024 * 1024 * 1024;
-
 PlatformBase* PlatformBase::singleton = nullptr;
+
+void BlackMagic::PlatformBase::SetScreenDimensions(unsigned int width, unsigned int height)
+{
+	windowWidth = width;
+	windowHeight = height;
+	renderer->OnResize(width, height);
+}
 
 void PlatformBase::GetScreenDimensions(unsigned int* width, unsigned int* height)
 {
@@ -45,17 +51,20 @@ bool PlatformBase::BlackMagicInit()
 	strcpy_s(path, GetAssetDirectory());
 	strcat_s(path, "manifest.bm");
 	unsigned int fileSize = GetFileSize(path);
-	BlackMagic::byte* manifestFile = (byte*)allocatorAllocator->allocate(fileSize, 1);
-	ReadFileIntoMemory(path, manifestFile, fileSize);
-	contentManager->ProcessManifestFile(manifestFile);
-	allocatorAllocator->deallocate(manifestFile, fileSize, 1);
+	if (fileSize > 0)
+	{
+		BlackMagic::byte* manifestFile = (byte*)allocatorAllocator->allocate(fileSize, 1);
+		ReadFileIntoMemory(path, manifestFile, fileSize);
+		contentManager->ProcessManifestFile(manifestFile);
+		allocatorAllocator->deallocate(manifestFile, fileSize, 1);
+	}
 	
 	renderer->Init(contentManager);
 
 	InitPlatformAudioManager();
 	InitPlatformThreadManager();
 
-	transformData = AllocateAndConstruct<StackAllocator, TransformData>(allocatorAllocator, 1);
+	transformData = AllocateAndConstruct<TransformData>(allocatorAllocator, 1);
 
 	gameMemorySize = allocatorAllocator->GetRemainingSize() - 32;
 	gameMemory = (byte*)allocatorAllocator->allocate(gameMemorySize);
@@ -65,6 +74,9 @@ bool PlatformBase::BlackMagicInit()
 
 void PlatformBase::BlackMagicCleanup()
 {
+	contentManager->AssetGC();
+	ShutdownPlatform();
+
 	if (contentManager)
 		contentManager->~ContentManager();
 	
@@ -73,10 +85,8 @@ void PlatformBase::BlackMagicCleanup()
 	
 	if (threadManager)
 		threadManager->~ThreadManager();
-	
 	if (audioManager)
 		audioManager->~AudioManager();
-
 	ReturnSystemMemory(TheCPUMemory);
 }
 

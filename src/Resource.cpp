@@ -8,7 +8,7 @@ Resource::Resource()
 	_resource(nullptr)
 {}
 
-Resource::Resource(Renderer* renderer, ResourceHandle* handle)
+Resource::Resource(Renderer* renderer, ResourceHandle handle)
 	: _renderer(renderer),
 	_resource(handle)
 {}
@@ -22,7 +22,8 @@ Resource& Resource::operator=(const Resource& r)
 {
 	_renderer = r._renderer;
 	_resource = r._resource;
-	_renderer->AddResourceRef(_resource);
+	if (_renderer)
+		_renderer->AddResourceRef(_resource);
 	return *this;
 }
 

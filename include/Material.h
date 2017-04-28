@@ -1,7 +1,5 @@
 #pragma once
 
-#include <d3d11.h>
-#include <DirectXMath.h>
 #include <memory>
 
 #include "allocators/AllocatorSTLAdapter.h"
@@ -44,10 +42,7 @@ namespace BlackMagic
 		Material(
 			BestFitAllocator& allocator,
 			const std::shared_ptr<SimpleVertexShader>& vs, 
-			const std::shared_ptr<SimplePixelShader>& ps,
-			const std::shared_ptr<SimpleHullShader>* hs = nullptr,
-			const std::shared_ptr<SimpleDomainShader>* ds = nullptr,
-			const std::shared_ptr<SimpleGeometryShader>* gs = nullptr
+			const std::shared_ptr<SimplePixelShader>& ps
 		);
 		Material(const Material&);
 		Material& operator=(const Material&);
@@ -55,9 +50,6 @@ namespace BlackMagic
 
 		SimpleVertexShader* VertexShader() const;
 		SimplePixelShader* PixelShader() const;
-		SimpleHullShader* HullShader() const;
-		SimpleDomainShader* DomainShader() const;
-		SimpleGeometryShader* GeometryShader() const;
 
 		//Turns on shader stages and uploads persistent data
 		void Use(bool freshUse = false) const;
@@ -97,12 +89,8 @@ namespace BlackMagic
 			AllocatorSTLAdapter<std::pair<std::string, std::shared_ptr<ResourceData>>, BestFitAllocator>> _instanceData;
 		std::shared_ptr<SimpleVertexShader> _vertShader;
 		std::shared_ptr<SimplePixelShader> _pixelShader;
-		std::shared_ptr<SimpleHullShader> _hullShader;
-		std::shared_ptr<SimpleDomainShader> _domainShader;
-		std::shared_ptr<SimpleGeometryShader> _geometryShader;
 		BestFitAllocator* _allocator;
 
-		size_t GetTotalResourceMem(ISimpleShader* shader);
 		void UploadData(std::string name, const ResourceData& dat) const;
 	};
 }

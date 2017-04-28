@@ -9,7 +9,6 @@ namespace BlackMagic
 {
 	class WindowsPlatform : public PlatformBase
 	{
-		static WindowsPlatform* singletonRef;
 		HINSTANCE hInstance;
 		HWND hWnd;
 		MSG msg = {};
@@ -31,15 +30,15 @@ namespace BlackMagic
 		virtual float GetDeltaTime() override;
 		virtual void ReturnSystemMemory(byte* memory) override;
 		virtual const char* GetAssetDirectory() override;
-		virtual bool ReadFileIntoMemory(char* fileName, byte* fileBuffer, size_t bufferSize) override;
-		virtual unsigned int GetFileSize(char* fileName) override;
+		virtual bool ReadFileIntoMemory(const char* fileName, byte* fileBuffer, size_t bufferSize) override;
+		virtual unsigned int GetFileSize(const char* fileName) override;
+		virtual void ShutdownPlatform() override;
 		static LRESULT CALLBACK WindowProc(
 			HWND hWnd, // Window handle
 			UINT uMsg, // Message
 			WPARAM wParam, // Message's first parameter
 			LPARAM lParam // Message's second parameter
 		);
-		static WindowsPlatform* GetInstance();
 		WindowsPlatform(HINSTANCE instance);
 		~WindowsPlatform();
 		HINSTANCE GetHINSTANCE();

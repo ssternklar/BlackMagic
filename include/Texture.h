@@ -1,6 +1,5 @@
 #pragma once
 
-#include <d3d11.h>
 #include <memory>
 #include "GraphicsTypes.h"
 #include "Resource.h"
@@ -73,26 +72,26 @@ namespace BlackMagic
 			R1_UNORM
 		};
 
-		explicit Texture(BlackMagic::Renderer* device, ResourceHandle* tex, ShaderResource* srView, RenderTarget* rtView);
+		explicit Texture(BlackMagic::Renderer* device, ResourceHandle tex, ShaderResource srView, RenderTarget rtView);
 		Texture(const Texture& t);
 		virtual ~Texture();
 
-		ShaderResource* GetShaderResource() const;
-		RenderTarget* GetRenderTarget() const;
+		ShaderResource GetShaderResource() const;
+		RenderTarget GetRenderTarget() const;
 		
 		Texture& operator=(const Texture& t);
-		operator ShaderResource*() { return _srView; }
-		operator RenderTarget*() { return _rtView; }
+		operator ShaderResource() { return _srView; }
+		operator RenderTarget() { return _rtView; }
 
 	protected:
-		ShaderResource* _srView;
-		RenderTarget* _rtView;
+		ShaderResource _srView;
+		RenderTarget _rtView;
 	};
 
 	class Cubemap : public Texture
 	{
 	public:
-		explicit Cubemap(BlackMagic::Renderer* device, ResourceHandle* tex, ShaderResource* srView, RenderTarget* rtView)
+		explicit Cubemap(BlackMagic::Renderer* device, ResourceHandle tex, ShaderResource srView, RenderTarget rtView)
 			: Texture(device, tex, srView, rtView) {}
 		explicit Cubemap(const Texture& t) : Texture(t) {}
 	};
@@ -102,6 +101,7 @@ namespace BlackMagic
 		unsigned int Height;
 		unsigned int Width;
 		unsigned int Depth;
+		bool GenMipmaps;
 		Texture::Format Format;
 		Texture::Type Type;
 		Texture::Usage GPUUsage;

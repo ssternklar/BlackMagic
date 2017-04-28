@@ -6,12 +6,10 @@ namespace BlackMagic
 
 	class GameAbstraction
 	{
-	protected:
-		PlatformBase* platform;
-		bool shouldExit = false;
 	public:
-		GameAbstraction(PlatformBase* platformBase);
+		bool shouldExit = false;
 		int RunGame();
+		virtual ~GameAbstraction() = default;
 		virtual void Init(byte* gameMemory, size_t memorySize) = 0;
 		virtual void Update(float deltaTime) = 0;
 		virtual void Draw(float deltaTime) = 0;

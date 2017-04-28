@@ -5,27 +5,27 @@
 
 #define KEYPRESSED(char) (GetAsyncKeyState(char) & 0x8000)
 
-using namespace DirectX;
+using namespace BlackMagic;
 
-Camera::Camera() : offset({ 0,0,0 }), pos({0,0,0})
+Camera::Camera() : pos(CreateVector3Zero()), offset(CreateVector3Zero())
 {
 }
 
-Camera::Camera(XMFLOAT3 offset) : offset(offset), pos({0,0,0})
+Camera::Camera(Vector3 offset) : offset(offset), pos({0,0,0})
 {
 }
 
-XMFLOAT4X4 Camera::ViewMatrix() const
+Mat4 Camera::ViewMatrix() const
 {
 	return _viewMat;
 }
 
-XMFLOAT4X4 Camera::ProjectionMatrix() const
+Mat4 Camera::ProjectionMatrix() const
 {
 	return _projMat;
 }
 
-DirectX::XMFLOAT3 Camera::Position() const
+Vector3 Camera::Position() const
 {
 	return pos;
 }
@@ -37,24 +37,24 @@ BoundingFrustum Camera::Frustum() const
 
 void Camera::Update(Transform& transform)
 {
-	auto quaternion = XMLoadFloat4(&transform.GetRotation());
-	auto offsetV = XMVector3Rotate(XMLoadFloat3(&offset), quaternion);
-	auto up = XMVector3Rotate(XMVectorSet(0, 1, 0, 0), quaternion);
-	auto position = XMLoadFloat3(&transform.GetPosition());
-	auto view = XMMatrixLookToLH(position + offsetV, XMLoadFloat3(&transform.GetForward()), up);
-	XMStoreFloat4x4(&_viewMat, XMMatrixTranspose(view));
-	XMStoreFloat3(&pos, position + offsetV);
+	auto quaternion = transform.GetRotation();
+	auto offsetV = Rotate(offset, quaternion); 
+	auto up = Rotate(CreateVector3(0, 1, 0), quaternion);
+	auto position = transform.GetPosition();
+	auto view = CreateMatrixLookToLH(position + offsetV, transform.GetForward(), up);//XMMatrixLookToLH(position + offsetV, XMLoadFloat3(&transform.GetForward()), up);
+	
+	_viewMat = view;
+	pos = position + offsetV;
 
-	auto proj = XMMatrixTranspose(XMLoadFloat4x4(&_projMat));
+	auto proj = _projMat;
 	BoundingFrustum frustum{ proj };
-	frustum.Transform(frustum, XMMatrixInverse(nullptr, view));
+	frustum.Transform(frustum, Inverse(view));
 }
 
-void Camera::UpdateProjectionMatrix(UINT width, UINT height)
+void Camera::UpdateProjectionMatrix(unsigned int width, unsigned int height)
 {
 	float aspect = static_cast<float>(width) / height;
 
 	//using 2pi/5 instead of pi/4 for fov
-	XMStoreFloat4x4(&_projMat,
-	                XMMatrixTranspose(XMMatrixPerspectiveFovLH(0.4f * 3.14f, aspect, CAM_NEAR_Z, CAM_FAR_Z)));
+	_projMat = CreateMatrixPerspectiveFovLH(0.4f * 3.14f, aspect, CAM_NEAR_Z, CAM_FAR_Z);
 }

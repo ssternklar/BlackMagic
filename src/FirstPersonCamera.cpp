@@ -1,13 +1,9 @@
 #include "FirstPersonCamera.h"
-
-#include "WindowsPlatform.h"
+#include "PlatformBase.h"
 
 using namespace BlackMagic;
-using namespace DirectX;
 
-#define KEYPRESSED(char) ((GetAsyncKeyState(char) & 0x8000)>>15)
-
-FirstPersonCamera::FirstPersonCamera(XMFLOAT3 pos, XMFLOAT4 dir)
+FirstPersonCamera::FirstPersonCamera(Vector3 pos, Quaternion dir)
 	: GameObject(pos, dir, {1,1,1}),
 	Camera({0,0,0})
 {
@@ -16,30 +12,27 @@ FirstPersonCamera::FirstPersonCamera(XMFLOAT3 pos, XMFLOAT4 dir)
 
 void FirstPersonCamera::Update(float delta)
 {
-	auto input = WindowsPlatform::GetInstance()->GetInputData();
+	auto input = PlatformBase::GetSingleton()->GetInputData();
 
-	if (input->GetButton(0))
+	if (input->GetButton(MouseButton::Left))
 	{
-		auto xRot = input->GetAxis(InputData::Axis::X)*0.5f*XM_PI;
-		auto yRot = input->GetAxis(InputData::Axis::Y)*0.5f*XM_PI;
+		auto xRot = input->GetAxis(InputData::Axis::X)*0.5f*3.14f;
+		auto yRot = input->GetAxis(InputData::Axis::Y)*0.5f*3.14f;
 
 		//printf("(%f, %f)\n", xRot, yRot);
 
-		_rotation.x += xRot;
-		_rotation.y += yRot;
+		_rotation[0] += xRot;
+		_rotation[1] += yRot;
 	
-		xRot = max(0.45f*-XM_PI, min(0.45f*XM_PI, xRot));
-		XMFLOAT4 q;
-		XMStoreFloat4(&q, XMQuaternionRotationRollPitchYaw(_rotation.y, _rotation.x, 0));
-		_transform.SetRotation(q);
+		_transform.SetRotation(CreateQuaternion(0, _rotation[1], _rotation[0]));
 	}
 
-	int boost = KEYPRESSED(VK_LSHIFT);
-	XMFLOAT3 dp = {
-		delta * (KEYPRESSED('D') - KEYPRESSED('A')) * (1+boost) * 2,
-		delta * (KEYPRESSED(VK_SPACE) - KEYPRESSED(VK_LCONTROL)) * (1+boost) * 2,
-		delta * (KEYPRESSED('W') - KEYPRESSED('S')) * (1+boost) * 2
-	};
+	int boost = input->GetButton(Key::SHIFT);
+	Vector3 dp = CreateVector3(
+		delta * (input->GetButton(Key::D) - input->GetButton(Key::A)) * (1+boost) * 2,
+		delta * (input->GetButton(Key::SPACE) - input->GetButton(Key::LCTRL)) * (1+boost) * 2,
+		delta * (input->GetButton(Key::W) - input->GetButton(Key::S)) * (1+boost) * 2
+	);
 
 	_transform.Move(dp);
 

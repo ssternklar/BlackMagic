@@ -1,6 +1,5 @@
 #pragma once
 #include "Resource.h"
-#include "PlatformResourceTypes.h"
 
 namespace BlackMagic
 {
@@ -9,24 +8,25 @@ namespace BlackMagic
 		enum Type
 		{
 			VERTEX_BUFFER,
-			INDEX_BUFFER
+			INDEX_BUFFER,
+			CONSTANT_BUFFER
 		};
 		
-		Buffer(Renderer* r, BufferHandle* buffer)
+		Buffer(Renderer* r, BufferHandle buffer)
 			: Resource(r, buffer) {}
 		Buffer() = default;
 		Buffer(const Buffer& b) { *this = b; }
 
 		Buffer& operator=(const Buffer& b) { Resource::operator=(b); return *this;  }
-		operator BufferHandle*() { return static_cast<BufferHandle*>(_resource); }
+		operator BufferHandle() { return static_cast<BufferHandle>(_resource); }
 	};
 
 	struct Sampler : public Resource
 	{
 		Sampler() = default;
-		Sampler(Renderer* r, SamplerHandle* handle)
+		Sampler(Renderer* r, SamplerHandle handle)
 			: Resource(r, handle) {}
 
-		operator SamplerHandle*() { return static_cast<SamplerHandle*>(_resource); }
+		operator SamplerHandle() { return static_cast<SamplerHandle>(_resource); }
 	};
 }

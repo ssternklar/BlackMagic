@@ -91,7 +91,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BM_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BM_PLATFORM_WINDOWS;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -108,7 +109,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)include\</AdditionalIncludeDirectories>
     </FxCompile>
     <FxCompile>
-      <ShaderModel>5.1</ShaderModel>
+      <ShaderModel>5.0</ShaderModel>
       <ObjectFileOutput>
       </ObjectFileOutput>
       <PreprocessorDefinitions>DXSHADER</PreprocessorDefinitions>
@@ -135,7 +136,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BM_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BM_PLATFORM_WINDOWS;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -143,7 +144,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <FxCompile>
-      <ShaderModel>5.1</ShaderModel>
+      <ShaderModel>5.0</ShaderModel>
       <PreprocessorDefinitions>DXSHADER</PreprocessorDefinitions>
     </FxCompile>
   </ItemDefinitionGroup>
@@ -177,6 +178,7 @@
     <ClCompile Include="src\ThreadManager.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\TransformData.cpp" />
+    <ClCompile Include="src\WAVFile.cpp" />
     <ClCompile Include="src\WindowsMath.cpp" />
     <ClCompile Include="src\WindowsPlatform.cpp" />
   </ItemGroup>
@@ -190,6 +192,7 @@
     <ClInclude Include="include\AudioManager.h" />
     <ClInclude Include="include\BMMath.h" />
     <ClInclude Include="include\Camera.h" />
+    <ClInclude Include="include\ContentClasses.h" />
     <ClInclude Include="include\ContentManager.h" />
     <ClInclude Include="include\DirectionalLight.h" />
     <ClInclude Include="include\DirectXAudioManager.h" />
@@ -214,7 +217,6 @@
     <ClInclude Include="include\RenderJob.h" />
     <ClInclude Include="include\DX11Renderer.h" />
     <ClInclude Include="include\PlatformResourceTypes.h" />
-    <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\StdThreadManager.h" />
     <ClInclude Include="include\TestGame.h" />
@@ -224,6 +226,7 @@
     <ClInclude Include="include\Transform.h" />
     <ClInclude Include="include\TransformData.h" />
     <ClInclude Include="include\Vertex.h" />
+    <ClInclude Include="include\WAVFile.h" />
     <ClInclude Include="include\WindowsPlatform.h" />
   </ItemGroup>
   <ItemGroup>
@@ -293,6 +296,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\ShaderBase.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

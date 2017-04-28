@@ -16,6 +16,7 @@ namespace BlackMagic
 		virtual Mutex PlatformCreateMutex() override;
 		virtual void PlatformLockMutex(Mutex mutex) override;
 		virtual void PlatformUnlockMutex(Mutex mutex) override;
+		virtual void PlatformSleepThisThread(unsigned int t) override;
 	public:
 		std::thread threads[MAX_THREADS];
 		std::mutex mutexes[MAX_MUTEXES];

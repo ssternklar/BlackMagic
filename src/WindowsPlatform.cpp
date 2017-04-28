@@ -4,8 +4,6 @@
 #include <fstream>
 using namespace BlackMagic;
 
-WindowsPlatform* WindowsPlatform::singletonRef = nullptr;
-
 bool WindowsPlatform::GetSystemMemory(size_t size, BlackMagic::byte** ptr)
 {
 	(*ptr = (BlackMagic::byte*)(::operator new(size)));
@@ -48,45 +46,40 @@ LRESULT BlackMagic::WindowsPlatform::WindowProc(HWND hWnd, UINT uMsg, WPARAM wPa
 		// Sent when the window size changes
 	case WM_SIZE:
 		// Save the new client area dimensions.
-		singletonRef->windowWidth = LOWORD(lParam);
-		singletonRef->windowHeight = HIWORD(lParam);
-
-		// If DX is initialized, resize 
-		// our required buffers
-		singletonRef->renderer->OnResize(singletonRef->windowWidth, singletonRef->windowHeight);
+		PlatformBase::GetSingleton()->SetScreenDimensions(LOWORD(lParam), HIWORD(lParam));
 
 		return 0;
 
 		// Mouse button being pressed (while the cursor is currently over our window)
 	case WM_LBUTTONDOWN:
-		singletonRef->inputData.SetButton(0, true);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Left, true);
 		SetCapture(hWnd);
 		return 0;
 	case WM_MBUTTONDOWN:
-		singletonRef->inputData.SetButton(1, true);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Middle, true);
 		return 0;
 	case WM_RBUTTONDOWN:
-		singletonRef->inputData.SetButton(2, true);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Right, true);
 		//OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 		// Mouse button being released (while the cursor is currently over our window)
 	case WM_LBUTTONUP:
-		singletonRef->inputData.SetButton(0, false);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Left, false);
 		ReleaseCapture();
 		return 0;
 	case WM_MBUTTONUP:
-		singletonRef->inputData.SetButton(1, false);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Middle, false);
 		return 0;
 	case WM_RBUTTONUP:
-		singletonRef->inputData.SetButton(2, false);
+		PlatformBase::GetSingleton()->GetInputData()->SetButton(MouseButton::Right, false);
 		return 0;
 		//OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		//return 0;
 
 		// Cursor moves over the window (or outside, while we're currently capturing it)
 	case WM_MOUSEMOVE:
-		singletonRef->HandleMouseMovement(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		((WindowsPlatform*)PlatformBase::GetSingleton())->HandleMouseMovement(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		//OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
@@ -203,7 +196,7 @@ bool WindowsPlatform::InitWindow()
 
 void BlackMagic::WindowsPlatform::InitPlatformAudioManager()
 {
-	audioManager = AllocateAndConstruct<StackAllocator, DirectXAudioManager>(allocatorAllocator, 1);
+	audioManager = AllocateAndConstruct<DirectXAudioManager>(allocatorAllocator, 1);
 	return;
 }
 
@@ -226,12 +219,14 @@ void WindowsPlatform::InputUpdate()
 	lastMousePos.y = currentMousePos.y;
 
 	//Some of this occurs in windowproc
-	inputData.SetButton(3, (bool)KEYPRESSED('W'));
-	inputData.SetButton(4, (bool)KEYPRESSED('A'));
-	inputData.SetButton(5, (bool)KEYPRESSED('S'));
-	inputData.SetButton(6, (bool)KEYPRESSED('D'));
-	inputData.SetButton(7, (bool)KEYPRESSED(' '));
-	inputData.SetButton(15, (bool)KEYPRESSED(VK_ESCAPE));
+	inputData.SetButton(Key::W, (bool)KEYPRESSED('W'));
+	inputData.SetButton(Key::A, (bool)KEYPRESSED('A'));
+	inputData.SetButton(Key::S, (bool)KEYPRESSED('S'));
+	inputData.SetButton(Key::D, (bool)KEYPRESSED('D'));
+	inputData.SetButton(Key::SPACE, (bool)KEYPRESSED(' '));
+	inputData.SetButton(Key::ESCAPE, (bool)KEYPRESSED(VK_ESCAPE));
+	inputData.SetButton(Key::SHIFT, (bool)KEYPRESSED(VK_SHIFT));
+	inputData.SetButton(Key::LCTRL, (bool)KEYPRESSED(VK_LCONTROL));
 }
 
 bool BlackMagic::WindowsPlatform::ShouldExit()
@@ -258,7 +253,6 @@ float BlackMagic::WindowsPlatform::GetDeltaTime()
 WindowsPlatform::WindowsPlatform(HINSTANCE instance)
 {
 	hInstance = instance;
-	singletonRef = this;
 
 #if defined(DEBUG) | defined(_DEBUG)
 	// Enable memory leak detection as a quick and dirty
@@ -309,7 +303,7 @@ const char * BlackMagic::WindowsPlatform::GetAssetDirectory()
 	return "./assets/";
 }
 
-bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileBuffer, size_t bufferSize)
+bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(const char* fileName, byte* fileBuffer, size_t bufferSize)
 {
 	std::ifstream file(fileName, std::ios::binary);
 	if (file.is_open())
@@ -333,7 +327,7 @@ bool BlackMagic::WindowsPlatform::ReadFileIntoMemory(char* fileName, byte* fileB
 	return false;
 }
 
-unsigned int BlackMagic::WindowsPlatform::GetFileSize(char* fileName)
+unsigned int BlackMagic::WindowsPlatform::GetFileSize(const char* fileName)
 {
 	std::ifstream file(fileName, std::ios::binary | std::ios::ate);
 	if(file.is_open())
@@ -363,8 +357,7 @@ MSG BlackMagic::WindowsPlatform::GetMSG()
 	return msg;
 }
 
-WindowsPlatform* WindowsPlatform::GetInstance()
+void WindowsPlatform::ShutdownPlatform()
 {
-	return singletonRef;
-}
 
+}

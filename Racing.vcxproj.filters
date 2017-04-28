@@ -48,6 +48,7 @@
     <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\Resource.cpp" />
     <ClCompile Include="src\WindowsMath.cpp" />
+    <ClCompile Include="src\WAVFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -75,7 +76,6 @@
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\RenderJob.h" />
     <ClInclude Include="include\DX11Renderer.h" />
-    <ClInclude Include="include\ShaderStructs.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\StdThreadManager.h" />
     <ClInclude Include="include\TestGame.h" />
@@ -94,5 +94,10 @@
     <ClInclude Include="include\Resource.h" />
     <ClInclude Include="include\PlatformResourceTypes.h" />
     <ClInclude Include="include\BMMath.h" />
+    <ClInclude Include="include\ContentClasses.h" />
+    <ClInclude Include="include\WAVFile.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\ShaderBase.hlsli" />
   </ItemGroup>
 </Project>

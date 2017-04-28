@@ -9,8 +9,7 @@
 #include "GraphicsTypes.h"
 #include "Texture.h"
 #include "Mesh.h"
-#include "DX11Renderer.h"
-#include "DDSTextureLoader.h"
+#include "WAVFile.h"
 
 using namespace BlackMagic;
 
@@ -21,6 +20,41 @@ ContentManager::ContentManager(Renderer* device, const char* assetDirectory, Bla
 
 ContentManager::~ContentManager()
 {
+}
+
+void ContentManager::AssetGC()
+{
+	for (int i = 0; i < entryCount; i++)
+	{
+		if (BM_PLATFORM_ATOMIC_FETCH((&(entries[i].refcount))) == 0 && entries[i].resource)
+		{
+			switch (entries[i].type)
+			{
+			case ManifestEntry::MESH:
+				DestructAndDeallocate(_allocator, (Mesh*)entries[i].resource, 1);
+				break;
+			case ManifestEntry::TEXTURE:
+				DestructAndDeallocate(_allocator, (Texture*)entries[i].resource, 1);
+				break;
+			case ManifestEntry::CUBEMAP:
+				DestructAndDeallocate(_allocator, (Cubemap*)entries[i].resource, 1);
+				break;
+			case ManifestEntry::VERTEX_SHADER:
+				DestructAndDeallocate(_allocator, (VertexShader*)entries[i].resource, 1);
+				break;
+			case ManifestEntry::PIXEL_SHADER:
+				DestructAndDeallocate(_allocator, (PixelShader*)entries[i].resource, 1);
+				break;
+			case ManifestEntry::WAVFILE:
+				((WAVFile*)(entries[i].resource))->~WAVFile();
+				_allocator->deallocate(entries[i].resource, sizeof(WAVFile) + entries[i].size);
+				break;
+			default:
+				break;
+			}
+			entries[i].resource = nullptr;
+		}
+	}
 }
 
 struct Asset
@@ -60,31 +94,69 @@ void BlackMagic::ContentManager::ProcessManifestFile(void* manifestFileLocation)
 
 
 template<typename T>
-T* ContentManager::load_Internal(ManifestEntry* manifest)
+T* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
-	static_assert(false,
+	assert(false);
+	/*
 		"Invalid or unsupported content type provided. Supported types are:\n"
 		"Mesh\n"
 		"Texture\n"
 		"VertexShader\n"
 		"PixelShader\n"
 		"Spline\n"
-		);
+	*/
 }
+
+template<typename T>
+void ContentManager::SetupManifest(ManifestEntry* entry, T* resource)
+{
+	assert(false);
+	/*
+		"Manifest loading not supported for this type. Supported types are:\n"
+		"Mesh\n"
+		"Texture\n"
+		"VertexShader\n"
+		"PixelShader\n"
+		"Spline\n"
+	*/
+}
+
+struct AssetFile
+{
+	BlackMagic::byte* memory;
+	BlackMagic::BestFitAllocator* allocator;
+	AssetFile(const char* dir, const char* name, BlackMagic::BestFitAllocator* allocator)
+		: allocator(allocator)
+	{
+		auto platform = PlatformBase::GetSingleton();
+		char path[256] = { 0 };
+		strcpy_s(path, dir);
+		strcat_s(path, name);
+		auto size = platform->GetFileSize(path);
+
+		memory = static_cast<BlackMagic::byte*>(allocator->allocate(size));
+		if (!platform->ReadFileIntoMemory(path, memory, size))
+		{
+			assert(false);// "Failed to load file into memory";
+		}
+	}
+
+	~AssetFile() { allocator->deallocate(memory); }
+};
 
 #define LOAD_FILE(X) \
 char path[256]; \
 memset(path, 0, 256); \
 strcpy_s(path, directory); \
-strcat_s(path, manifest->resourceName); \
-byte* ##X = (byte*)_allocator->allocate(manifest->size); \
-if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, manifest->size)) \
+strcat_s(path, fileName); \
+byte* ##X = (byte*)_allocator->allocate(fileSize); \
+if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, fileSize)) \
 { \
-	throw "Failed to load file into memory"; \
+	assert(false);// "Failed to load file into memory"; \
 } \
 (void)(sizeof(0))
 
-#define UNLOAD_FILE(X) _allocator->deallocate(##X); \
+#define UNLOAD_FILE(X) _allocator->deallocate((void*)##X, fileSize); \
 (void)(sizeof(0))
 
 struct MeshHeader
@@ -114,9 +186,10 @@ struct MeshHeader
 };
 
 template<>
-Mesh* ContentManager::load_Internal(ManifestEntry* manifest)
+Mesh* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
-	LOAD_FILE(meshSpace);
+	auto file = AssetFile{ directory, fileName, _allocator };
+	auto meshSpace = file.memory;
 
 	//block count
 	uint8_t blockCount = *meshSpace;
@@ -125,105 +198,132 @@ Mesh* ContentManager::load_Internal(ManifestEntry* manifest)
 	MeshHeader::Block* vertexMeta = (MeshHeader::Block*)(meshSpace + 1 + (sizeof(MeshHeader::Block)));
 	MeshHeader::Block* indexMeta = (MeshHeader::Block*)(meshSpace + 1 + (sizeof(MeshHeader::Block) * 2));
 
-	Mesh* ret = AllocateAndConstruct<BestFitAllocator, Mesh>(_allocator, 1, &meshSpace[vertexMeta->offsetInBytes], vertexMeta->elementCount, &meshSpace[indexMeta->offsetInBytes], indexMeta->elementCount, renderer);
-	UNLOAD_FILE(meshSpace);
+	Mesh* ret = AllocateAndConstruct<Mesh>(_allocator, 1, &meshSpace[vertexMeta->offsetInBytes], vertexMeta->elementCount, &meshSpace[indexMeta->offsetInBytes], indexMeta->elementCount, renderer);
 	return ret;
-	
 }
 
 template<>
-Texture* ContentManager::load_Internal(ManifestEntry* manifest)
+void ContentManager::SetupManifest(ManifestEntry* entry, Mesh* resource)
 {
-	LOAD_FILE(textureSpace);
-	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
-	*tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::FLAT_2D, Texture::Usage::READ);
-	UNLOAD_FILE(textureSpace);
+	entry->resource = resource;
+	entry->type = ManifestEntry::MESH;
+}
+
+template<>
+Texture* ContentManager::load_Internal(const char* fileName, int fileSize)
+{
+	auto file = AssetFile{ directory, fileName, _allocator };
+	auto textureSpace = file.memory;
+	Texture* tex = AllocateAndConstruct<Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
+	*tex = renderer->CreateTexture(textureSpace, fileSize, Texture::Type::FLAT_2D, Texture::Usage::READ);
 	return tex;
 }
 
 template<>
-Cubemap* ContentManager::load_Internal(ManifestEntry* manifest)
+void ContentManager::SetupManifest(ManifestEntry* entry, Texture* resource)
 {
-	LOAD_FILE(textureSpace);
-	Texture* tex = AllocateAndConstruct<BestFitAllocator, Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
-	*tex = renderer->CreateTexture(textureSpace, manifest->size, Texture::Type::CUBEMAP, Texture::Usage::READ);
-	UNLOAD_FILE(textureSpace);
+	entry->resource = resource;
+	entry->type = ManifestEntry::TEXTURE;
+}
+
+template<>
+Cubemap* ContentManager::load_Internal(const char* fileName, int fileSize)
+{
+	auto file = AssetFile{ directory, fileName, _allocator };
+	auto textureSpace = file.memory;
+	Texture* tex = AllocateAndConstruct<Texture>(_allocator, 1, nullptr, nullptr, nullptr, nullptr);
+	*tex = renderer->CreateTexture(textureSpace, fileSize, Texture::Type::CUBEMAP, Texture::Usage::READ);
 	return (Cubemap*)tex;
 }
 
-/*template<>
-GraphicsShader ContentManager::loadHandle_Internal(ManifestEntry* manifest)
+template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, Cubemap* resource)
 {
-	LOAD_FILE(shaderSpace);
-	UNLOAD_FILE(shaderSpace);
-}*/
+	entry->resource = resource;
+	entry->type = ManifestEntry::CUBEMAP;
+}
+
+template<>
+WAVFile* ContentManager::load_Internal(const char* fileName, int fileSize)
+{
+	char path[256];
+	memset(path, 0, 256);
+	strcpy_s(path, directory);
+	strcat_s(path, fileName);
+	byte* audioSpace = (byte*)_allocator->allocate(sizeof(WAVFile) + fileSize);
+	byte* audioFile = audioSpace + sizeof(WAVFile);
+	PlatformBase::GetSingleton()->ReadFileIntoMemory(path, audioFile, fileSize);
+	WAVFile* wav = new (audioSpace) WAVFile(audioFile);
+	return wav;
+}
+
+template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, WAVFile* resource)
+{
+	entry->resource = resource;
+	entry->type = ManifestEntry::WAVFILE;
+}
 
 #if defined(BM_PLATFORM_WINDOWS)
-using namespace DirectX;
+#include "DX11Renderer.h"
+#endif
 
 template<>
-VertexShader* ContentManager::load_Internal(ManifestEntry* manifest)
+VertexShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	char path[256];
 	memset(path, 0, 256);
 	strcpy_s(path, directory);
-	strcat_s(path, manifest->resourceName);
+	strcat_s(path, fileName);
+#if defined(BM_PLATFORM_WINDOWS)
 	wchar_t widePath[256];
 	size_t size = 0;
 	mbstowcs_s(&size, widePath, path, 256);
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
-	auto ptr = AllocateAndConstruct<BestFitAllocator, VertexShader>(_allocator, 1, device.Get(), context.Get());
+	auto ptr = AllocateAndConstruct<VertexShader>(_allocator, 1, device.Get(), context.Get());
 	ptr->LoadShaderFile(widePath);
-	manifest->resource = ptr;
+#else
+	auto ptr = AllocateAndConstruct<VertexShader>(_allocator, 1, renderer);
+	ptr->LoadShaderFile(path);
+#endif
 	return ptr;
 }
 
 template<>
-PixelShader* ContentManager::load_Internal(ManifestEntry* manifest)
+void ContentManager::SetupManifest(ManifestEntry* entry, VertexShader* resource)
+{
+	entry->resource = resource;
+	entry->type = ManifestEntry::VERTEX_SHADER;
+}
+
+template<>
+PixelShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	char path[256];
 	memset(path, 0, 256);
 	strcpy_s(path, directory);
-	strcat_s(path, manifest->resourceName);
+	strcat_s(path, fileName);
+#if defined(BM_PLATFORM_WINDOWS)
 	wchar_t widePath[256];
 	size_t size = 0;
 	mbstowcs_s(&size, widePath, path, 256);
 	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device();
 	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context();
-	auto ptr = AllocateAndConstruct<BestFitAllocator, PixelShader>(_allocator, 1, device.Get(), context.Get());
+	auto ptr = AllocateAndConstruct<PixelShader>(_allocator, 1, device.Get(), context.Get());
 	ptr->LoadShaderFile(widePath);
-	manifest->resource = ptr;
-	return ptr;
-}
-
-/*
-template<>
-std::shared_ptr<VertexShader> ContentManager::load_Internal(ManifestEntry* manifest)
-{
-	auto fullPath = directory + L"/" + name;
-	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device().Get();
-	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context().Get();
-	auto ptr = std::allocate_shared<VertexShader>(ContentAllocatorAdapter(_allocator), 
-		device,
-		context);
-	ptr->LoadShaderFile(fullPath.c_str());
-	_resources[name] = ptr;
+#else
+	auto ptr = AllocateAndConstruct<PixelShader>(_allocator, 1, renderer);
+	ptr->LoadShaderFile(path);
+#endif
 	return ptr;
 }
 
 template<>
-std::shared_ptr<PixelShader> ContentManager::load_Internal(const std::wstring& name)
+void ContentManager::SetupManifest(ManifestEntry* entry, PixelShader* resource)
 {
-	auto fullPath = directory + L"/" + name;
-	auto device = reinterpret_cast<DX11Renderer*>(renderer)->Device().Get();
-	auto context = reinterpret_cast<DX11Renderer*>(renderer)->Context().Get();
-	auto ptr = std::allocate_shared<PixelShader>(ContentAllocatorAdapter(_allocator), 
-		device,
-		context);
-	ptr->LoadShaderFile(fullPath.c_str());
-	_resources[name] = ptr;
-	return ptr;
+	entry->resource = resource;
+	entry->type = ManifestEntry::PIXEL_SHADER;
 }
 
 /*
@@ -263,18 +363,3 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	return ret;
 }*/
 
-
-#endif
-/*
-template<typename T>
-std::shared_ptr<T> ContentManager::load_Internal(const std::wstring& name)
-{
-	static_assert(false,
-		"Invalid or unsupported content type provided. Supported types are:\n"
-		"Mesh\n"
-		"Texture\n"
-		"VertexShader\n"
-		"PixelShader\n"
-		"Spline\n"
-		);
-}*/

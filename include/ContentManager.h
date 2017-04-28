@@ -1,23 +1,16 @@
 #pragma once
 
-#include <d3d11.h>
 #include <memory>
 #include <unordered_map>
 
+#include "PlatformBase.h"
 #include "SimpleShader.h"
 
+#include "ContentClasses.h"
 #include <allocators/AllocatorSTLAdapter.h>
 #include <allocators/BadBestFitAllocator.h>
 
-#if defined(BM_PLATFORM_WINDOWS)
-using VertexShader = SimpleVertexShader;
-using PixelShader = SimplePixelShader;
-#endif
 
-using BlackMagic::Resource;
-using ValueType = std::shared_ptr<Resource>;
-using ContentAllocatorAdapter = BlackMagic::AllocatorSTLAdapter<std::pair<std::wstring, ValueType>, BlackMagic::BestFitAllocator>;
-using ContentMap = std::unordered_map<std::wstring, ValueType, std::hash<std::wstring>, std::equal_to<std::wstring>, ContentAllocatorAdapter>;
 namespace BlackMagic
 {
 	class Renderer;
@@ -25,13 +18,6 @@ namespace BlackMagic
 	class ContentManager
 	{
 	private:
-		struct ManifestEntry
-		{
-			char* resourceName;
-			int uid;
-			int size;
-			void* resource;
-		};
 		BlackMagic::BestFitAllocator* _allocator;
 		Renderer* renderer;
 		char* manifestStrings;
@@ -40,7 +26,9 @@ namespace BlackMagic
 		const char* directory;
 
 		template<typename T>
-		T* load_Internal(ManifestEntry* name);
+		T* load_Internal(const char* fileName, int fileSize);
+		template<typename T>
+		void SetupManifest(ManifestEntry* entry, T* resource);
 
 	public:
 		ContentManager(Renderer* device, const char* assetDirectory, BlackMagic::BestFitAllocator* allocator);
@@ -49,7 +37,24 @@ namespace BlackMagic
 		void ProcessManifestFile(void* manifestFileLocation);
 
 		template<typename T>
-		T* Load(const char* resourceName)
+		T* UntrackedLoad(const char* fileName)
+		{
+			char path[256] = { 0 };
+			strcpy_s(path, directory);
+			strcat_s(path, fileName);
+			int fileSize = PlatformBase::GetSingleton()->GetFileSize(path);
+			return load_Internal<T>(fileName, fileSize);
+		}
+
+		template<typename T>
+		void UntrackedAssetCleanup(T* thing)
+		{
+			DestructAndDeallocate<T>(_allocator, thing, 1);
+		}
+		void AssetGC();
+
+		template<typename T>
+		AssetPointer<T> Load(const char* resourceName)
 		{
 			for (int i = 0; i < entryCount; i++)
 			{
@@ -57,12 +62,12 @@ namespace BlackMagic
 				{
 					if (entries[i].resource)
 					{
-						return (T*)entries[i].resource;
+						return AssetPointer<T>(&entries[i]);
 					}
 					else
 					{
-						entries[i].resource = load_Internal<T>(&entries[i]);
-						return (T*)entries[i].resource;
+						SetupManifest(&entries[i], load_Internal<T>(entries[i].resourceName, entries[i].size));
+						return AssetPointer<T>(&entries[i]);
 					}
 				}
 			}
@@ -71,7 +76,7 @@ namespace BlackMagic
 		}
 
 		template<typename T>
-		T* Load(int uid)
+		AssetPointer<T> Load(int uid)
 		{
 			for (int i = 0; i < entryCount; i++)
 			{
@@ -79,12 +84,12 @@ namespace BlackMagic
 				{
 					if (entries[i].resource)
 					{
-						return entries[i].resource;
+						return AssetPointer<T>(&entries[i]);
 					}
 					else
 					{
-						entries[i].resource = load_Internal<T>(&entries[i]);
-						return (T*)entries[i].resource;
+						SetupManifest(&entries[i], load_Internal<T>(entries[i].resourceName, entries[i].size));
+						return AssetPointer<T>(&entries[i]);
 					}
 				}
 			}
@@ -98,10 +103,10 @@ namespace BlackMagic
 		std::shared_ptr<T> Load(std::string str)
 		{
 			BestFitAllocator* allocLocal = _allocator;
-			T* retLocal = Load<T>(str.c_str());
+			T* retLocal = (Load<T>(str.c_str()).get());
 			std::shared_ptr<T> ret(retLocal,
 				[=](T* foo) {
-				DestructAndDeallocate<BestFitAllocator, T>(allocLocal, retLocal, 1);
+				//Do nothing, AssetGC takes care of cleanup
 			});
 			return ret;
 		}
@@ -110,6 +115,5 @@ namespace BlackMagic
 		{
 			return _allocator;
 		}
-		ContentAllocatorAdapter _adapter;
 	};
 }

@@ -1,4 +1,5 @@
 #include "DirectXAudioManager.h"
+#include <iostream>
 
 using namespace BlackMagic;
 using namespace DirectX;
@@ -14,20 +15,56 @@ DirectXAudioManager::~DirectXAudioManager()
 	audioEngine.release();
 }
 
-void BlackMagic::DirectXAudioManager::PlayOneShot(AudioFile file, float relativeVolume)
+void BlackMagic::DirectXAudioManager::PlayOneShotInternal(WAVFile* file, float relativeVolume)
 {
-	file.GetAs<SoundEffect*>()->Play(relativeVolume, 0, 0);
+	if (map.find(file) == map.end())
+	{
+		byte* x = (byte*)::operator new(sizeof(WAVFile) + file->dataSize);
+		WAVFile* tmpWav = (WAVFile*)x;
+		*tmpWav = *file;
+		tmpWav->pcmData = x + sizeof(WAVFile);
+		memcpy_s(tmpWav->pcmData, file->dataSize, file->pcmData, file->dataSize);
+
+		auto bs = std::unique_ptr<uint8_t[]>((uint8_t*)x);
+
+		std::shared_ptr<SoundEffect> effect = std::make_shared<SoundEffect>(
+			audioEngine.get(),
+			bs,
+			reinterpret_cast<WAVEFORMATEX*>(file),
+			(uint8_t*)file->pcmData,
+			file->dataSize);
+		map[file] = effect;
+	}
+	map[file]->Play(relativeVolume, 0, 0);
 }
 
-void BlackMagic::DirectXAudioManager::PlayBGM(AudioFile file, float relativeVolume)
+void BlackMagic::DirectXAudioManager::PlayBGMInternal(WAVFile* file, float relativeVolume)
 {
-	PauseBGM();
-	BGM = file.GetAs<SoundEffect*>()->CreateInstance();
+	PauseBGMInternal();
+	if (map.find(file) == map.end())
+	{
+		byte* x = (byte*)::operator new(sizeof(WAVFile) + file->dataSize);
+		WAVFile* tmpWav = (WAVFile*)x;
+		*tmpWav = *file;
+		tmpWav->pcmData = x + sizeof(WAVFile);
+		memcpy_s(tmpWav->pcmData, file->dataSize, file->pcmData, file->dataSize);
+
+		auto bs = std::unique_ptr<uint8_t[]>((uint8_t*)x);
+
+		std::shared_ptr<SoundEffect> effect = std::make_shared<SoundEffect>(
+			audioEngine.get(),
+			bs,
+			reinterpret_cast<WAVEFORMATEX*>(file),
+			(uint8_t*)file->pcmData,
+			file->dataSize);
+		map[file] = effect;
+	}
+	BGM = map[file]->CreateInstance();
 	BGM->SetVolume(relativeVolume);
 	BGM->Play(true);
 }
 
-void BlackMagic::DirectXAudioManager::PauseBGM()
+void BlackMagic::DirectXAudioManager::PauseBGMInternal()
 {
 	if (BGM)
 	{
@@ -35,7 +72,7 @@ void BlackMagic::DirectXAudioManager::PauseBGM()
 	}
 }
 
-void BlackMagic::DirectXAudioManager::StopBGM()
+void BlackMagic::DirectXAudioManager::StopBGMInternal()
 {
 	if (BGM)
 	{
@@ -43,7 +80,7 @@ void BlackMagic::DirectXAudioManager::StopBGM()
 	}
 }
 
-void BlackMagic::DirectXAudioManager::ResumeBGM(float relativeVolume)
+void BlackMagic::DirectXAudioManager::ResumeBGMInternal(float relativeVolume)
 {
 	if(BGM)
 	{

@@ -8,7 +8,8 @@ namespace BlackMagic
 	{
 	public:
 		Entity() = default;
-		Entity(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT4 rot, const std::shared_ptr<Mesh> mesh, const Material& mat);
+		Entity(const Vector3& pos, const Quaternion& rot, const std::shared_ptr<Mesh>& mesh, const Material& mat);
+		virtual ~Entity() = default;
 
 		const Renderable* AsRenderable() const;
 		void Update();

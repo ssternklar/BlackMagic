@@ -1,7 +1,8 @@
 #pragma once
-#include"globals.h"
-#include<stddef.h>
-#include<new>
+#include "globals.h"
+#include <stddef.h>
+#include <new>
+#include <cassert>
 
 namespace BlackMagic
 {
@@ -25,7 +26,6 @@ namespace BlackMagic
 		{
 			size = maxSize;
 			this->alignment = alignment;
-			byte* ptr = buffer;
 			if (buffer == nullptr)
 			{
 				buffer = reinterpret_cast<byte*>(this);
@@ -123,7 +123,7 @@ namespace BlackMagic
 			size_t requestedSize = size * n;
 			if (reinterpret_cast<byte*>(dealloc) < storage || reinterpret_cast<byte*>(dealloc) > storage + this->size)
 			{
-				throw "pointer to deallocate is not in this memory pool!";
+				assert(false); // "pointer to deallocate is not in this memory pool!"
 			}
 			size_t properSize = alignSize(alignment, requestedSize);
 

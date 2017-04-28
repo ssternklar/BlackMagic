@@ -6,7 +6,7 @@ namespace BlackMagic
 	class AudioJob : public GenericJob
 	{
 	public:
-		AudioFile fileToPlay;
+		WAVFile* fileToPlay;
 		float relativeVolume;
 		bool isBGM;
 		byte bgmPlayPauseStopResume; // 0 is play, 1 is pause, 2 is stop, 3 is resume

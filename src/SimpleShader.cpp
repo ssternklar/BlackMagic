@@ -1,3 +1,4 @@
+#ifdef BM_PLATFORM_WINDOWS
 #include "SimpleShader.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -391,7 +392,7 @@ bool ISimpleShader::SetFloat(std::string name, float data)
 // --------------------------------------------------------
 // Sets a FLOAT2 variable by name in the local data buffer
 // --------------------------------------------------------
-bool ISimpleShader::SetFloat2(std::string name, const float data[2])
+bool ISimpleShader::SetFloat2(std::string name, const float* data)
 {
 	return this->SetData(name, (void*)data, sizeof(float) * 2);
 }
@@ -399,7 +400,7 @@ bool ISimpleShader::SetFloat2(std::string name, const float data[2])
 // --------------------------------------------------------
 // Sets a FLOAT2 variable by name in the local data buffer
 // --------------------------------------------------------
-bool ISimpleShader::SetFloat2(std::string name, const DirectX::XMFLOAT2 data)
+bool ISimpleShader::SetFloat2(std::string name, const BlackMagic::Vector2 data)
 {
 	return this->SetData(name, &data, sizeof(float) * 2);
 }
@@ -407,7 +408,7 @@ bool ISimpleShader::SetFloat2(std::string name, const DirectX::XMFLOAT2 data)
 // --------------------------------------------------------
 // Sets a FLOAT3 variable by name in the local data buffer
 // --------------------------------------------------------
-bool ISimpleShader::SetFloat3(std::string name, const float data[3])
+bool ISimpleShader::SetFloat3(std::string name, const float* data)
 {
 	return this->SetData(name, (void*)data, sizeof(float) * 3);
 }
@@ -415,7 +416,7 @@ bool ISimpleShader::SetFloat3(std::string name, const float data[3])
 // --------------------------------------------------------
 // Sets a FLOAT3 variable by name in the local data buffer
 // --------------------------------------------------------
-bool ISimpleShader::SetFloat3(std::string name, const DirectX::XMFLOAT3 data)
+bool ISimpleShader::SetFloat3(std::string name, const BlackMagic::Vector3 data)
 {
 	return this->SetData(name, &data, sizeof(float) * 3);
 }
@@ -423,7 +424,7 @@ bool ISimpleShader::SetFloat3(std::string name, const DirectX::XMFLOAT3 data)
 // --------------------------------------------------------
 // Sets a FLOAT4 variable by name in the local data buffer
 // --------------------------------------------------------
-bool ISimpleShader::SetFloat4(std::string name, const float data[4])
+bool ISimpleShader::SetFloat4(std::string name, const float* data)
 {
 	return this->SetData(name, (void*)data, sizeof(float) * 4);
 }
@@ -431,7 +432,7 @@ bool ISimpleShader::SetFloat4(std::string name, const float data[4])
 // --------------------------------------------------------
 // Sets a FLOAT4 variable by name in the local data buffer
 // --------------------------------------------------------
-bool ISimpleShader::SetFloat4(std::string name, const DirectX::XMFLOAT4 data)
+bool ISimpleShader::SetFloat4(std::string name, const BlackMagic::Vector4 data)
 {
 	return this->SetData(name, &data, sizeof(float) * 4);
 }
@@ -439,7 +440,7 @@ bool ISimpleShader::SetFloat4(std::string name, const DirectX::XMFLOAT4 data)
 // --------------------------------------------------------
 // Sets a MATRIX (4x4) variable by name in the local data buffer
 // --------------------------------------------------------
-bool ISimpleShader::SetMatrix4x4(std::string name, const float data[16])
+bool ISimpleShader::SetMatrix4x4(std::string name, const float* data)
 {
 	return this->SetData(name, (void*)data, sizeof(float) * 16);
 }
@@ -447,7 +448,7 @@ bool ISimpleShader::SetMatrix4x4(std::string name, const float data[16])
 // --------------------------------------------------------
 // Sets a MATRIX (4x4) variable by name in the local data buffer
 // --------------------------------------------------------
-bool ISimpleShader::SetMatrix4x4(std::string name, const DirectX::XMFLOAT4X4 data)
+bool ISimpleShader::SetMatrix4x4(std::string name, const BlackMagic::Mat4 data)
 {
 	return this->SetData(name, &data, sizeof(float) * 16);
 }
@@ -1747,3 +1748,5 @@ int SimpleComputeShader::GetUnorderedAccessViewIndex(std::string name)
 	// Success
 	return result->second;
 }
+
+#endif

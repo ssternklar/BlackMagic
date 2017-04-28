@@ -3,7 +3,6 @@
 #include "TransformData.h"
 
 using namespace BlackMagic;
-using namespace DirectX;
 
 Transform::Transform()
 	: _id(TransformData::GetSingleton()->AllocateTransform())
@@ -13,7 +12,7 @@ Transform::Transform()
 	TransformData::GetSingleton()->_scales[_id] = { 1, 1, 1 };
 }
 
-Transform::Transform(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT4 rotation, DirectX::XMFLOAT3 scale)
+Transform::Transform(BlackMagic::Vector3 pos, BlackMagic::Quaternion rotation, BlackMagic::Vector3 scale)
 	: _id(TransformData::GetSingleton()->AllocateTransform())
 {
 	TransformData::GetSingleton()->_positions[_id] = pos;
@@ -26,76 +25,64 @@ Transform::~Transform()
 	TransformData::GetSingleton()->DeallocateTransform(_id);
 }
 
-void Transform::Move(XMFLOAT3 dp)
+void Transform::Move(Vector3 dp)
 {
 	auto& ptr = TransformData::GetSingleton()->_positions[_id];
+	Vector3 rotated = BlackMagic::Rotate(dp, TransformData::GetSingleton()->_rotations[_id]);
 
-	auto v = XMLoadFloat3(&dp);
-	auto q = XMLoadFloat4(&TransformData::GetSingleton()->_rotations[_id]);
-	XMFLOAT3 rotated;
-	XMStoreFloat3(&rotated, XMVector3Rotate(v, q));
-
-	ptr.x += rotated.x;
-	ptr.y += rotated.y;
-	ptr.z += rotated.z;
+	ptr = ptr + rotated;
 }
 
-void Transform::MoveTo(XMFLOAT3 pos)
+void Transform::MoveTo(Vector3 pos)
 {
 	auto& ptr = TransformData::GetSingleton()->_positions[_id];
-	ptr.x = pos.x;
-	ptr.y = pos.y;
-	ptr.z = pos.z;
+	ptr = ptr + pos;
 }
 
-void Transform::Rotate(XMFLOAT4 quaternion)
+void Transform::Rotate(Quaternion q)
 {
-	auto current = XMLoadFloat4(&TransformData::GetSingleton()->_rotations[_id]);
-	auto quat = XMLoadFloat4(&quaternion);
-	XMStoreFloat4(&TransformData::GetSingleton()->_rotations[_id], XMQuaternionMultiply(quat, current));
+	auto& current = TransformData::GetSingleton()->_rotations[_id];
+	current = q * current;
 }
 
-void Transform::Rotate(XMFLOAT3 axis, float angle)
+void Transform::Rotate(Vector3 axis, float angle)
 {
-	auto axisVec = XMLoadFloat3(&axis);
-	auto quat = XMQuaternionRotationAxis(axisVec, angle);
-	auto current = XMLoadFloat4(&TransformData::GetSingleton()->_rotations[_id]);
-	XMStoreFloat4(&TransformData::GetSingleton()->_rotations[_id], XMQuaternionMultiply(current, quat));
+	auto quat = CreateQuaternion(axis, angle);
+	auto& current = TransformData::GetSingleton()->_rotations[_id];
+	current = quat * current;
 }
 
-void Transform::SetRotation(XMFLOAT4 quaternion)
+void Transform::SetRotation(Quaternion quaternion)
 {
 	TransformData::GetSingleton()->_rotations[_id] = quaternion;
 }
 
-void Transform::SetScale(XMFLOAT3 scale)
+void Transform::SetScale(Vector3 scale)
 {
 	TransformData::GetSingleton()->_scales[_id] = scale;
 }
 
-DirectX::XMFLOAT4X4* Transform::Matrix()
+BlackMagic::Mat4* Transform::Matrix()
 {
 	return TransformData::GetSingleton()->GetMatrix(_id);
 }
 
-XMFLOAT3 Transform::GetPosition()
+Vector3 Transform::GetPosition()
 {
 	return TransformData::GetSingleton()->_positions[_id];
 }
 
-XMFLOAT3 Transform::GetScale()
+Vector3 Transform::GetScale()
 {
 	return TransformData::GetSingleton()->_scales[_id];
 }
 
-XMFLOAT4 Transform::GetRotation()
+Quaternion Transform::GetRotation()
 {
 	return TransformData::GetSingleton()->_rotations[_id];
 }
 
-XMFLOAT3 Transform::GetForward()
+Vector3 Transform::GetForward()
 {
-	XMFLOAT3 ret;
-	XMStoreFloat3(&ret, XMVector3Rotate(XMVectorSet(0,0,1,0), XMLoadFloat4(&TransformData::GetSingleton()->_rotations[_id])));
-	return ret;
+	return BlackMagic::Rotate(CreateVector3(0, 0, 1), TransformData::GetSingleton()->_rotations[_id]);
 }

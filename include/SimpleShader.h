@@ -1,4 +1,5 @@
 #pragma once
+#ifdef BM_PLATFORM_WINDOWS
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -10,6 +11,7 @@
 #include <vector>
 #include <string>
 #include "Resource.h"
+#include "BMMath.h"
 
 // --------------------------------------------------------
 // Used by simple shaders to store information about
@@ -85,14 +87,14 @@ public:
 
 	bool SetInt(std::string name, int data);
 	bool SetFloat(std::string name, float data);
-	bool SetFloat2(std::string name, const float data[2]);
-	bool SetFloat2(std::string name, const DirectX::XMFLOAT2 data);
-	bool SetFloat3(std::string name, const float data[3]);
-	bool SetFloat3(std::string name, const DirectX::XMFLOAT3 data);
-	bool SetFloat4(std::string name, const float data[4]);
-	bool SetFloat4(std::string name, const DirectX::XMFLOAT4 data);
-	bool SetMatrix4x4(std::string name, const float data[16]);
-	bool SetMatrix4x4(std::string name, const DirectX::XMFLOAT4X4 data);
+	bool SetFloat2(std::string name, const float* data);
+	bool SetFloat2(std::string name, const BlackMagic::Vector2 data);
+	bool SetFloat3(std::string name, const float* data);
+	bool SetFloat3(std::string name, const BlackMagic::Vector3 data);
+	bool SetFloat4(std::string name, const float* data);
+	bool SetFloat4(std::string name, const BlackMagic::Vector4 data);
+	bool SetMatrix4x4(std::string name, const float* data);
+	bool SetMatrix4x4(std::string name, const BlackMagic::Mat4 data);
 
 	// Setting shader resources
 	virtual bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv) = 0;
@@ -345,3 +347,15 @@ protected:
 	void SetShaderAndCBs();
 	void CleanUp();
 };
+#else
+//If not on Windows include the correct header
+//Relies on the platform specific includes appearing sooner in the project's include directories
+//	than this file
+#include <SimpleShader.h>
+#endif
+
+namespace BlackMagic
+{
+	using VertexShader = SimpleVertexShader;
+	using PixelShader = SimplePixelShader;
+}

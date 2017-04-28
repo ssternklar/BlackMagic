@@ -1,5 +1,6 @@
 #include "ContentJob.h"
 #include "PlatformBase.h"
+#include "ContentManager.h"
 
 using namespace BlackMagic;
 

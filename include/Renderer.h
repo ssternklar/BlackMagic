@@ -1,20 +1,22 @@
 #pragma once
 #include "Camera.h"
-#include "ContentManager.h"
 #include "Entity.h"
 #include "GraphicsTypes.h"
 #include "Renderable.h"
 #include "Projector.h"
+#include "BMMath.h"
 #define NUM_SHADOW_CASCADES 5
 #define SHADOWMAP_DIM 1025
 
 namespace BlackMagic
 {
+	class ContentManager;
+
 	class Renderer
 	{
 	public:
 		virtual ~Renderer() = default;
-		virtual void Clear(DirectX::XMFLOAT4 color) = 0;
+		virtual void Clear(BlackMagic::Vector4 color) = 0;
 		virtual void Init(ContentManager* content) = 0;
 		virtual void OnResize(unsigned int width, unsigned int height) = 0;
 		virtual void Present(unsigned int interval, unsigned int flags) = 0;
@@ -28,6 +30,7 @@ namespace BlackMagic
 		virtual void AddResourceRef(void*) = 0;
 		virtual void ReleaseResource(void*) = 0;
 		virtual Sampler CreateSampler() = 0;
+		virtual GraphicsContext GetCurrentContext() = 0;
 		/*virtual GraphicsShader CreateShader(GraphicsShader::ShaderType shaderType, const char* shaderPath);
 		virtual void CleanupShader(GraphicsShader::ShaderType shaderType, GraphicsShader shader);
 		*/

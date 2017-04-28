@@ -56,7 +56,7 @@ namespace BlackMagic
 		{
 			if (size * n > blockSize)
 			{
-				throw "Requested allocation larger than block size!";
+				assert(false); // "Requested allocation larger than block size!";
 			}
 			void* ret = nullptr;
 			if (next)
@@ -79,7 +79,7 @@ namespace BlackMagic
 		{
 			if (size * n > blockSize)
 			{
-				throw "Requested deallocation larger than block size!";
+				assert(false);// "Requested deallocation larger than block size!";
 			}
 			FixedBlockTracking* ptr = (FixedBlockTracking*)dealloc;
 			size_t index = ((ptr - storage) * sizeof(FixedBlockTracking) / blockSize);

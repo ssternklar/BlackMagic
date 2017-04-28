@@ -10,9 +10,8 @@ struct DirectionalLight
 {
 	float4 AmbientColor : COLOR;
 	float4 DiffuseColor : COLOR;
-	float3 Direction	: NORMAL;
-	float padding;
-	float3 Up			: NORMAL;
+	float4 Direction	: NORMAL;
+	float4 Up			: NORMAL;
 };
 
 struct GBuffer
@@ -107,7 +106,7 @@ float3 ApproximateIBL(float3 specColor, float r, float3 n, float3 v)
 float3 colorFromScenelight(GBuffer input)
 {
     float3 v = normalize(cameraPosition - input.position);
-    float3 l = -normalize(sceneLight.Direction);
+    float3 l = -normalize(sceneLight.Direction.xyz);
     float3 dir = 2 * dot(input.normal, v) * input.normal - v;
     float f0 = lerp(0.04, length(input.albedo.rgb), input.metal);
 
@@ -121,7 +120,7 @@ float3 colorFromScenelight(GBuffer input)
     float3 indirectDiffuse = (pow(skyboxIrradianceMap.Sample(envSampler, dir).rgb * diffuseColor, 2.2));
     float3 indirectSpecular = ApproximateIBL(specColor, input.roughness, input.normal, v);
 
-    return saturate(dot(input.normal, l)) * (directDiffuse + directSpecular) + indirectDiffuse + indirectSpecular;
+    return sceneLight.DiffuseColor.rgb * saturate(dot(input.normal, l)) * (directDiffuse + directSpecular) + indirectDiffuse + indirectSpecular;
 }
 
 //Using Lambert azimuthal equal-area projection to encode normals
@@ -184,5 +183,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 		shadow = lerp(nextShadow, shadow, t);
 	}
 #endif
-	return float4(pow(colorFromScenelight(buffer), 1/2.2), linearDepth < 1);
+	return float4(colorFromScenelight(buffer), linearDepth < 1);
 }

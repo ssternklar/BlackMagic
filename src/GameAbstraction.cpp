@@ -2,13 +2,9 @@
 
 using namespace BlackMagic;
 
-GameAbstraction::GameAbstraction(PlatformBase* platformBase)
-{
-	platform = platformBase;
-}
-
 int BlackMagic::GameAbstraction::RunGame()
 {
+	PlatformBase* platform = PlatformBase::GetSingleton();
 	byte* gameMemory;
 	size_t memSize;
 	platform->GetGameMemory(&gameMemory, &memSize);

@@ -20,7 +20,7 @@ Mutex BlackMagic::StdThreadManager::PlatformCreateMutex()
 		currentMutexCount++;
 		return ret;
 	}
-	throw "No more mutexes remaining, increase mutex pool count";
+	assert(false);// "No more mutexes remaining, increase mutex pool count";
 }
 
 void BlackMagic::StdThreadManager::PlatformLockMutex(Mutex m)
@@ -31,6 +31,11 @@ void BlackMagic::StdThreadManager::PlatformLockMutex(Mutex m)
 void BlackMagic::StdThreadManager::PlatformUnlockMutex(Mutex m)
 {
 	m.GetAs<mutex*>()->unlock();
+}
+
+void BlackMagic::StdThreadManager::PlatformSleepThisThread(unsigned int s)
+{
+	std::this_thread::sleep_for(std::chrono::milliseconds(s));
 }
 
 StdThreadManager::StdThreadManager(PlatformBase* base, BlackMagic::byte* spaceLocation, size_t spaceSize) : ThreadManager(base, spaceLocation, spaceSize)

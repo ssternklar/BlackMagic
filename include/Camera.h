@@ -1,7 +1,5 @@
 #pragma once
-#include <DirectXMath.h>
-#include <DirectXCollision.h>
-#include <Windows.h>
+#include <BMMath.h>
 
 #include "Transform.h"
 
@@ -13,20 +11,21 @@ class Camera
 {
 public:
 	Camera();
-	Camera(DirectX::XMFLOAT3 offset);
-	DirectX::XMFLOAT4X4 ViewMatrix() const;
-	DirectX::XMFLOAT4X4 ProjectionMatrix() const;
+	Camera(BlackMagic::Vector3 offset);
+	virtual ~Camera() = default;
+	BlackMagic::Mat4 ViewMatrix() const;
+	BlackMagic::Mat4 ProjectionMatrix() const;
 
-	DirectX::XMFLOAT3 Position() const;
-	DirectX::BoundingFrustum Frustum() const;
+	BlackMagic::Vector3 Position() const;
+	BlackMagic::BoundingFrustum Frustum() const;
 	void Update(Transform& transform);
 
 	//Updates this camera's projection matrix to match a new window size
-	void UpdateProjectionMatrix(UINT width, UINT height);
+	void UpdateProjectionMatrix(unsigned int width, unsigned int height);
 
 protected:
-	DirectX::BoundingFrustum _frustum;
-	DirectX::XMFLOAT3 pos, offset;
-	DirectX::XMFLOAT4X4 _viewMat, _projMat;
+	BlackMagic::BoundingFrustum _frustum;
+	BlackMagic::Vector3 pos, offset;
+	BlackMagic::Mat4 _viewMat, _projMat;
 	float _speed;
 };

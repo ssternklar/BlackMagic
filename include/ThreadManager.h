@@ -8,7 +8,6 @@
 #include "AudioJob.h"
 #include "LinkedList.h"
 #include "Handles.h"
-#include <atomic>
 
 namespace BlackMagic {
 
@@ -47,6 +46,7 @@ namespace BlackMagic {
 		virtual Mutex PlatformCreateMutex() = 0;
 		virtual void PlatformLockMutex(Mutex mutex) = 0;
 		virtual void PlatformUnlockMutex(Mutex mutex) = 0;
+		virtual void PlatformSleepThisThread(unsigned int t) = 0;
 
 	public:
 		//These are public because lambdas
@@ -71,10 +71,10 @@ namespace BlackMagic {
 		JobType* CreateGenericJob(Args&&... args)
 		{
 			PlatformLockMutex(allocatorMutex);
-			JobType* job = AllocateAndConstruct<BestFitAllocator, JobType, Args...>(&allocator, 1, args...);
+			JobType* job = AllocateAndConstruct<JobType, Args...>(&allocator, 1, args...);
 			if (job)
 			{
-				LinkedList* next = AllocateAndConstruct<BestFitAllocator, LinkedList, JobType*>(&allocator, 1, job);
+				LinkedList* next = AllocateAndConstruct<LinkedList, JobType*>(&allocator, 1, job);
 				PlatformUnlockMutex(allocatorMutex);
 				PlatformLockMutex(GenericTaskListMutex);
 				if (GenericTaskList == nullptr)
@@ -107,23 +107,22 @@ namespace BlackMagic {
 			PlatformLockMutex(allocatorMutex);
 			if (node)
 			{
-				DestructAndDeallocate<BestFitAllocator, LinkedList>(&allocator, node, 1);
+				DestructAndDeallocate<LinkedList>(&allocator, node, 1);
 			}
-			DestructAndDeallocate<BestFitAllocator, JobType>(&allocator, job, 1);
+			DestructAndDeallocate<JobType>(&allocator, job, 1);
 			PlatformUnlockMutex(allocatorMutex);
 		}
 
 		RenderJob* CreateRenderJob();
 		void DestroyRenderJob(RenderJob* job);
 
-		AudioJob* CreatePlayAudioJob(bool isBGM, AudioFile file, float relativeVolume);
-		AudioJob* CreateStopBGMAudioJob();
+		AudioJob* CreateAudioJob(bool isBGM, WAVFile* file, float relativeVolume, byte type);
 
 		template<class T>
 		ContentJob<T>* CreateContentJob(char* resourceName)
 		{
 			PlatformLockMutex(allocatorMutex);
-			ContentJob<T>* job = AllocateAndConstruct(&allocator, 1, resourceName);
+			ContentJob<T>* job = AllocateAndConstruct<ContentJob<T>>(&allocator, 1, resourceName);
 			if (job)
 			{
 				LinkedList* next = AllocateAndConstruct(&allocator, 1, job);
