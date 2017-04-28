@@ -57,7 +57,7 @@ bool AssetManager::CreateProject(std::string folder)
 	const char* defaultTexturePath = "assets/defaults/Texture.png";
 	const char* defaultVertexShaderPath = "assets/defaults/Vertex.hlsl";
 	const char* defaultPixelShaderPath = "assets/defaults/Pixel.hlsl";
-	const char* defaultMaterialPath = "assets/defaults/defaultMaterial.mat";
+	const char* defaultMaterialPath = "assets/defaults/Material.mat";
 
 	fwrite(&meta.defaultMeshUID, sizeof(Internal::Proj::Meta::defaultMeshUID), 1, projFile);
 	fwrite(defaultMeshPath, strlen(defaultMeshPath) + 1, 1, projFile);
@@ -91,7 +91,7 @@ bool AssetManager::CreateProject(std::string folder)
 	FileUtil::WriteResourceToDisk(IDB_PNG1, "png", defaultTexturePath);
 	FileUtil::WriteResourceToDisk(IDR_SHADER1, "shader", defaultVertexShaderPath);
 	FileUtil::WriteResourceToDisk(IDR_SHADER2, "shader", defaultPixelShaderPath);
-	//FileUtil::WriteResourceToDisk(IDR_MATERIAL1, "material", defaultMaterialPath);
+	FileUtil::WriteResourceToDisk(IDR_MATERIAL1, "material", defaultMaterialPath);
 
 	LoadProject(folder);
 
@@ -145,16 +145,6 @@ bool AssetManager::LoadProject(std::string folder)
 			SetDefault<TextureData>(textureAsset.handle);
 	}
 
-	Asset<SceneData> sceneAsset;
-	for (size_t i = 0; i < meta.numScenes; ++i)
-	{
-		fread_s(&sceneAsset.uID, sizeof(Internal::Proj::Asset::uID), sizeof(Internal::Proj::Asset::uID), 1, projFile);
-		sceneAsset.path = FileUtil::GetStringInFile(projFile);
-		sceneAsset.name = FileUtil::GetStringInFile(projFile);
-		sceneAsset.handle = SceneData::Instance().Load(sceneAsset.path);
-		AddAsset(sceneAsset);
-	}
-
 	Asset<VertexShaderData> vertexShaderAsset;
 	for (size_t i = 0; i < meta.numVertexShaders; ++i)
 	{
@@ -194,6 +184,16 @@ bool AssetManager::LoadProject(std::string folder)
 			SetDefault<MaterialData>(materialAsset.handle);
 	}
 
+	Asset<SceneData> sceneAsset;
+	for (size_t i = 0; i < meta.numScenes; ++i)
+	{
+		fread_s(&sceneAsset.uID, sizeof(Internal::Proj::Asset::uID), sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		sceneAsset.path = FileUtil::GetStringInFile(projFile);
+		sceneAsset.name = FileUtil::GetStringInFile(projFile);
+		sceneAsset.handle = SceneData::Instance().Load(sceneAsset.path);
+		AddAsset(sceneAsset);
+	}
+
 	// load scene config
 	size_t sceneIndex;
 	for (size_t i = 0; i < meta.numScenes; ++i)
@@ -209,9 +209,6 @@ bool AssetManager::LoadProject(std::string folder)
 	fclose(projFile);
 
 	ready = true;
-
-	// TODO remove when applicable
-	Graphics::Instance().LoadShaders();
 
 	return true;
 }
@@ -272,14 +269,6 @@ void AssetManager::SaveProject()
 		fwrite(textureTracker.assets[i].name.c_str(), textureTracker.assets[i].name.length() + 1, 1, projFile);
 	}
 
-	for (size_t i = 0; i < meta.numScenes; ++i)
-	{
-		SceneData::Instance().Save(sceneTracker.assets[i].handle);
-		fwrite(&sceneTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
-		fwrite(sceneTracker.assets[i].path.c_str(), sceneTracker.assets[i].path.length() + 1, 1, projFile);
-		fwrite(sceneTracker.assets[i].name.c_str(), sceneTracker.assets[i].name.length() + 1, 1, projFile);
-	}
-
 	for (size_t i = 0; i < meta.numVertexShaders; ++i)
 	{
 		fwrite(&vertexShaderTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
@@ -299,6 +288,14 @@ void AssetManager::SaveProject()
 		fwrite(&materialTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
 		fwrite(materialTracker.assets[i].path.c_str(), materialTracker.assets[i].path.length() + 1, 1, projFile);
 		fwrite(materialTracker.assets[i].name.c_str(), materialTracker.assets[i].name.length() + 1, 1, projFile);
+	}
+
+	for (size_t i = 0; i < meta.numScenes; ++i)
+	{
+		SceneData::Instance().Save(sceneTracker.assets[i].handle);
+		fwrite(&sceneTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		fwrite(sceneTracker.assets[i].path.c_str(), sceneTracker.assets[i].path.length() + 1, 1, projFile);
+		fwrite(sceneTracker.assets[i].name.c_str(), sceneTracker.assets[i].name.length() + 1, 1, projFile);
 	}
 
 	// save scene config

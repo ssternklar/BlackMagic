@@ -192,6 +192,9 @@
     <None Include="default assets\defaultMesh.crap">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="default assets\defaultMaterial.mat">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="default assets\defaultTexture.png">

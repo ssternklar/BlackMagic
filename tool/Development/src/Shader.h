@@ -1,10 +1,22 @@
 #pragma once
 
+#include <vector>
+#include <string>
+
 #include "Patterns.h"
 #include "SimpleShader.h"
 
 template <class T>
-class ShaderData : public ProxyHandler<T*, ShaderData<T>>
+struct Shader
+{
+	T* shader;
+
+	std::vector<std::string> samplers;
+	std::vector<std::string> textures;
+};
+
+template <class T>
+class ShaderData : public ProxyHandler<Shader<T>, ShaderData<T>>
 {
 public:
 	~ShaderData();

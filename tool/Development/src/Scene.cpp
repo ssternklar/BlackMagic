@@ -60,7 +60,7 @@ SceneData::Handle SceneData::Load(std::string scenePath)
 	EntityData::Handle entity;
 
 	uint8_t willExport;
-	size_t numEntities, meshIndex;
+	size_t numEntities, meshIndex, materialIndex;
 	fread_s(&willExport, sizeof(uint8_t), sizeof(willExport), 1, sceneFile);
 	fread_s(&numEntities, sizeof(size_t), sizeof(numEntities), 1, sceneFile);
 	
@@ -77,6 +77,9 @@ SceneData::Handle SceneData::Load(std::string scenePath)
 
 		fread_s(&meshIndex, sizeof(size_t), sizeof(size_t), 1, sceneFile);
 		entity->mesh = AssetManager::Instance().GetAsset<MeshData>(meshIndex).handle;
+
+		fread_s(&materialIndex, sizeof(size_t), sizeof(size_t), 1, sceneFile);
+		entity->material = AssetManager::Instance().GetAsset<MaterialData>(materialIndex).handle;
 	}
 
 	fclose(sceneFile);
@@ -97,7 +100,7 @@ void SceneData::Save(Handle handle)
 	}
 
 	uint8_t willExport = (handle->willExport ? 1 : 0);
-	size_t numEntities, meshIndex;
+	size_t numEntities, meshIndex, materialIndex;
 	numEntities = handle->entities.size();
 
 	fwrite(&willExport, sizeof(uint8_t), 1, sceneFile);
@@ -111,6 +114,9 @@ void SceneData::Save(Handle handle)
 
 		meshIndex = AssetManager::Instance().GetIndex<MeshData>(handle->entities[i]->mesh);
 		fwrite(&meshIndex, sizeof(size_t), 1, sceneFile);
+
+		materialIndex = AssetManager::Instance().GetIndex<MaterialData>(handle->entities[i]->material);
+		fwrite(&materialIndex, sizeof(size_t), 1, sceneFile);
 	}
 
 	fclose(sceneFile);
@@ -154,6 +160,7 @@ void SceneData::Revoke(Handle handle)
 	ProxyHandler::Revoke(handle);
 }
 
+// TODO add material UIDs to export
 void SceneData::Export(std::string path, Handle handle)
 {
 	FileUtil::CreateDirectoryRecursive(path);

@@ -191,6 +191,7 @@
     <ResourceCompile Include="tool.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="default assets\defaultMaterial.mat" />
     <None Include="default assets\defaultMesh.crap" />
   </ItemGroup>
   <ItemGroup>

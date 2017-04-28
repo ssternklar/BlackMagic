@@ -3,10 +3,6 @@
 #include "Assets.h"
 #include "FileUtil.h"
 
-const char* ShaderTypeString<SimpleComputeShader>::value = "cs_5_0";
-const char* ShaderTypeString<SimpleDomainShader>::value = "ds_5_0";
-const char* ShaderTypeString<SimpleGeometryShader>::value = "gs_5_0";
-const char* ShaderTypeString<SimpleHullShader>::value = "hs_5_0";
 const char* ShaderTypeString<SimplePixelShader>::value = "ps_5_0";
 const char* ShaderTypeString<SimpleVertexShader>::value = "vs_5_0";
 
@@ -14,7 +10,7 @@ template <class T>
 ShaderData<T>::~ShaderData()
 {
 	for (size_t i = 0; i < size; ++i)
-		delete data[i];
+		delete data[i].shader;
 }
 
 template <class T>
@@ -46,7 +42,7 @@ typename ShaderData<T>::Handle ShaderData<T>::Get(std::string shaderPath)
 template <class T>
 void ShaderData<T>::Revoke(typename ShaderData<T>::Handle handle)
 {
-	delete handle.ptr();
+	delete handle->shader;
 
 	AssetManager::Instance().StopTrackingAsset<ShaderData<T>>(handle);
 	ProxyHandler::Revoke(handle);
@@ -82,7 +78,19 @@ typename ShaderData<T>::Handle ShaderData<T>::Load(std::string path)
 
 	Handle h = ProxyHandler::Get();
 
-	data[size-1] = shader;
+	h->shader = shader;
+
+	size_t numSamplers, numTextures;
+
+	numSamplers = shader->GetSamplerCount();
+	numTextures = shader->GetShaderResourceViewCount();
+
+	size_t i;
+	for (i = 0; i < numSamplers; ++i)
+		h->samplers.push_back(shader->GetSamplerInfo(i)->name);
+
+	for (i = 0; i < numTextures; ++i)
+		h->textures.push_back(shader->GetShaderResourceViewInfo(i)->name);
 
 	return h;
 }

@@ -47,6 +47,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 
 	MeshData::Instance().Init(Graphics::Instance().GetDevice());
 	TextureData::Instance().Init(Graphics::Instance().GetDevice(), Graphics::Instance().GetContext());
+	MaterialData::Instance().Init(Graphics::Instance().GetDevice());
 	SceneData::Instance().Init(&gui.entityData);
 
 	RAWINPUTDEVICE Rid[1];

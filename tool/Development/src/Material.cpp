@@ -5,10 +5,6 @@
 
 MaterialData::~MaterialData()
 {
-	for (size_t i = 0; i < size; ++i)
-		for (auto& pair : data[i].resources)
-			delete pair.second;
-
 	sampler->Release();
 }
 
@@ -34,8 +30,9 @@ MaterialData::Handle MaterialData::Create(std::string name)
 		return h;
 
 	h = ProxyHandler::Get();
+	
 	h->vertexShader = AssetManager::Instance().defaults;
-	h->pixelShader = AssetManager::Instance().defaults;
+	FlushPixelShader(h, AssetManager::Instance().defaults);
 
 	AssetManager::Instance().TrackAsset<MaterialData>(h, fullPath);
 
@@ -62,10 +59,10 @@ MaterialData::Handle MaterialData::Get(std::string name)
 	return h;
 }
 
-MaterialData::Handle MaterialData::Load(std::string scenePath)
+MaterialData::Handle MaterialData::Load(std::string materialPath)
 {
 	FILE* materialFile;
-	fopen_s(&materialFile, scenePath.c_str(), "rb");
+	fopen_s(&materialFile, materialPath.c_str(), "rb");
 	if (!materialFile)
 	{
 		Handle e;
@@ -73,56 +70,18 @@ MaterialData::Handle MaterialData::Load(std::string scenePath)
 	}
 
 	Handle h = ProxyHandler::Get();
+	Internal::Material::File fileData = {};
 
-	Internal::Mat::File fileData = {};
+	fread_s(&fileData.vertexShaderIndex, sizeof(size_t) * 3, sizeof(size_t), 3, materialFile);
 
-	fread_s(&fileData.shaders.vertexShaderIndex, sizeof(Internal::Mat::Shaders), sizeof(Internal::Mat::Shaders), 1, materialFile);
-	fread_s(&fileData.numTextures, sizeof(uint8_t), sizeof(uint8_t), 3, materialFile);
+	h->vertexShader = AssetManager::Instance().GetAsset<VertexShaderData>(fileData.vertexShaderIndex).handle;
+	FlushPixelShader(h, AssetManager::Instance().GetAsset<PixelShaderData>(fileData.vertexShaderIndex).handle);
 
-	h->vertexShader = AssetManager::Instance().GetAsset<VertexShaderData>(fileData.shaders.vertexShaderIndex).handle;
-	h->pixelShader = AssetManager::Instance().GetAsset<PixelShaderData>(fileData.shaders.pixelShaderIndex).handle;
-
-	using MR = Material::Resource;
-
-	size_t i;
-	MR::Stage resourceStage;
-	size_t meta;
-	std::string resourceName;
-
-	for (i = 0; i < fileData.numTextures; ++i)
+	size_t textureIndex;
+	for (size_t i = 0; i < fileData.numTextures; ++i)
 	{
-		fread_s(&resourceStage, sizeof(MR::Stage), sizeof(MR::Stage), 1, materialFile);
-		fread_s(&meta, sizeof(Internal::Mat::TextureResource::index), sizeof(Internal::Mat::TextureResource::index), 1, materialFile);
-		resourceName = FileUtil::GetStringInFile(materialFile);
-
-		SetResource(h, resourceName, resourceStage, AssetManager::Instance().GetAsset<TextureData>(meta).handle);
-	}
-
-	uint8_t* data;
-
-	for (i = 0; i < fileData.numDatas; ++i)
-	{
-		fread_s(&resourceStage, sizeof(MR::Stage), sizeof(MR::Stage), 1, materialFile);
-		fread_s(&meta, sizeof(Internal::Mat::DataResource::sizeInBytes), sizeof(Internal::Mat::DataResource::sizeInBytes), 1, materialFile);
-
-		if (meta > 0)
-			data = new uint8_t[meta];
-		fread_s(data, meta, 1, meta, materialFile);
-
-		resourceName = FileUtil::GetStringInFile(materialFile);
-
-		SetResource(h, resourceName, resourceStage, meta, data);
-
-		if (meta)
-			delete data;
-	}
-
-	for (i = 0; i < fileData.numSamplers; ++i)
-	{
-		fread_s(&resourceStage, sizeof(MR::Stage), sizeof(MR::Stage), 1, materialFile);
-		resourceName = FileUtil::GetStringInFile(materialFile);
-
-		SetResource(h, resourceName, resourceStage, sampler);
+		fread_s(&textureIndex, sizeof(size_t), sizeof(size_t), 1, materialFile);
+		h->textures[i] = AssetManager::Instance().GetAsset<TextureData>(textureIndex).handle;
 	}
 
 	fclose(materialFile);
@@ -142,73 +101,19 @@ void MaterialData::Save(Handle handle)
 		return;
 	}
 
-	Internal::Mat::File fileData = {};
+	Internal::Material::File fileData = {};
 
-	fileData.shaders.vertexShaderIndex = AssetManager::Instance().GetIndex<VertexShaderData>(handle->vertexShader);
-	fileData.shaders.pixelShaderIndex = AssetManager::Instance().GetIndex<PixelShaderData>(handle->pixelShader);
+	fileData.vertexShaderIndex = AssetManager::Instance().GetIndex<VertexShaderData>(handle->vertexShader);
+	fileData.PixelShaderIndex = AssetManager::Instance().GetIndex<PixelShaderData>(handle->pixelShader);
+	fileData.numTextures = handle->textures.size();
 
-	fwrite(&fileData.shaders.vertexShaderIndex, sizeof(Internal::Mat::Shaders), 1, materialFile);
+	fwrite(&fileData.vertexShaderIndex, sizeof(size_t), 3, materialFile);
 
-	using MR = Material::Resource;
-
-	vector<std::pair<std::string, MR*>> textures;
-	vector<std::pair<std::string, MR*>> datas;
-	vector<std::pair<std::string, MR*>> samplers;
-
-	for (auto& pair : handle->resources)
-	{
-		switch (pair.second->type)
-		{
-		case MR::Type::Texture:
-			textures.push_back(pair);
-			break;
-		case MR::Type::Data:
-			datas.push_back(pair);
-			break;
-		case MR::Type::Sampler:
-			samplers.push_back(pair);
-			break;
-		}
-	}
-
-	fileData.numTextures = (uint8_t)textures.size();
-	fileData.numDatas = (uint8_t)datas.size();
-	fileData.numSamplers = (uint8_t)samplers.size();
-
-	fwrite(&fileData.numTextures, sizeof(uint8_t), 3, materialFile);
-
-	size_t i;
 	size_t textureIndex;
-	std::string resourceName;
-
-	for (i = 0; i < fileData.numTextures; ++i)
+	for (size_t i = 0; i < fileData.numTextures; ++i)
 	{
-		fwrite(&textures[i].second->stage, sizeof(MR::Stage), 1, materialFile);
-		
-		textureIndex = AssetManager::Instance().GetIndex<TextureData>((*static_cast<TextureData::Handle*>(textures[i].second->data)));
-		fwrite(&textureIndex, sizeof(Internal::Mat::TextureResource::index), 1, materialFile);
-		
-		resourceName = textures[i].first + '\0';
-		fwrite(resourceName.c_str(), resourceName.length(), 1, materialFile);
-	}
-
-	for (i = 0; i < fileData.numDatas; ++i)
-	{
-		fwrite(&datas[i].second->stage, sizeof(MR::Stage), 1, materialFile);
-
-		fwrite(&datas[i].second->size, sizeof(Internal::Mat::DataResource::sizeInBytes), 1, materialFile);
-		fwrite(datas[i].second->data, sizeof(uint8_t), datas[i].second->size, materialFile);
-
-		resourceName = datas[i].first + '\0';
-		fwrite(resourceName.c_str(), resourceName.length(), 1, materialFile);
-	}
-
-	for (i = 0; i < fileData.numSamplers; ++i)
-	{
-		fwrite(&samplers[i].second->stage, sizeof(MR::Stage), 1, materialFile);
-
-		resourceName = samplers[i].first + '\0';
-		fwrite(resourceName.c_str(), resourceName.length(), 1, materialFile);
+		textureIndex = AssetManager::Instance().GetIndex<TextureData>(handle->textures[i]);
+		fwrite(&textureIndex, sizeof(size_t), 1, materialFile);
 	}
 
 	fclose(materialFile);
@@ -216,9 +121,6 @@ void MaterialData::Save(Handle handle)
 
 void MaterialData::Revoke(Handle handle)
 {
-	for (auto& pair : handle->resources)
-		delete pair.second;
-
 	AssetManager::Instance().StopTrackingAsset<MaterialData>(handle);
 	ProxyHandler::Revoke(handle);
 }
@@ -242,83 +144,33 @@ void MaterialData::Export(std::string path, Handle handle)
 
 void MaterialData::Use(Handle handle)
 {
-	(*handle->vertexShader)->SetShader();
-	(*handle->pixelShader)->SetShader();
+	handle->vertexShader->shader->SetShader();
+	handle->pixelShader->shader->SetShader();
 
-	for (auto& pair : handle->resources)
-		UploadData(pair.first, pair.second, handle);
+	std::string name;
+	size_t i;
 
-	(*handle->vertexShader)->CopyAllBufferData();
-	(*handle->pixelShader)->CopyAllBufferData();
-}
-
-void MaterialData::SetResource(Handle handle, std::string name, Material::Resource::Stage s, size_t size, void* data)
-{
-	Material::Resource* dat = new Material::Resource;
-	dat->stage = s;
-	dat->size = size;
-	dat->type = Material::Resource::Type::Data;
-	dat->data = new unsigned char[dat->size];
-	memcpy(dat->data, data, dat->size);
-
-	handle->resources[name] = dat;
-}
-
-void MaterialData::SetResource(Handle handle, std::string name, Material::Resource::Stage s, TextureData::Handle texture)
-{
-	Material::Resource* dat = new Material::Resource;
-	dat->stage = s;
-	dat->size = sizeof(texture);
-	dat->type = Material::Resource::Type::Texture;
-	dat->data = new TextureData::Handle;
-	memcpy(dat->data, &texture, dat->size);
-
-	handle->resources[name] = dat;
-}
-
-void MaterialData::SetResource(Handle handle, std::string name, Material::Resource::Stage s, ID3D11SamplerState* sampler)
-{
-	Material::Resource* dat = new Material::Resource;
-	dat->stage = s;
-	dat->size = sizeof(sampler);
-	dat->type = Material::Resource::Type::Sampler;
-	dat->data = sampler;
-	sampler->AddRef();
-
-	handle->resources[name] = dat;
-}
-
-void MaterialData::UploadData(std::string name, const Material::Resource* resource, Handle handle)
-{
-	using MR = Material::Resource;
-
-	MR::Stage s = resource->stage;
-
-	switch (resource->type)
+	for (i = 0; i < handle->textures.size(); ++i)
 	{
-	case MR::Type::Data:
-		if (s & MR::Stage::VS)
-			(*handle->vertexShader)->SetData(name, resource->data, resource->size);
-		if (s & MR::Stage::PS)
-			(*handle->pixelShader)->SetData(name, resource->data, resource->size);
-		break;
-	case MR::Type::Sampler:
+		name = handle->pixelShader->textures[i];
+		handle->pixelShader->shader->SetShaderResourceView(name, handle->textures[i]->srv);
+	}
+
+	for (i = 0; i < handle->pixelShader->samplers.size(); ++i)
 	{
-		ID3D11SamplerState* sampler = static_cast<ID3D11SamplerState*>(resource->data);
-		if (s & MR::Stage::VS)
-			(*handle->vertexShader)->SetSamplerState(name, sampler);
-		if (s & MR::Stage::PS)
-			(*handle->pixelShader)->SetSamplerState(name, sampler);
-		break;
+		name = handle->pixelShader->samplers[i];
+		handle->pixelShader->shader->SetSamplerState(name, sampler);
 	}
-	case MR::Type::Texture:
-	{
-		ID3D11ShaderResourceView* srv = (*static_cast<TextureData::Handle*>(resource->data))->srv;
-		if (s & MR::Stage::VS)
-			(*handle->vertexShader)->SetShaderResourceView(name, srv);
-		if (s & MR::Stage::PS)
-			(*handle->pixelShader)->SetShaderResourceView(name, srv);
-		break;
-	}
-	}
+
+	handle->vertexShader->shader->CopyAllBufferData();
+	handle->pixelShader->shader->CopyAllBufferData();
+}
+
+void MaterialData::FlushPixelShader(Handle handle, PixelShaderData::Handle newPixelShader)
+{
+	handle->pixelShader = newPixelShader;
+	handle->textures.clear();
+
+	for (size_t i = 0; i < newPixelShader->textures.size(); ++i)
+		handle->textures.push_back(AssetManager::Instance().defaults);
 }

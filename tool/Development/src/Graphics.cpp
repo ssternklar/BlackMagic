@@ -11,9 +11,6 @@ Graphics::Graphics()
 	swapChain = nullptr;
 	backBufferRTV = nullptr;
 	depthStencilView = nullptr;
-
-	vertexShader = nullptr;
-	pixelShader = nullptr;
 }
 
 Graphics::~Graphics()
@@ -259,15 +256,20 @@ void Graphics::Draw(float deltaTime)
 	
 	UINT stride = sizeof(Mesh::Vertex);
 	UINT offset = 0;
+	EntityData::Handle entity;
+	SimpleVertexShader* vertexShader;
 
 	for (size_t i = 0; i < scene->entities.size(); ++i)
 	{
-		(*vertexShader)->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
-		(*vertexShader)->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
-		(*vertexShader)->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
-		(*vertexShader)->CopyAllBufferData();
-		(*vertexShader)->SetShader();
-		(*pixelShader)->SetShader();
+		entity = scene->entities[i];
+		vertexShader = entity->material->vertexShader->shader;
+
+		vertexShader->SetMatrix4x4("world", scene->entities[i]->transform->matrix);
+		vertexShader->SetMatrix4x4("view", Camera::Instance().ViewMatrix());
+		vertexShader->SetMatrix4x4("projection", Camera::Instance().ProjectionMatrix());
+
+		MaterialData::Instance().Use(entity->material);
+
 		context->IASetVertexBuffers(0, 1, &scene->entities[i]->mesh->vertexBuffer, &stride, &offset);
 		context->IASetIndexBuffer(scene->entities[i]->mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		context->DrawIndexed(scene->entities[i]->mesh->faceCount, 0, 0);
@@ -277,12 +279,6 @@ void Graphics::Draw(float deltaTime)
 void Graphics::Present()
 {
 	swapChain->Present(0, 0);
-}
-
-void Graphics::LoadShaders()
-{
-	vertexShader = AssetManager::Instance().defaults;
-	pixelShader = AssetManager::Instance().defaults;
 }
 
 HWND Graphics::GetHandle()

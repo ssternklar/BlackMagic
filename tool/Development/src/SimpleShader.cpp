@@ -133,6 +133,7 @@ bool ISimpleShader::LoadShaderBlob(ID3DBlob* blob)
 			SimpleSRV* srv = new SimpleSRV();
 			srv->BindIndex = resourceDesc.BindPoint;	// Shader bind point
 			srv->Index = (unsigned int)shaderResourceViews.size();	// Raw index
+			srv->name = resourceDesc.Name;
 
 			textureTable.insert(std::pair<std::string, SimpleSRV*>(resourceDesc.Name, srv));
 			shaderResourceViews.push_back(srv);
@@ -145,6 +146,7 @@ bool ISimpleShader::LoadShaderBlob(ID3DBlob* blob)
 			SimpleSampler* samp = new SimpleSampler();
 			samp->BindIndex = resourceDesc.BindPoint;	// Shader bind point
 			samp->Index = (unsigned int)samplerStates.size();			// Raw index
+			samp->name = resourceDesc.Name;
 
 			samplerTable.insert(std::pair<std::string, SimpleSampler*>(resourceDesc.Name, samp));
 			samplerStates.push_back(samp);
@@ -205,6 +207,9 @@ bool ISimpleShader::LoadShaderBlob(ID3DBlob* blob)
 			varStruct.ConstantBufferIndex = b;
 			varStruct.ByteOffset = varDesc.StartOffset;
 			varStruct.Size = varDesc.Size;
+
+			// TODO add Type to varStruct
+			// http://stackoverflow.com/questions/17840765/how-to-reflect-information-about-hlsl-struct-members
 			
 			// Get a string version
 			std::string varName(varDesc.Name);

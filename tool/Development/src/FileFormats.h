@@ -37,6 +37,9 @@ namespace Internal
 		{
 			Asset* l_meshes;
 			Asset* l_textures;
+			Asset* l_vertexShaders;
+			Asset* l_pixelShaders;
+			Asset* l_materials;
 			Asset* l_scenes;
 		};
 
@@ -63,6 +66,7 @@ namespace Internal
 		{
 			Transform trans;
 			size_t meshIndex;
+			size_t materialIndex;
 		};
 
 		struct File
@@ -73,44 +77,14 @@ namespace Internal
 		};
 	}
 
-	namespace Mat
+	namespace Material
 	{
-		struct Shaders
-		{
-			size_t vertexShaderIndex;
-			size_t pixelShaderIndex;
-		};
-
-		struct TextureResource
-		{
-			Material::Resource::Stage stage;
-			size_t index;
-			char* name;
-		};
-
-		struct DataResource
-		{
-			Material::Resource::Stage stage;
-			size_t sizeInBytes;
-			uint8_t* bytes;
-			char* name;
-		};
-
-		struct SamplerResource
-		{
-			Material::Resource::Stage stage;
-			char* name;
-		};
-
 		struct File
 		{
-			Shaders shaders;
-			uint8_t numTextures;
-			uint8_t numDatas;
-			uint8_t numSamplers;
-			TextureResource* l_textures;
-			TextureResource* l_datas;
-			TextureResource* l_samplers;
+			size_t vertexShaderIndex;
+			size_t PixelShaderIndex;
+			size_t numTextures;
+			size_t* l_texturesIndices;
 		};
 	}
 }
@@ -205,48 +179,6 @@ namespace Export
 			Bounds bounds;
 			Vertex* l_vertices;
 			uint32_t* l_indices;
-		};
-	}
-
-	namespace Mat
-	{
-		struct Shaders
-		{
-			uint16_t vertexShaderUID;
-			uint16_t pixelShaderUID;
-		};
-
-		struct TextureResource
-		{
-			Material::Resource::Stage stage;
-			uint16_t nameIndex;
-			uint16_t UID;
-		};
-
-		struct DataResource
-		{
-			Material::Resource::Stage stage;
-			uint16_t nameIndex;
-			uint16_t sizeInBytes;
-			uint8_t* bytes;
-		};
-
-		struct SamplerResource
-		{
-			Material::Resource::Stage stage;
-			uint16_t nameIndex;
-		};
-
-		struct File
-		{
-			Shaders shaders;
-			uint8_t numTextures;
-			uint8_t numDatas;
-			uint8_t numSamplers;
-			TextureResource* l_textures;
-			DataResource* l_datas;
-			SamplerResource* l_samplers;
-			char* l_names;
 		};
 	}
 }

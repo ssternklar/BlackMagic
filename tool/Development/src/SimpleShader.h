@@ -43,6 +43,7 @@ struct SimpleSRV
 {
 	unsigned int Index;		// The raw index of the SRV
 	unsigned int BindIndex; // The register of the SRV
+	std::string name;
 };
 
 // --------------------------------------------------------
@@ -52,6 +53,7 @@ struct SimpleSampler
 {
 	unsigned int Index;		// The raw index of the Sampler
 	unsigned int BindIndex; // The register of the Sampler
+	std::string name;
 };
 
 // --------------------------------------------------------
