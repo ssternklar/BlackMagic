@@ -124,12 +124,10 @@ TextureData::Handle TextureData::Create(TextureDesc desc)
 	ID3D11RenderTargetView* rtv = nullptr;
 
 	result = device->CreateTexture2D(&d3dDesc, &subDat, &tex);
+	Handle e;
 
 	if (result != S_OK)
-	{
-		Handle e;
 		return e;
-	}
 
 	if (desc.usage & TextureDesc::Usage::READ)
 	{
@@ -138,7 +136,6 @@ TextureData::Handle TextureData::Create(TextureDesc desc)
 		if (result != S_OK)
 		{
 			tex->Release();
-			Handle e;
 			return e;
 		}
 
@@ -153,7 +150,6 @@ TextureData::Handle TextureData::Create(TextureDesc desc)
 		{
 			tex->Release();
 			srv->Release();
-			Handle e;
 			return e;
 		}
 	}
@@ -167,13 +163,54 @@ TextureData::Handle TextureData::Create(TextureDesc desc)
 	return h;
 }
 
-void TextureData::Revoke(Handle handle)
+TextureData::Handle TextureData::CreateEmpty(D3D11_TEXTURE2D_DESC& desc)
 {
+	ID3D11Texture2D* tex;
+	ID3D11RenderTargetView* rtv;
+	ID3D11ShaderResourceView* srv;
+	HRESULT result = S_OK;
+	Handle e;
+
+	result = device->CreateTexture2D(&desc, nullptr, &tex);
+	if (result != S_OK)
+		return e;
+
+	result = device->CreateRenderTargetView(tex, nullptr, &rtv);
+	if (result != S_OK)
+	{
+		tex->Release();
+		return e;
+	}
+
+	result = device->CreateShaderResourceView(tex, nullptr, &srv);
+	if (result != S_OK)
+	{
+		tex->Release();
+		rtv->Release();
+		return e;
+	}
+
+	Handle h = ProxyHandler::Get();
+
+	h->tex = tex;
+	h->srv = srv;
+	h->rtv = rtv;
+
+	return h;
+}
+
+void TextureData::Revoke(Handle handle, bool isEngine)
+{
+	if (!handle.ptr())
+		return;
+
 	DX_RELEASE(handle->tex);
 	DX_RELEASE(handle->srv);
 	DX_RELEASE(handle->rtv);
 
-	AssetManager::Instance().StopTrackingAsset<TextureData>(handle);
+	if (!isEngine)
+		AssetManager::Instance().StopTrackingAsset<TextureData>(handle);
+
 	ProxyHandler::Revoke(handle);
 }
 

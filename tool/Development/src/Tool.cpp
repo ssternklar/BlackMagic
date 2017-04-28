@@ -3,6 +3,8 @@
 #include "Tool.h"
 #include "Input.h"
 #include "Assets.h"
+#include "FileUtil.h"
+#include "../resource.h"
 
 using namespace DirectX;
 
@@ -42,12 +44,23 @@ Tool::~Tool()
 
 HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
 {
+	FileUtil::WriteResourceToDisk(IDR_MESH2, "mesh", "engine/skybox.obj");
+	FileUtil::WriteResourceToDisk(IDR_CUBEMAP1, "cubemap", "engine/park_skybox_env.dds");
+	FileUtil::WriteResourceToDisk(IDR_CUBEMAP2, "cubemap", "engine/park_skybox_radiance.dds");
+	FileUtil::WriteResourceToDisk(IDR_CUBEMAP3, "cubemap", "engine/park_skybox_irradiance.dds");
+	FileUtil::WriteResourceToDisk(IDB_PNG2, "png", "engine/cosLUT.png");
+	FileUtil::WriteResourceToDisk(IDR_SHADER3, "shader", "engine/QuadVS.hlsl");
+	FileUtil::WriteResourceToDisk(IDR_SHADER4, "shader", "engine/LightPassPS.hlsl");
+	FileUtil::WriteResourceToDisk(IDR_SHADER5, "shader", "engine/ShadowMapVS.hlsl");
+	FileUtil::WriteResourceToDisk(IDR_SHADER6, "shader", "engine/SkyboxVS.hlsl");
+	FileUtil::WriteResourceToDisk(IDR_SHADER7, "shader", "engine/SkyboxPS.hlsl");
+	FileUtil::WriteResourceToDisk(IDR_SHADER8, "shader", "engine/FXAA_VS.hlsl");
+	FileUtil::WriteResourceToDisk(IDR_SHADER9, "shader", "engine/FXAA_PS.hlsl");
+	FileUtil::WriteResourceToDisk(IDR_SHADER10, "shader", "engine/FinalMerge.hlsl");
+
 	HRESULT hr = Graphics::Instance().Init(hInstance, windowWidth, windowHeight);
 	if (FAILED(hr)) return hr;
 
-	MeshData::Instance().Init(Graphics::Instance().GetDevice());
-	TextureData::Instance().Init(Graphics::Instance().GetDevice(), Graphics::Instance().GetContext());
-	MaterialData::Instance().Init(Graphics::Instance().GetDevice());
 	SceneData::Instance().Init(&gui.entityData);
 
 	RAWINPUTDEVICE Rid[1];
@@ -90,7 +103,7 @@ HRESULT Tool::Run(HINSTANCE hInstance, unsigned int windowWidth, unsigned int wi
 				}
 
 				TransformData::Instance().UpdateTransforms();
-				Graphics::Instance().Draw(delta);
+				Graphics::Instance().Render(delta);
 			}
 			else
 			{

@@ -93,6 +93,22 @@ bool AssetManager::CreateProject(std::string folder)
 	FileUtil::WriteResourceToDisk(IDR_SHADER2, "shader", defaultPixelShaderPath);
 	FileUtil::WriteResourceToDisk(IDR_MATERIAL1, "material", defaultMaterialPath);
 
+	// this does not work because graphics is live before a project exists, or can even load
+	// write engine files to disk
+	//FileUtil::WriteResourceToDisk(IDR_MESH2, "mesh", "engine/skybox.obj");
+	//FileUtil::WriteResourceToDisk(IDR_CUBEMAP1, "cubemap", "engine/park_skybox_env.dds");
+	//FileUtil::WriteResourceToDisk(IDR_CUBEMAP2, "cubemap", "engine/park_skybox_radiance.dds");
+	//FileUtil::WriteResourceToDisk(IDR_CUBEMAP3, "cubemap", "engine/park_skybox_irradiance.dds");
+	//FileUtil::WriteResourceToDisk(IDB_PNG2, "png", "engine/cosLUT.png");
+	//FileUtil::WriteResourceToDisk(IDR_SHADER3, "shader", "engine/QuadVS.hlsl");
+	//FileUtil::WriteResourceToDisk(IDR_SHADER4, "shader", "engine/LightPassPS.hlsl");
+	//FileUtil::WriteResourceToDisk(IDR_SHADER5, "shader", "engine/ShadowMapVS.hlsl");
+	//FileUtil::WriteResourceToDisk(IDR_SHADER6, "shader", "engine/SkyboxVS.hlsl");
+	//FileUtil::WriteResourceToDisk(IDR_SHADER7, "shader", "engine/SkyboxPS.hlsl");
+	//FileUtil::WriteResourceToDisk(IDR_SHADER8, "shader", "engine/FXAA_VS.hlsl");
+	//FileUtil::WriteResourceToDisk(IDR_SHADER9, "shader", "engine/FXAA_PS.hlsl");
+	//FileUtil::WriteResourceToDisk(IDR_SHADER10, "shader", "engine/FinalMerge.hlsl");
+
 	LoadProject(folder);
 
 	return true;

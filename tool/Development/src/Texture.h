@@ -43,8 +43,9 @@ public:
 	void Init(ID3D11Device* device, ID3D11DeviceContext* context);
 
 	Handle Create(TextureDesc desc);
+	Handle CreateEmpty(D3D11_TEXTURE2D_DESC& desc);
 	Handle Get(std::string texturePath);
-	void Revoke(Handle handle);
+	void Revoke(Handle handle, bool isEngine = false);
 
 	void Export(std::string path, Handle handle);
 	Handle Load(std::string path, TextureDesc::Type type, TextureDesc::Usage usage);

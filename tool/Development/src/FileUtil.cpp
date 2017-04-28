@@ -246,6 +246,8 @@ namespace FileUtil
 		if (!data)
 			return false;
 
+		CreateDirectoryRecursive(filePath);
+
 		FILE* resourceFile;
 		fopen_s(&resourceFile, filePath, "wb");
 		if (!resourceFile)
