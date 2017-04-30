@@ -56,6 +56,23 @@ void TransformData::Rotate(Handle handle, XMFLOAT3 axis, float angle)
 	XMStoreFloat4(&handle->rot, XMQuaternionMultiply(current, quat));
 }
 
+void TransformData::SetEuler(Handle handle, DirectX::XMFLOAT3 angles)
+{
+	XMVECTOR quat = XMQuaternionRotationRollPitchYaw(angles.z, angles.y, angles.x);
+	XMStoreFloat4(&handle->rot, quat);
+}
+
+XMFLOAT3 TransformData::GetEuler(Handle handle)
+{
+	XMFLOAT4 q = handle->rot;
+	float z = atan2(((q.z * q.w) + (q.x * q.y)), 0.5f - ((q.y * q.y) + (q.z * q.z)));
+	float y = asin(-2 * ((q.y * q.w) - (q.x * q.z)));
+	float x = atan2(((q.y * q.z) + (q.x * q.w)), 0.5f - ((q.z * q.z) + (q.w * q.w)));
+
+	return { 0, 0, 0 };
+	return { x, y, z };
+}
+
 XMFLOAT3 TransformData::GetForward(Handle handle)
 {
 	XMFLOAT3 ret;

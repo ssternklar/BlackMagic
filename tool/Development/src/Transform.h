@@ -26,4 +26,6 @@ public:
 	void Move(Handle handle, DirectX::XMFLOAT3 delta);
 	void Rotate(Handle handle, DirectX::XMFLOAT4 quaternion);
 	void Rotate(Handle handle, DirectX::XMFLOAT3 axis, float angle);
+	void SetEuler(Handle handle, DirectX::XMFLOAT3 angles);
+	DirectX::XMFLOAT3 GetEuler(Handle handle);
 };

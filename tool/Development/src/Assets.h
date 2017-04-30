@@ -12,6 +12,18 @@
 
 #define DX_RELEASE(ptr) if(ptr) { ptr->Release(); }
 
+// http://stackoverflow.com/questions/5529067/c-appending-one-vector-to-another-with-removal-of-duplicates
+
+struct Contained
+{
+	const vector<uint16_t>& _sequence;
+	Contained(const vector<uint16_t> &vec) : _sequence(vec) {}
+	bool operator()(int i) const
+	{
+		return _sequence.end() != std::find(_sequence.begin(), _sequence.end(), i);
+	}
+};
+
 template<class T>
 struct Asset
 {

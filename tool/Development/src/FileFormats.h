@@ -65,6 +65,7 @@ namespace Internal
 		struct Entity
 		{
 			Transform trans;
+			uint16_t type;
 			size_t meshIndex;
 			size_t materialIndex;
 		};
@@ -125,7 +126,9 @@ namespace Export
 		struct Entity
 		{
 			Transform trans;
+			uint16_t type;
 			uint16_t meshUID;
+			uint16_t materialUID;
 		};
 
 		struct File
@@ -179,6 +182,36 @@ namespace Export
 			Bounds bounds;
 			Vertex* l_vertices;
 			uint32_t* l_indices;
+		};
+	}
+
+	namespace Material
+	{
+		struct Shaders
+		{
+			uint16_t vertexShaderUID;
+			uint16_t pixelShaderUID;
+		};
+
+		struct TextureResource
+		{
+			uint16_t nameIndex;
+			uint16_t UID;
+		};
+
+		struct SamplerResource
+		{
+			uint16_t nameIndex;
+		};
+
+		struct File
+		{
+			Shaders shaders;
+			uint8_t numTextures;
+			uint8_t numSamplers;
+			TextureResource* l_textures;
+			SamplerResource* l_samplers;
+			char* l_names;
 		};
 	}
 }

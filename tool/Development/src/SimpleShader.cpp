@@ -207,9 +207,6 @@ bool ISimpleShader::LoadShaderBlob(ID3DBlob* blob)
 			varStruct.ConstantBufferIndex = b;
 			varStruct.ByteOffset = varDesc.StartOffset;
 			varStruct.Size = varDesc.Size;
-
-			// TODO add Type to varStruct
-			// http://stackoverflow.com/questions/17840765/how-to-reflect-information-about-hlsl-struct-members
 			
 			// Get a string version
 			std::string varName(varDesc.Name);

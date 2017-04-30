@@ -24,7 +24,7 @@ public:
 
 	Handle Load(std::string scenePath);
 	void Save(Handle handle);
-	void Export(std::string path, Handle handle);
+	std::vector<uint16_t> Export(std::string path, Handle handle);
 	
 	Handle CurrentScene();
 	void SwapScene(size_t index);

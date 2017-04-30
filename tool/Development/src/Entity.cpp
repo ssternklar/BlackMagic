@@ -5,6 +5,7 @@ EntityData::Handle EntityData::Get()
 {
 	Handle h = ProxyHandler::Get();
 
+	h->type = 0;
 	h->transform = TransformData::Instance().Get();
 	h->mesh = AssetManager::Instance().defaults;
 	h->material = AssetManager::Instance().defaults;

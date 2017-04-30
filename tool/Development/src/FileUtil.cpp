@@ -236,6 +236,9 @@ namespace FileUtil
 
 	bool WriteResourceToDisk(const int resourceName, const char* resourceType, const char* filePath)
 	{
+		if (DoesfileExist(filePath))
+			return false;
+
 		HMODULE handle = GetModuleHandle(NULL);
 		HRSRC rc = FindResource(handle, MAKEINTRESOURCE(resourceName), resourceType);
 		HGLOBAL rcData = LoadResource(handle, rc);

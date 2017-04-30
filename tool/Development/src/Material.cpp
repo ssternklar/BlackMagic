@@ -125,21 +125,68 @@ void MaterialData::Revoke(Handle handle)
 	ProxyHandler::Revoke(handle);
 }
 
-void MaterialData::Export(std::string path, Handle handle)
+std::vector<uint16_t> MaterialData::Export(std::string path, Handle handle)
 {
 	FileUtil::CreateDirectoryRecursive(path);
+
+	std::vector<uint16_t> uIDs;
 
 	FILE* materialFile;
 	fopen_s(&materialFile, path.c_str(), "wb");
 	if (!materialFile)
 	{
 		printf("Failed to write material file '%s'", path.c_str());
-		return;
+		return uIDs;
 	}
 
-	// export material from handle
+	Export::Material::File fileData = {};
+
+	fileData.shaders.vertexShaderUID = (uint16_t)AssetManager::Instance().GetAsset<VertexShaderData>(handle->vertexShader).uID;
+	fileData.shaders.pixelShaderUID = (uint16_t)AssetManager::Instance().GetAsset<PixelShaderData>(handle->pixelShader).uID;
+	fileData.numTextures = (uint8_t)handle->pixelShader->textures.size();
+	fileData.numSamplers = (uint8_t)handle->pixelShader->samplers.size();
+
+	uIDs.reserve(2 + fileData.numTextures);
+
+	fwrite(&fileData.shaders.vertexShaderUID, sizeof(uint16_t), 3, materialFile);
+
+	std::vector<uint16_t> nameIndices;
+	nameIndices.reserve(fileData.numTextures + fileData.numSamplers);
+	std::string nameBlob;
+	size_t i;
+
+	for (i = 0; i < fileData.numTextures; ++i)
+	{
+		nameIndices.push_back((uint16_t)nameBlob.size());
+		nameBlob += handle->pixelShader->textures[i] + '\0';
+	}
+
+	for (i = 0; i < fileData.numSamplers; ++i)
+	{
+		nameIndices.push_back((uint16_t)nameBlob.size());
+		nameBlob += handle->pixelShader->samplers[i] + '\0';
+	}
+
+	uint16_t textureUID;
+	for (i = 0; i < fileData.numTextures; ++i)
+	{
+		fwrite(&nameIndices[i], sizeof(uint16_t), 1, materialFile);
+
+		textureUID = (uint16_t)AssetManager::Instance().GetAsset<TextureData>(handle->textures[i]).uID;
+		uIDs.push_back(textureUID);
+		fwrite(&textureUID, sizeof(uint16_t), 1, materialFile);
+	}
+
+	if (fileData.numSamplers > 0)
+		fwrite(&nameIndices[fileData.numTextures], sizeof(uint16_t), fileData.numSamplers, materialFile);
+	if (fileData.numTextures + fileData.numSamplers > 0)
+		fwrite(nameBlob.c_str(), sizeof(char), nameBlob.size(), materialFile);
 
 	fclose(materialFile);
+
+	uIDs.push_back(fileData.shaders.vertexShaderUID);
+	uIDs.push_back(fileData.shaders.pixelShaderUID);
+	return uIDs;
 }
 
 void MaterialData::Use(Handle handle)
@@ -166,14 +213,16 @@ void MaterialData::Use(Handle handle)
 	handle->pixelShader->shader->CopyAllBufferData();
 }
 
-void MaterialData::FlushPixelShader(Handle handle, PixelShaderData::Handle newPixelShader)
+bool MaterialData::FlushPixelShader(Handle handle, PixelShaderData::Handle newPixelShader)
 {
 	if (newPixelShader == handle->pixelShader)
-		return;
+		return false;
 
 	handle->pixelShader = newPixelShader;
 	handle->textures.clear();
 
 	for (size_t i = 0; i < newPixelShader->textures.size(); ++i)
 		handle->textures.push_back(AssetManager::Instance().defaults);
+
+	return true;
 }

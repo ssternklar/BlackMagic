@@ -7,6 +7,7 @@
 
 struct Entity
 {
+	uint16_t type;
 	TransformData::Handle transform;
 	MeshData::Handle mesh;
 	MaterialData::Handle material;
