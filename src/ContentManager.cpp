@@ -10,6 +10,7 @@
 #include "Texture.h"
 #include "Mesh.h"
 #include "WAVFile.h"
+#include "Scene.h"
 
 using namespace BlackMagic;
 
@@ -49,12 +50,27 @@ void ContentManager::AssetGC()
 				((WAVFile*)(entries[i].resource))->~WAVFile();
 				_allocator->deallocate(entries[i].resource, sizeof(WAVFile) + entries[i].size);
 				break;
+			case ManifestEntry::SCENE:
+				_allocator->deallocate(((void*)((SceneDesc*)entries[i].resource)->fileHandle), entries[i].size);
+				DestructAndDeallocate(_allocator, (SceneDesc*)entries[i].resource, 1);
 			default:
 				break;
 			}
 			entries[i].resource = nullptr;
 		}
 	}
+}
+
+ManifestEntry* BlackMagic::ContentManager::GetManifestByUID(int uid)
+{
+	for (int i = 0; i < entryCount; i++)
+	{
+		if (uid == entries[i].uid)
+		{
+			return &entries[i];
+		}
+	}
+	return nullptr;
 }
 
 struct Asset
@@ -152,7 +168,7 @@ strcat_s(path, fileName); \
 byte* ##X = (byte*)_allocator->allocate(fileSize); \
 if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, fileSize)) \
 { \
-	assert(false);// "Failed to load file into memory"; \
+	assert(false); \
 } \
 (void)(sizeof(0))
 
@@ -326,6 +342,35 @@ void ContentManager::SetupManifest(ManifestEntry* entry, PixelShader* resource)
 	entry->type = ManifestEntry::PIXEL_SHADER;
 }
 
+template<>
+SceneDesc* ContentManager::load_Internal(const char* fileName, int fileSize)
+{
+	LOAD_FILE(sceneMemory);
+	uint16_t* sceneStuff = (uint16_t*)sceneMemory;
+	uint16_t uidCount = *sceneStuff;
+	uint16_t* uids = ++sceneStuff;
+	sceneStuff += uidCount;
+	uint16_t entityCount = *sceneStuff;
+	byte* entities = (byte*)(++sceneStuff);
+	SceneDesc* ret = AllocateAndConstruct<SceneDesc>(_allocator, 1, sceneMemory);
+	return ret;
+}
+
+template<>
+Material* ContentManager::load_Internal(const char* fileName, int fileSize)
+{
+	//auto file = AssetFile{ directory, fileName, _allocator };
+	assert(false);
+	return nullptr;
+}
+
+template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, Material* resource)
+{
+	assert(false);
+
+}
+
 /*
 template<>
 std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
@@ -363,3 +408,60 @@ std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
 	return ret;
 }*/
 
+ManifestEntry::ResourceType GetTypeFromFileName(const char* fileName)
+{
+	if (strstr(fileName, ".bmmesh"))
+	{
+		return ManifestEntry::MESH;
+	}
+	else if (strstr(fileName, ".wav"))
+	{
+		return ManifestEntry::WAVFILE;
+	}
+	else if (strstr(fileName, ".png"))
+	{
+		return ManifestEntry::TEXTURE;
+	}
+	else if (strstr(fileName, ".bmspline"))
+	{
+		return ManifestEntry::SPLINE;
+	}
+	else
+	{
+		//Can't deduce type from file extension alone
+		assert(false);
+	}
+}
+
+template<>
+UnknownContentType* ContentManager::load_Internal(const char* fileName, int fileSize)
+{
+	auto type = GetTypeFromFileName(fileName);
+	switch (type)
+	{
+	case ManifestEntry::MESH:
+		return reinterpret_cast<UnknownContentType*>(load_Internal<Mesh>(fileName, fileSize));
+		break;
+	case ManifestEntry::WAVFILE:
+		return reinterpret_cast<UnknownContentType*>(load_Internal<WAVFile>(fileName, fileSize));
+		break;
+	case ManifestEntry::TEXTURE:
+		return reinterpret_cast<UnknownContentType*>(load_Internal<Texture>(fileName, fileSize));
+		break;
+	case ManifestEntry::SPLINE:
+		//return load_Internal<Spline>(fileName, fileSize);
+		//break;
+	default:
+		//Can't deduce type from file extension alone
+		assert(false);
+		break;
+	}
+	return nullptr;
+}
+
+template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, UnknownContentType* resource)
+{
+	entry->resource = resource;
+	entry->type = GetTypeFromFileName(entry->resourceName);
+}

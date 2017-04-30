@@ -158,7 +158,6 @@ void TestGame::Update(float deltaTime)
 	}
 	_camera.Update(deltaTime);
 	printf("%f\n", deltaTime);
-	TransformData::GetSingleton()->UpdateTransforms();
 	/*auto job = platform->GetThreadManager()->CreateGenericJob<TestJob>();
 	job->WaitUntilJobIsComplete();
 	platform->GetThreadManager()->DestroyGenericJob(job);*/

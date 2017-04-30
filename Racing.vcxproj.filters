@@ -49,6 +49,7 @@
     <ClCompile Include="src\Resource.cpp" />
     <ClCompile Include="src\WindowsMath.cpp" />
     <ClCompile Include="src\WAVFile.cpp" />
+    <ClCompile Include="src\Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -96,6 +97,7 @@
     <ClInclude Include="include\BMMath.h" />
     <ClInclude Include="include\ContentClasses.h" />
     <ClInclude Include="include\WAVFile.h" />
+    <ClInclude Include="include\Scene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\ShaderBase.hlsli" />

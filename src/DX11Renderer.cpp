@@ -489,7 +489,7 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 			auto& mesh = o->AsRenderable()->_mesh;
 			auto vBuf = mesh->VertexBuffer().As<BufferHandle>();
 			auto iBuf = mesh->IndexBuffer().As<BufferHandle>();
-			_shadowMapVS->SetMatrix4x4("model", *o->GetTransform().Matrix());
+			_shadowMapVS->SetMatrix4x4("model", o->GetTransform().Matrix());
 			_shadowMapVS->CopyBufferData("PerInstance");
 			_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
 			_context->IASetIndexBuffer(iBuf, DXGI_FORMAT_R32_UINT, 0);
@@ -575,7 +575,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 
 		//Update per-object constant buffer
 		renderable->_material.SetResource("world", Material::VS, sizeof(Mat4),
-			reinterpret_cast<void*>(m));
+			reinterpret_cast<void*>(&m));
 		renderable->_material.SetResource("view", Material::VS, sizeof(Mat4),
 			reinterpret_cast<void*>(&view));
 		renderable->_material.SetResource("projection", Material::VS, sizeof(Mat4),
