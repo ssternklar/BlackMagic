@@ -111,8 +111,11 @@ void Tool::InvokeGUI()
 			if (ImGui::MenuItem("New Material"))
 				gui.materialData.create = true;
 
+
+			static int oldIndex;
+			oldIndex = gui.materialData.index;
 			ImGui::Combo("Material", &gui.materialData.index, ComboAssetNames<MaterialData>, NULL, AssetManager::Instance().GetAssetCount<MaterialData>());
-			if (ImGui::Button("Edit"))
+			if (gui.materialData.index != oldIndex || ImGui::Button("Edit"))
 			{
 				gui.materialData.edit = true;
 				MaterialData::Handle mat = AssetManager::Instance().GetAsset<MaterialData>(gui.materialData.index).handle;
