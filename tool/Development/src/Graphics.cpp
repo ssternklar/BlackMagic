@@ -34,8 +34,6 @@ Graphics::~Graphics()
 	DX_RELEASE(depthStencil);
 	DX_RELEASE(backBuffer);
 	DX_RELEASE(swapChain);
-	DX_RELEASE(context);
-	DX_RELEASE(device);
 
 	DX_RELEASE(depthStencilTexture);
 	DX_RELEASE(gBufferSampler);
@@ -52,6 +50,14 @@ Graphics::~Graphics()
 	DX_RELEASE(envSampler);
 	DX_RELEASE(skyboxDS );
 	DX_RELEASE(skyboxRS);
+	DX_RELEASE(context);
+
+	//ID3D11Debug* debug;
+	//device->QueryInterface<ID3D11Debug>(&debug);
+	//debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	//debug->Release();
+
+	DX_RELEASE(device);
 }
 
 HRESULT Graphics::Init(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight)
@@ -284,12 +290,14 @@ void Graphics::Resize(unsigned int width, unsigned int height)
 	this->width = width;
 	this->height = height;
 
+	backBuffer->Release();
 	swapChain->ResizeBuffers(
 		1,
 		width,
 		height,
-		DXGI_FORMAT_R10G10B10A2_UNORM,
+		DXGI_FORMAT_R8G8B8A8_UNORM,
 		0);
+
 
 	InitBuffers();
 }
@@ -571,7 +579,7 @@ void Graphics::InitBuffers()
 	albedoMapDesc.ArraySize = 1;
 	albedoMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	albedoMapDesc.CPUAccessFlags = 0;
-	albedoMapDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+	albedoMapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	albedoMapDesc.MipLevels = 0;
 	albedoMapDesc.MiscFlags = 0;
 	albedoMapDesc.SampleDesc.Count = 1;
@@ -703,12 +711,15 @@ void Graphics::InitBuffers()
 	positionMap = TextureData::Instance().CreateEmpty(posMapDesc);
 	lightMap = TextureData::Instance().CreateEmpty(lightMapDesc);
 
+	DX_RELEASE(depthStencilTexture);
+	DX_RELEASE(depthStencil);
 	ID3D11Texture2D* depth;
 	device->CreateTexture2D(&depthStencilDesc, nullptr, &depth);
 	device->CreateDepthStencilView(depth, &dsDesc, &depthStencil);
 	device->CreateShaderResourceView(depth, &depthSRVDesc, &depthStencilTexture);
 	depth->Release();
 
+	DX_RELEASE(shadowMapSRV);
 	ID3D11Texture2D* smDepth;
 	device->CreateTexture2D(&shadowMapDesc, nullptr, &smDepth);
 	device->CreateShaderResourceView(smDepth, &shadowSRV, &shadowMapSRV);
@@ -716,6 +727,8 @@ void Graphics::InitBuffers()
 
 	for (size_t i = 0; i < NUM_SHADOW_CASCADES; i++)
 	{
+		DX_RELEASE(shadowMapDSVs[i]);
+
 		shadowDS.Flags = 0;
 		shadowDS.Format = DXGI_FORMAT_D32_FLOAT;
 		shadowDS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
