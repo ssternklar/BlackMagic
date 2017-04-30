@@ -6,7 +6,6 @@
 #include "Renderer.h"
 #include "InputData.h"
 #include "ThreadManager.h"
-#include "TransformData.h"
 #include "Transform.h"
 
 
@@ -26,7 +25,6 @@ namespace BlackMagic {
 		Renderer* renderer;
 		ContentManager* contentManager;
 		ThreadManager* threadManager;
-		TransformData* transformData;
 		AudioManager* audioManager;
 		unsigned int windowWidth = 1280;
 		unsigned int windowHeight = 720;

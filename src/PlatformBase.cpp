@@ -64,8 +64,6 @@ bool PlatformBase::BlackMagicInit()
 	InitPlatformAudioManager();
 	InitPlatformThreadManager();
 
-	transformData = AllocateAndConstruct<TransformData>(allocatorAllocator, 1);
-
 	gameMemorySize = allocatorAllocator->GetRemainingSize() - 32;
 	gameMemory = (byte*)allocatorAllocator->allocate(gameMemorySize);
 

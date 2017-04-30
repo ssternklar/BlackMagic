@@ -38,8 +38,8 @@ BoundingFrustum Camera::Frustum() const
 void Camera::Update(Transform& transform)
 {
 	auto quaternion = transform.GetRotation();
-	auto offsetV = Rotate(offset, quaternion); 
-	auto up = Rotate(CreateVector3(0, 1, 0), quaternion);
+	auto offsetV = quaternion * offset; 
+	auto up = quaternion * CreateVector3(0, 1, 0);
 	auto position = transform.GetPosition();
 	auto view = CreateMatrixLookToLH(position + offsetV, transform.GetForward(), up);//XMMatrixLookToLH(position + offsetV, XMLoadFloat3(&transform.GetForward()), up);
 	
