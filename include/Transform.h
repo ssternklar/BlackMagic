@@ -10,6 +10,7 @@ class Transform
 public:
 	Transform();
 	Transform(BlackMagic::Vector3 pos, BlackMagic::Quaternion orientation, BlackMagic::Vector3 scale);
+	Transform(const Transform& other);
 
 	void Move(BlackMagic::Vector3 dp);
 	void MoveTo(BlackMagic::Vector3 pos);
@@ -26,7 +27,7 @@ public:
 	BlackMagic::Quaternion GetRotation();
 	BlackMagic::Vector3 GetForward();
 private:
-	BlackMagic::Quaternion rotation;
 	BlackMagic::Vector3 position;
+	BlackMagic::Quaternion rotation;
 	BlackMagic::Vector3 scale;
 };

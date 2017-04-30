@@ -13,7 +13,9 @@ namespace BlackMagic
 			CUBEMAP,
 			VERTEX_SHADER,
 			PIXEL_SHADER,
-			WAVFILE
+			WAVFILE,
+			SPLINE,
+			SCENE
 		};
 		char* resourceName;
 		int uid;
@@ -21,6 +23,10 @@ namespace BlackMagic
 		void* resource;
 		AtomicInt refcount = 0;
 		ResourceType type;
+	};
+
+	struct UnknownContentType
+	{
 	};
 
 	class AssetPointer_Base

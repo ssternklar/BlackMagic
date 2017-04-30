@@ -78,24 +78,21 @@ namespace BlackMagic
 		template<typename T>
 		AssetPointer<T> Load(int uid)
 		{
-			for (int i = 0; i < entryCount; i++)
+			ManifestEntry* entry = GetManifestByUID(uid);
+			if (entry->resource)
 			{
-				if (uid == entries[i].uid)
-				{
-					if (entries[i].resource)
-					{
-						return AssetPointer<T>(&entries[i]);
-					}
-					else
-					{
-						SetupManifest(&entries[i], load_Internal<T>(entries[i].resourceName, entries[i].size));
-						return AssetPointer<T>(&entries[i]);
-					}
-				}
+				return AssetPointer<T>(entry);
+			}
+			else
+			{
+				SetupManifest(entry, load_Internal<T>(entry->resourceName, entry->size));
+				return AssetPointer<T>(entry);
 			}
 			assert(false); // No file found
 			return nullptr;
 		}
+
+		ManifestEntry* GetManifestByUID(int uid);
 
 		//for compatibility, will be removed later
 

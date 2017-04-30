@@ -16,6 +16,13 @@ Transform::Transform(BlackMagic::Vector3 pos, BlackMagic::Quaternion rotation, B
 	this->scale = scale;
 }
 
+Transform::Transform(const Transform & other)
+{
+	position = other.position;
+	rotation = other.rotation;
+	scale = other.scale;
+}
+
 void Transform::Move(Vector3 dp)
 {
 	Vector3 rotated = rotation * dp;
