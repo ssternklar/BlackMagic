@@ -58,19 +58,31 @@ void TransformData::Rotate(Handle handle, XMFLOAT3 axis, float angle)
 
 void TransformData::SetEuler(Handle handle, DirectX::XMFLOAT3 angles)
 {
-	XMVECTOR quat = XMQuaternionRotationRollPitchYaw(angles.z, angles.y, angles.x);
+	XMVECTOR quat = XMQuaternionRotationRollPitchYaw(angles.x, angles.y, angles.z);
 	XMStoreFloat4(&handle->rot, quat);
 }
 
 XMFLOAT3 TransformData::GetEuler(Handle handle)
 {
-	XMFLOAT4 q = handle->rot;
-	float z = atan2(((q.z * q.w) + (q.x * q.y)), 0.5f - ((q.y * q.y) + (q.z * q.z)));
-	float y = asin(-2 * ((q.y * q.w) - (q.x * q.z)));
-	float x = atan2(((q.y * q.z) + (q.x * q.w)), 0.5f - ((q.z * q.z) + (q.w * q.w)));
+	XMFLOAT3X3 rotMat;
+	XMStoreFloat3x3(&rotMat, XMMatrixRotationQuaternion(XMLoadFloat4(&handle->rot)));
+	
+	double xPitch, yYaw, zRoll;
+	
+	xPitch = std::asin(-rotMat._32);
 
-	return { 0, 0, 0 };
-	return { x, y, z };
+	if (std::cos(xPitch) > 0.001)
+	{
+		zRoll = std::atan2(rotMat._12, rotMat._22);
+		yYaw = std::atan2(rotMat._31, rotMat._33);
+	}
+	else
+	{
+		zRoll = std::atan2(-rotMat._21, rotMat._11);
+		yYaw = 0.0;
+	}
+
+	return { (float)xPitch, (float)yYaw, (float)zRoll };
 }
 
 XMFLOAT3 TransformData::GetForward(Handle handle)
