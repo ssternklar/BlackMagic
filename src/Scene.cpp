@@ -26,14 +26,14 @@ void Scene::Init(BlackMagic::BestFitAllocator* sceneAllocator, AssetPointer<Scen
 	for (int i = 0; i < sceneFileEntityCount; i++)
 	{
 		BlackMagic::byte* current = entities + (sceneFileEntityCount + SIZE_OF_SCENE_FILE_ENTITY);
-		current += SIZE_OF_TRANSFORM_FLOATS;
 		Transform* tptr = reinterpret_cast<Transform*>(current);
 		Transform t = *tptr;
+		current += SIZE_OF_TRANSFORM_FLOATS;
+		uint16_t tag = *(uint16_t*)(current);
+		current += sizeof(uint16_t);
 		AssetPointer<Mesh> mesh = cm->Load<Mesh>(*(uint16_t*)(current));
 		current += sizeof(uint16_t);
 		AssetPointer<Material> mat = cm->Load<Material>(*(uint16_t*)(current));
-		current += sizeof(uint16_t);
-		uint16_t tag = *(uint16_t*)(current);
 		ProcessType(tag, t, mesh, mat);
 	}
 }

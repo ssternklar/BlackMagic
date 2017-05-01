@@ -51,7 +51,6 @@
     <ClCompile Include="src\WAVFile.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\RacingScene.cpp" />
-    <ClCompile Include="src\SceneBasedGame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
