@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <iterator>
+
 #include "Assets.h"
 #include "FileUtil.h"
 #include "../resource.h"
@@ -133,6 +136,8 @@ bool AssetManager::LoadProject(std::string folder)
 	// load metadata
 	Internal::Proj::Meta meta;
 	fread_s(&meta.nextUID, sizeof(Internal::Proj::Meta), sizeof(Internal::Proj::Meta), 1, projFile);
+
+	nextUID = meta.nextUID;
 
 	// load assets
 	Asset<MeshData> meshAsset = {};
@@ -341,66 +346,115 @@ bool AssetManager::Export(std::string name, bool force)
 	if (force)
 		FileUtil::DeleteDirectory(exportFolder);
 
+	// scene data
 	vector<SceneData::Handle> scenes = SceneData::Instance().sceneExportConfig;
-	vector<Asset<MeshData>> usedMeshAssets;
-	vector<Asset<TextureData>> usedTextureAssets;
 	vector<Asset<SceneData>> usedSceneAssets;
+	vector<uint16_t> uIDs;
 
-	// TODO find used textures
-	// find all used assets
-	size_t i, j;
-	Asset<MeshData> meshAsset;
+	// file path data
+	vector<size_t> filePathIndexes;
+	string filePathBlob = "";
+	string filePath;
+
+	size_t i;
+
+	// scene scan data
+	Asset<SceneData> sceneAsset;
+	vector<uint16_t> tempUIDs;
+	
+	// scan the scenes and produce UIDs from them
 	for (i = 0; i < scenes.size(); ++i)
 	{
 		if (!scenes[i]->willExport)
 			continue;
 
-		usedSceneAssets.push_back(AssetManager::Instance().GetAsset<SceneData>(scenes[i]));
-		for (j = 0; j < scenes[i]->entities.size(); ++j)
-		{
-			meshAsset = GetAsset<MeshData>(scenes[i]->entities[j]->mesh);
-			auto check = std::find(usedMeshAssets.begin(), usedMeshAssets.end(), meshAsset);
-			if (check == usedMeshAssets.end())
-				usedMeshAssets.push_back(meshAsset);
-		}
+		sceneAsset = AssetManager::Instance().GetAsset<SceneData>(scenes[i]);
+
+		filePathIndexes.push_back(filePathBlob.size());
+		filePath = StringManip::ReplaceAll(sceneAsset.path, "assets/", exportFolder);
+		filePathBlob += filePath + '\0';
+
+		tempUIDs = SceneData::Instance().Export(filePath, sceneAsset.handle);
+		std::remove_copy_if(tempUIDs.begin(), tempUIDs.end(), back_inserter(uIDs), Contained(uIDs));
+		uIDs.push_back((uint16_t)sceneAsset.uID);
+		
+		usedSceneAssets.push_back(sceneAsset);
 	}
 
-	// TODO remove once textures are found properly
+	// gather up the trackers
+	Tracker<MeshData>& meshTracker = trackers;
 	Tracker<TextureData>& textureTracker = trackers;
-	usedTextureAssets = textureTracker.assets;
+	Tracker<VertexShaderData> vertexShaderTracker = trackers;
+	Tracker<PixelShaderData> pixelShaderTracker = trackers;
+	Tracker<MaterialData> materialTracker = trackers;
 
-	// build manifest path blob
-	vector<size_t> filePathIndexes;
-	filePathIndexes.reserve(usedSceneAssets.size() + usedMeshAssets.size() + usedTextureAssets.size());
-	string filePathBlob = "";
-	string filePath;
-
-	for (i = 0; i < usedSceneAssets.size(); ++i)
+	// export all assets and build file paths
+	for (i = 0; i < meshTracker.assets.size(); ++i)
 	{
+		auto check = std::find(uIDs.begin(), uIDs.end(), meshTracker.assets[i].uID);
+		if (check == uIDs.end())
+			continue;
+
 		filePathIndexes.push_back(filePathBlob.size());
-		filePath = StringManip::ReplaceAll(usedSceneAssets[i].path, "assets/", exportFolder);
+		filePath = StringManip::ReplaceAll(meshTracker.assets[i].path, "assets/", exportFolder);
+		filePath = StringManip::ReplaceAll(filePath, "." + StringManip::FileExtension(filePath), ".bmmesh");
 		filePathBlob += filePath + '\0';
 
-		SceneData::Instance().Export(filePath, usedSceneAssets[i].handle);
+		MeshData::Instance().Export(filePath, meshTracker.assets[i].handle);
 	}
 
-	for (i = 0; i < usedMeshAssets.size(); ++i)
+	for (i = 0; i < materialTracker.assets.size(); ++i)
 	{
+		auto check = std::find(uIDs.begin(), uIDs.end(), materialTracker.assets[i].uID);
+		if (check == uIDs.end())
+			continue;
+
 		filePathIndexes.push_back(filePathBlob.size());
-		filePath = StringManip::ReplaceAll(usedMeshAssets[i].path, "assets/", exportFolder);
-		filePath = StringManip::ReplaceAll(filePath, StringManip::FileExtension(filePath), "mesh");
+		filePath = StringManip::ReplaceAll(materialTracker.assets[i].path, "assets/", exportFolder);
+		filePath = StringManip::ReplaceAll(filePath, "." + StringManip::FileExtension(filePath), ".bmmat");
 		filePathBlob += filePath + '\0';
 
-		MeshData::Instance().Export(filePath, usedMeshAssets[i].handle);
+		tempUIDs = MaterialData::Instance().Export(filePath, materialTracker.assets[i].handle);
+		std::remove_copy_if(tempUIDs.begin(), tempUIDs.end(), back_inserter(uIDs), Contained(uIDs));
 	}
 
-	for (i = 0; i < usedTextureAssets.size(); ++i)
+	for (i = 0; i < vertexShaderTracker.assets.size(); ++i)
 	{
+		auto check = std::find(uIDs.begin(), uIDs.end(), vertexShaderTracker.assets[i].uID);
+		if (check == uIDs.end())
+			continue;
+
 		filePathIndexes.push_back(filePathBlob.size());
-		filePath = StringManip::ReplaceAll(usedTextureAssets[i].path, "assets/", exportFolder);
+		filePath = StringManip::ReplaceAll(vertexShaderTracker.assets[i].path, "assets/", exportFolder);
 		filePathBlob += filePath + '\0';
 
-		TextureData::Instance().Export(filePath, usedTextureAssets[i].handle);
+		VertexShaderData::Instance().Export(filePath, vertexShaderTracker.assets[i].handle);
+	}
+
+	for (i = 0; i < pixelShaderTracker.assets.size(); ++i)
+	{
+		auto check = std::find(uIDs.begin(), uIDs.end(), pixelShaderTracker.assets[i].uID);
+		if (check == uIDs.end())
+			continue;
+
+		filePathIndexes.push_back(filePathBlob.size());
+		filePath = StringManip::ReplaceAll(pixelShaderTracker.assets[i].path, "assets/", exportFolder);
+		filePathBlob += filePath + '\0';
+
+		PixelShaderData::Instance().Export(filePath, pixelShaderTracker.assets[i].handle);
+	}
+
+	for (i = 0; i < textureTracker.assets.size(); ++i)
+	{
+		auto check = std::find(uIDs.begin(), uIDs.end(), textureTracker.assets[i].uID);
+		if (check == uIDs.end())
+			continue;
+
+		filePathIndexes.push_back(filePathBlob.size());
+		filePath = StringManip::ReplaceAll(textureTracker.assets[i].path, "assets/", exportFolder);
+		filePathBlob += filePath + '\0';
+
+		TextureData::Instance().Export(filePath, textureTracker.assets[i].handle);
 	}
 
 	// process file path blob
@@ -423,7 +477,7 @@ bool AssetManager::Export(std::string name, bool force)
 
 	// write meta to manifest
 	fileData.pathBlockSize = (uint16_t)filePathBlob.size();
-	fileData.numAssets = (uint16_t)filePathIndexes.size();
+	fileData.numAssets = (uint16_t)uIDs.size();
 	fileData.numScenes = (uint16_t)usedSceneAssets.size();
 
 	fwrite(&fileData.pathBlockSize, sizeof(uint16_t), 3, manifestFile);
@@ -433,17 +487,8 @@ bool AssetManager::Export(std::string name, bool force)
 		fwrite(&usedSceneAssets[i].uID, sizeof(Export::Manifest::Asset::uID), 1, manifestFile);
 
 	// write assets to manifest
-	vector<uint16_t> uIDs;
 	Export::Manifest::Asset asset = {};
 	struct _stat statBuf;
-
-	uIDs.reserve(fileData.numAssets);
-	for (i = 0; i < usedSceneAssets.size(); ++i)
-		uIDs.push_back((uint16_t)usedSceneAssets[i].uID);
-	for (i = 0; i < usedMeshAssets.size(); ++i)
-		uIDs.push_back((uint16_t)usedMeshAssets[i].uID);
-	for (i = 0; i < usedTextureAssets.size(); ++i)
-		uIDs.push_back((uint16_t)usedTextureAssets[i].uID);
 
 	for (i = 0; i < fileData.numAssets; ++i)
 	{

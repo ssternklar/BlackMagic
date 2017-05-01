@@ -28,11 +28,11 @@ public:
 
 	Handle Load(std::string path);
 	void Save(Handle handle);
-	void Export(std::string path, Handle handle);
+	std::vector<uint16_t> Export(std::string path, Handle handle);
 	const std::string root = "assets/materials/";
 
 	void Use(Handle handle);
-	void FlushPixelShader(Handle handle, PixelShaderData::Handle newPixelShader);
+	bool FlushPixelShader(Handle handle, PixelShaderData::Handle newPixelShader);
 
 private:
 	ID3D11Device* device;

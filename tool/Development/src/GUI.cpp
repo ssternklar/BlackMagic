@@ -111,8 +111,11 @@ void Tool::InvokeGUI()
 			if (ImGui::MenuItem("New Material"))
 				gui.materialData.create = true;
 
+
+			static int oldIndex;
+			oldIndex = gui.materialData.index;
 			ImGui::Combo("Material", &gui.materialData.index, ComboAssetNames<MaterialData>, NULL, AssetManager::Instance().GetAssetCount<MaterialData>());
-			if (ImGui::Button("Edit"))
+			if (gui.materialData.index != oldIndex || ImGui::Button("Edit"))
 			{
 				gui.materialData.edit = true;
 				MaterialData::Handle mat = AssetManager::Instance().GetAsset<MaterialData>(gui.materialData.index).handle;
@@ -160,12 +163,23 @@ void Tool::InvokeGUI()
 
 			if (scene->selectedEntity.ptr())
 			{
-				ImGui::DragFloat3("Position", &scene->selectedEntity->transform->pos.x, 0.005f);
-				ImGui::DragFloat("Scale", &scene->selectedEntity->transform->scale, 0.005f);
+				EntityData::Handle ent = scene->selectedEntity;
+
+				int type = (int)ent->type;
+				ImGui::InputInt("Type", &type);
+				ent->type = (uint16_t)type;
+
+				ImGui::DragFloat3("Position", &ent->transform->pos.x, 0.005f);
+
+				DirectX::XMFLOAT3 euler = TransformData::Instance().GetEuler(ent->transform);
+				ImGui::DragFloat3("Rot", &euler.x, 0.005f);
+				TransformData::Instance().SetEuler(ent->transform, euler);
+
+				ImGui::DragFloat("Scale", &ent->transform->scale, 0.005f);
 				ImGui::Combo("Mesh", &gui.entityData.meshIndex, ComboAssetNames<MeshData>, NULL, AssetManager::Instance().GetAssetCount<MeshData>());
 				ImGui::Combo("Material", &gui.entityData.materialIndex, ComboAssetNames<MaterialData>, NULL, AssetManager::Instance().GetAssetCount<MaterialData>());
-				scene->selectedEntity->mesh = AssetManager::Instance().GetAsset<MeshData>(gui.entityData.meshIndex).handle;
-				scene->selectedEntity->material = AssetManager::Instance().GetAsset<MaterialData>(gui.entityData.materialIndex).handle;
+				ent->mesh = AssetManager::Instance().GetAsset<MeshData>(gui.entityData.meshIndex).handle;
+				ent->material = AssetManager::Instance().GetAsset<MaterialData>(gui.entityData.materialIndex).handle;
 			}
 		}
 
@@ -458,7 +472,12 @@ void Tool::PromptEdit()
 			ImGui::Combo("Vertex Shader", &gui.materialData.vertexShaderIndex, ComboAssetNames<VertexShaderData>, NULL, AssetManager::Instance().GetAssetCount<VertexShaderData>());
 			ImGui::Combo("Pixel Shader", &gui.materialData.pixelShaderIndex, ComboAssetNames<PixelShaderData>, NULL, AssetManager::Instance().GetAssetCount<PixelShaderData>());
 			mat.handle->vertexShader = AssetManager::Instance().GetAsset<VertexShaderData>(gui.materialData.vertexShaderIndex).handle;
-			MaterialData::Instance().FlushPixelShader(mat.handle, AssetManager::Instance().GetAsset<PixelShaderData>(gui.materialData.pixelShaderIndex).handle);
+			if (MaterialData::Instance().FlushPixelShader(mat.handle, AssetManager::Instance().GetAsset<PixelShaderData>(gui.materialData.pixelShaderIndex).handle))
+			{
+				gui.materialData.textureIndices.clear();
+				for (size_t i = 0; i < mat.handle->textures.size(); ++i)
+					gui.materialData.textureIndices.push_back(AssetManager::Instance().GetIndex<TextureData>(mat.handle->textures[i]));
+			}
 
 			ImGui::Separator();
 			ImGui::Text("Textures:");
