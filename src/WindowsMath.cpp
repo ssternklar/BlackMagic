@@ -191,6 +191,16 @@ float GetZ(Vector3 vec)
 	return XMVectorGetZ(C(vec));
 }
 
+float Magnitude(Vector3 vec)
+{
+	return XMVectorGetX(XMVector3Length(C(vec)));
+}
+
+float SquareMagnitude(Vector3 vec)
+{
+	return XMVectorGetX(XMVector3LengthSq(C(vec)));
+}
+
 Vector4 CreateVector4(float x, float y, float z, float w)
 {
 	return CV4(XMVectorSet(x, y, z, w));
@@ -274,6 +284,16 @@ float GetZ(Vector4 vec)
 float GetW(Vector4 vec)
 {
 	return XMVectorGetW(C(vec));
+}
+
+float Magnitude(Vector4 vec)
+{
+	return XMVectorGetX(XMVector4Length(C(vec)));
+}
+
+float SquareMagnitude(Vector4 vec)
+{
+	return XMVectorGetX(XMVector4LengthSq(C(vec)));
 }
 
 Matrix4 CreateMatrix4(float* data)
