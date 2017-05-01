@@ -119,13 +119,13 @@ namespace BlackMagic {
 		AudioJob* CreateAudioJob(bool isBGM, WAVFile* file, float relativeVolume, byte type);
 
 		template<class T>
-		ContentJob<T>* CreateContentJob(char* resourceName)
+		ContentJob<T>* CreateContentJob(const char* resourceName)
 		{
 			PlatformLockMutex(allocatorMutex);
 			ContentJob<T>* job = AllocateAndConstruct<ContentJob<T>>(&allocator, 1, resourceName);
 			if (job)
 			{
-				LinkedList* next = AllocateAndConstruct(&allocator, 1, job);
+				LinkedList* next = AllocateAndConstruct<LinkedList>(&allocator, 1, job);
 				PlatformUnlockMutex(allocatorMutex);
 				PlatformLockMutex(ContentTaskListMutex);
 				if (ContentTaskList == nullptr)

@@ -50,6 +50,8 @@
     <ClCompile Include="src\WindowsMath.cpp" />
     <ClCompile Include="src\WAVFile.cpp" />
     <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="src\RacingScene.cpp" />
+    <ClCompile Include="src\SceneBasedGame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -98,6 +100,8 @@
     <ClInclude Include="include\ContentClasses.h" />
     <ClInclude Include="include\WAVFile.h" />
     <ClInclude Include="include\Scene.h" />
+    <ClInclude Include="include\RacingScene.h" />
+    <ClInclude Include="include\SceneBasedGame.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\ShaderBase.hlsli" />

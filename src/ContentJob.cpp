@@ -4,7 +4,7 @@
 
 using namespace BlackMagic;
 
-ContentJob_Base::ContentJob_Base(char* resourceName)
+ContentJob_Base::ContentJob_Base(const char* resourceName) : resourceLocation(nullptr)
 {
 	this->resourceName = resourceName;
 	resourceLocation = nullptr;
@@ -19,7 +19,7 @@ template<typename T>
 void ContentJob<T>::Run()
 {
 	inProgress = true;
-	std::shared_ptr<T> ptr = PlatformBase::GetSingleton()->GetContentManager()->Load<T>(resourceName);
-	resourceLocation = ptr.get();
+	AssetPointer<T> ptr = PlatformBase::GetSingleton()->GetContentManager()->Load<T>(resourceName);
+	resourceLocation = ptr;
 	done = true;
 };

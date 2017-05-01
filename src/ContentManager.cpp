@@ -23,40 +23,48 @@ ContentManager::~ContentManager()
 {
 }
 
+void ContentManager::ForceAssetCleanup(ManifestEntry* entry)
+{
+	if (entry->resource)
+	{
+		switch (entry->type)
+		{
+		case ManifestEntry::MESH:
+			DestructAndDeallocate(_allocator, (Mesh*)entry->resource, 1);
+			break;
+		case ManifestEntry::TEXTURE:
+			DestructAndDeallocate(_allocator, (Texture*)entry->resource, 1);
+			break;
+		case ManifestEntry::CUBEMAP:
+			DestructAndDeallocate(_allocator, (Cubemap*)entry->resource, 1);
+			break;
+		case ManifestEntry::VERTEX_SHADER:
+			DestructAndDeallocate(_allocator, (VertexShader*)entry->resource, 1);
+			break;
+		case ManifestEntry::PIXEL_SHADER:
+			DestructAndDeallocate(_allocator, (PixelShader*)entry->resource, 1);
+			break;
+		case ManifestEntry::WAVFILE:
+			((WAVFile*)(entry->resource))->~WAVFile();
+			_allocator->deallocate(entry->resource, sizeof(WAVFile) + entry->size);
+			break;
+		case ManifestEntry::SCENE:
+			_allocator->deallocate(((void*)((SceneDesc*)entry->resource)->fileHandle), entry->size);
+			DestructAndDeallocate(_allocator, (SceneDesc*)entry->resource, 1);
+		default:
+			break;
+		}
+		entry->resource = nullptr;
+	}
+}
+
 void ContentManager::AssetGC()
 {
 	for (int i = 0; i < entryCount; i++)
 	{
-		if (BM_PLATFORM_ATOMIC_FETCH((&(entries[i].refcount))) == 0 && entries[i].resource)
+		if (BM_PLATFORM_ATOMIC_FETCH((&(entries[i].refcount))) == 0)
 		{
-			switch (entries[i].type)
-			{
-			case ManifestEntry::MESH:
-				DestructAndDeallocate(_allocator, (Mesh*)entries[i].resource, 1);
-				break;
-			case ManifestEntry::TEXTURE:
-				DestructAndDeallocate(_allocator, (Texture*)entries[i].resource, 1);
-				break;
-			case ManifestEntry::CUBEMAP:
-				DestructAndDeallocate(_allocator, (Cubemap*)entries[i].resource, 1);
-				break;
-			case ManifestEntry::VERTEX_SHADER:
-				DestructAndDeallocate(_allocator, (VertexShader*)entries[i].resource, 1);
-				break;
-			case ManifestEntry::PIXEL_SHADER:
-				DestructAndDeallocate(_allocator, (PixelShader*)entries[i].resource, 1);
-				break;
-			case ManifestEntry::WAVFILE:
-				((WAVFile*)(entries[i].resource))->~WAVFile();
-				_allocator->deallocate(entries[i].resource, sizeof(WAVFile) + entries[i].size);
-				break;
-			case ManifestEntry::SCENE:
-				_allocator->deallocate(((void*)((SceneDesc*)entries[i].resource)->fileHandle), entries[i].size);
-				DestructAndDeallocate(_allocator, (SceneDesc*)entries[i].resource, 1);
-			default:
-				break;
-			}
-			entries[i].resource = nullptr;
+			ForceAssetCleanup(entries + i);
 		}
 	}
 }

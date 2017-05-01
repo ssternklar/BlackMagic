@@ -18,7 +18,7 @@ int WINAPI WinMain(
 {
 	BlackMagic::WindowsPlatform platform(hInstance);
 	platform.BlackMagicInit();
-	TestGame* game = new TestGame(&platform);
+	TestGame* game = new TestGame();
 	game->RunGame();
 	delete game;
 	platform.BlackMagicCleanup();

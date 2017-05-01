@@ -40,6 +40,9 @@ void Scene::Init(BlackMagic::BestFitAllocator* sceneAllocator, AssetPointer<Scen
 
 Scene::~Scene()
 {
-	DestructAndDeallocate<AssetPointer_Base>(alloc, sceneAssets, sceneAssetCount);
+	if(sceneAssetCount > 0)
+	{
+		DestructAndDeallocate<AssetPointer_Base>(alloc, sceneAssets, sceneAssetCount);
+	}
 	PlatformBase::GetSingleton()->GetContentManager()->AssetGC();
 }

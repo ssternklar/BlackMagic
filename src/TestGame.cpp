@@ -7,7 +7,7 @@
 #include "PlatformBase.h"
 using namespace BlackMagic;
 
-TestGame::TestGame(BlackMagic::PlatformBase* platformBase) :
+TestGame::TestGame() :
 	_camera({ 0, 0, -10 }, { 0, 0, 0, 1 })
 {
 }
