@@ -50,7 +50,7 @@ void Transform::Rotate(Vector3 axis, float angle)
 
 void Transform::SetRotation(Quaternion quaternion)
 {
-	this->rotation = rotation;
+	this->rotation = quaternion;
 }
 
 void Transform::SetScale(Vector3 scale)
