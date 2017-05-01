@@ -25,6 +25,8 @@ struct GuiData
 	bool textureImporter;
 	bool shaderImporter;
 	int shaderType;
+	bool miscImporter;
+	bool miscEdit;
 	bool sceneCreate;
 	int sceneIndex;
 	bool exitTool;

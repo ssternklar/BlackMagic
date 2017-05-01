@@ -92,6 +92,9 @@ void Tool::InvokeGUI()
 			if (ImGui::MenuItem("Shader"))
 				gui.shaderImporter = true;
 
+			if (ImGui::MenuItem("Misc"))
+				gui.miscImporter = true;
+
 			ImGui::EndMenu();
 		}
 
@@ -100,8 +103,15 @@ void Tool::InvokeGUI()
 			if (ImGui::MenuItem("New Scene"))
 				gui.sceneCreate = true;
 
-			ImGui::Combo("Scene", &gui.sceneIndex, ComboAssetNames<SceneData>, NULL, AssetManager::Instance().GetAssetCount<SceneData>());
-			SceneData::Instance().SwapScene(gui.sceneIndex);
+			if (SceneData::Instance().Size())
+			{
+				if (SceneData::Instance().CurrentScene().ptr())
+					if (ImGui::MenuItem("Misc Passthrough"))
+						gui.miscEdit = true;
+
+				if (ImGui::Combo("Scene", &gui.sceneIndex, ComboAssetNames<SceneData>, NULL, AssetManager::Instance().GetAssetCount<SceneData>()))
+					SceneData::Instance().SwapScene(gui.sceneIndex);
+			}
 
 			ImGui::EndMenu();
 		}
@@ -111,11 +121,7 @@ void Tool::InvokeGUI()
 			if (ImGui::MenuItem("New Material"))
 				gui.materialData.create = true;
 
-
-			static int oldIndex;
-			oldIndex = gui.materialData.index;
-			ImGui::Combo("Material", &gui.materialData.index, ComboAssetNames<MaterialData>, NULL, AssetManager::Instance().GetAssetCount<MaterialData>());
-			if (gui.materialData.index != oldIndex || ImGui::Button("Edit"))
+			if (ImGui::Combo("Material", &gui.materialData.index, ComboAssetNames<MaterialData>, NULL, AssetManager::Instance().GetAssetCount<MaterialData>()) || ImGui::Button("Edit"))
 			{
 				gui.materialData.edit = true;
 				MaterialData::Handle mat = AssetManager::Instance().GetAsset<MaterialData>(gui.materialData.index).handle;
@@ -176,10 +182,10 @@ void Tool::InvokeGUI()
 				TransformData::Instance().SetEuler(ent->transform, euler);
 
 				ImGui::DragFloat("Scale", &ent->transform->scale, 0.005f);
-				ImGui::Combo("Mesh", &gui.entityData.meshIndex, ComboAssetNames<MeshData>, NULL, AssetManager::Instance().GetAssetCount<MeshData>());
-				ImGui::Combo("Material", &gui.entityData.materialIndex, ComboAssetNames<MaterialData>, NULL, AssetManager::Instance().GetAssetCount<MaterialData>());
-				ent->mesh = AssetManager::Instance().GetAsset<MeshData>(gui.entityData.meshIndex).handle;
-				ent->material = AssetManager::Instance().GetAsset<MaterialData>(gui.entityData.materialIndex).handle;
+				if (ImGui::Combo("Mesh", &gui.entityData.meshIndex, ComboAssetNames<MeshData>, NULL, AssetManager::Instance().GetAssetCount<MeshData>()))
+					ent->mesh = AssetManager::Instance().GetAsset<MeshData>(gui.entityData.meshIndex).handle;
+				if (ImGui::Combo("Material", &gui.entityData.materialIndex, ComboAssetNames<MaterialData>, NULL, AssetManager::Instance().GetAssetCount<MaterialData>()))
+					ent->material = AssetManager::Instance().GetAsset<MaterialData>(gui.entityData.materialIndex).handle;
 			}
 		}
 
@@ -359,6 +365,51 @@ void Tool::PromptImport()
 			ImGui::CloseCurrentPopup();
 		ImGui::EndPopup();
 	}
+
+	// misc import
+	if (gui.miscImporter)
+	{
+		ImGui::OpenPopup("Import a miscellaneous file");
+		gui.miscImporter = false;
+	}
+
+	if (ImGui::BeginPopupModal("Import a miscellaneous file", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Please specify which file you would like to add.\n");
+		ImGui::Separator();
+
+		ImGui::Text(MiscData::Instance().root.c_str());
+		ImGui::SameLine();
+		static char path[128] = "";
+
+		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+			ImGui::SetKeyboardFocusHere(0);
+
+		if (ImGui::InputText("", path, 128, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll) || ImGui::Button("Add", ImVec2(60, 0)))
+		{
+			if (strnlen_s(path, 128) > 0)
+			{
+				MiscData::Handle h = MiscData::Instance().Get(path);
+				if (!h.ptr())
+					ImGui::OpenPopup("Bad file path");
+				else
+					ImGui::CloseCurrentPopup();
+			}
+		}
+
+		if (ImGui::BeginPopupModal("Bad file path"))
+		{
+			ImGui::Text("The path '%s%s' is invalid.", MiscData::Instance().root.c_str(), path);
+			if (ImGui::Button("OK", ImVec2(60, 0)))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(60, 0)))
+			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+	}
 }
 
 void Tool::PromptCreate()
@@ -460,24 +511,26 @@ void Tool::PromptCreate()
 
 void Tool::PromptEdit()
 {
+	// material editor
 	if (gui.materialData.edit)
 	{
-		if (ImGui::Begin("Material Editor", &gui.materialData.edit))
+		if (ImGui::Begin("Material Editor", &gui.materialData.edit, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			Asset<MaterialData> mat = AssetManager::Instance().GetAsset<MaterialData>(gui.materialData.index);
 
 			ImGui::Text("Name: %s", mat.name.c_str());
 			ImGui::Separator();
 
-			ImGui::Combo("Vertex Shader", &gui.materialData.vertexShaderIndex, ComboAssetNames<VertexShaderData>, NULL, AssetManager::Instance().GetAssetCount<VertexShaderData>());
-			ImGui::Combo("Pixel Shader", &gui.materialData.pixelShaderIndex, ComboAssetNames<PixelShaderData>, NULL, AssetManager::Instance().GetAssetCount<PixelShaderData>());
-			mat.handle->vertexShader = AssetManager::Instance().GetAsset<VertexShaderData>(gui.materialData.vertexShaderIndex).handle;
-			if (MaterialData::Instance().FlushPixelShader(mat.handle, AssetManager::Instance().GetAsset<PixelShaderData>(gui.materialData.pixelShaderIndex).handle))
-			{
-				gui.materialData.textureIndices.clear();
-				for (size_t i = 0; i < mat.handle->textures.size(); ++i)
-					gui.materialData.textureIndices.push_back(AssetManager::Instance().GetIndex<TextureData>(mat.handle->textures[i]));
-			}
+			if (ImGui::Combo("Vertex Shader", &gui.materialData.vertexShaderIndex, ComboAssetNames<VertexShaderData>, NULL, AssetManager::Instance().GetAssetCount<VertexShaderData>()))
+				mat.handle->vertexShader = AssetManager::Instance().GetAsset<VertexShaderData>(gui.materialData.vertexShaderIndex).handle;
+
+			if (ImGui::Combo("Pixel Shader", &gui.materialData.pixelShaderIndex, ComboAssetNames<PixelShaderData>, NULL, AssetManager::Instance().GetAssetCount<PixelShaderData>()))
+				if (MaterialData::Instance().FlushPixelShader(mat.handle, AssetManager::Instance().GetAsset<PixelShaderData>(gui.materialData.pixelShaderIndex).handle))
+				{
+					gui.materialData.textureIndices.clear();
+					for (size_t i = 0; i < mat.handle->textures.size(); ++i)
+						gui.materialData.textureIndices.push_back(AssetManager::Instance().GetIndex<TextureData>(mat.handle->textures[i]));
+				}
 
 			ImGui::Separator();
 			ImGui::Text("Textures:");
@@ -486,11 +539,60 @@ void Tool::PromptEdit()
 			{
 				ImGui::PushID(i);
 
-				ImGui::Combo(mat.handle->pixelShader->textures[i].c_str(), &gui.materialData.textureIndices[i], ComboAssetNames<TextureData>, NULL, AssetManager::Instance().GetAssetCount<TextureData>());
-				mat.handle->textures[i] = AssetManager::Instance().GetAsset<TextureData>(gui.materialData.textureIndices[i]).handle;
+				if (ImGui::Combo(mat.handle->pixelShader->textures[i].c_str(), &gui.materialData.textureIndices[i], ComboAssetNames<TextureData>, NULL, AssetManager::Instance().GetAssetCount<TextureData>()))
+					mat.handle->textures[i] = AssetManager::Instance().GetAsset<TextureData>(gui.materialData.textureIndices[i]).handle;
 
 				ImGui::PopID();
 			}
+		}
+
+		ImGui::End();
+	}
+
+	// misc editor
+	if (gui.miscEdit)
+	{
+		if (ImGui::Begin("Misc Passthrough Config", &gui.miscEdit, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			size_t itemCount = AssetManager::Instance().GetAssetCount<MiscData>();
+			float itemHeight = ImGui::GetItemsLineHeightWithSpacing();
+			SceneData::Handle scene = SceneData::Instance().CurrentScene();
+			Asset<MiscData> miscAsset;
+
+			ImGui::Text("Select which miscellaneous files\nought to be included with this scene.\n");
+			ImGui::Separator();
+
+			ImGui::BeginChild("Scrolling Region", ImVec2(0, itemHeight * (itemCount < 5 ? itemCount : 5)));
+			ImGuiListClipper clipper;
+			clipper.Begin(itemCount, itemHeight);
+
+			for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+			{
+				miscAsset = AssetManager::Instance().GetAsset<MiscData>(i);
+
+				char buffer[128];
+				snprintf(buffer, sizeof(buffer), "%s", miscAsset.name.c_str());
+
+				ImGui::PushID(i);
+
+				auto miscElement = std::find(scene->misc.begin(), scene->misc.end(), miscAsset.handle);
+				bool isIncluded = miscElement != scene->misc.end();
+				if (ImGui::Checkbox("", &isIncluded))
+				{
+					if (isIncluded)
+						scene->misc.push_back(miscAsset.handle);
+					else
+						scene->misc.erase(miscElement);
+				}
+
+				ImGui::SameLine();
+				ImGui::Text(buffer);
+
+				ImGui::PopID();
+			}
+
+			clipper.End();
+			ImGui::EndChild();
 		}
 
 		ImGui::End();
@@ -542,40 +644,49 @@ void Tool::PromptExport()
 	if (ImGui::BeginPopupModal("Export your project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		// draggable list heavily modified/adapted from this code https://gist.github.com/Roflraging/f4af1d688237a7d367f9
+		// updated to use clipper https://github.com/ocornut/imgui/issues/150
 
-		float itemHeight = ImGui::GetTextLineHeightWithSpacing();
-		int displayStart = 0, displayEnd = gui.exportData.sceneCount;
+		float itemHeight = ImGui::GetItemsLineHeightWithSpacing();
 		int hoverIndex = -1;
 		vector<SceneData::Handle>& scenes = SceneData::Instance().sceneExportConfig;
 
 		ImGui::Text("Drag and drop to change the scene order.\n");
 		ImGui::Separator();
 
-		ImGui::CalcListClipping(gui.exportData.sceneCount, itemHeight, &displayStart, &displayEnd);
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (displayStart * itemHeight));
+		ImGui::BeginChild("Scrolling Region", ImVec2(0, itemHeight * (gui.exportData.sceneCount < 5 ? gui.exportData.sceneCount : 5)));
+		ImGuiListClipper clipper;
+		clipper.Begin(gui.exportData.sceneCount, itemHeight);
 
 		int sceneID = -1;
-		for (int i = displayStart; i < displayEnd; ++i)
+		for (int i = 0; i < gui.exportData.sceneCount; ++i)
 		{
-			char buffer[132];
 			if (scenes[i]->willExport)
-				snprintf(buffer, sizeof(buffer), "%d) %s", ++sceneID, AssetManager::Instance().GetAsset<SceneData>(scenes[i]).name.c_str());
-			else
-				snprintf(buffer, sizeof(buffer), "na %s", AssetManager::Instance().GetAsset<SceneData>(scenes[i]).name.c_str());
+				++sceneID;
 
-			ImGui::PushID(i);
-			
-			ImGui::Checkbox("", &scenes[i]->willExport);
-			ImGui::SameLine();
-			ImGui::Selectable(buffer, scenes[i]->willExport, ImGuiSelectableFlags_DontClosePopups);
+			if (i >= clipper.DisplayStart && i <= clipper.DisplayEnd)
+			{
+				char buffer[132];
+				if (scenes[i]->willExport)
+					snprintf(buffer, sizeof(buffer), "%d) %s", sceneID, AssetManager::Instance().GetAsset<SceneData>(scenes[i]).name.c_str());
+				else
+					snprintf(buffer, sizeof(buffer), "na %s", AssetManager::Instance().GetAsset<SceneData>(scenes[i]).name.c_str());
 
-			if (ImGui::IsItemHoveredRect())
-				hoverIndex = i;
+				ImGui::PushID(i);
 
-			ImGui::PopID();
+				ImGui::Checkbox("", &scenes[i]->willExport);
+				ImGui::SameLine();
+				ImGui::Selectable(buffer, scenes[i]->willExport, ImGuiSelectableFlags_DontClosePopups);
+
+				if (ImGui::IsItemHoveredRect())
+					hoverIndex = i;
+
+				ImGui::PopID();
+			}
 		}
 
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ((gui.exportData.sceneCount - displayEnd) * itemHeight));
+		clipper.End();
+		ImGui::EndChild();
+
 		ImGuiIO& io = ImGui::GetIO();
 
 		if (hoverIndex >= 0)

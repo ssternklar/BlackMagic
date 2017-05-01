@@ -151,6 +151,7 @@
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Misc.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\StringManip.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\Misc.h" />
     <ClInclude Include="src\PointerProxy.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\Patterns.h" />

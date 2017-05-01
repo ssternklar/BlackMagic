@@ -5,10 +5,12 @@
 #include "Patterns.h"
 #include "Entity.h"
 #include "Tool.h"
+#include "Misc.h"
 
 struct Scene
 {
 	std::vector<EntityData::Handle> entities;
+	std::vector<MiscData::Handle> misc;
 	EntityData::Handle selectedEntity;
 	bool willExport;
 };

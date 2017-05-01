@@ -23,6 +23,7 @@ namespace Internal
 			size_t numVertexShaders;
 			size_t numPixelShaders;
 			size_t numMaterials;
+			size_t numMisc;
 			size_t numScenes;
 		};
 
@@ -40,6 +41,7 @@ namespace Internal
 			Asset* l_vertexShaders;
 			Asset* l_pixelShaders;
 			Asset* l_materials;
+			Asset* l_misc;
 			Asset* l_scenes;
 		};
 
@@ -74,7 +76,9 @@ namespace Internal
 		{
 			uint8_t willExport;
 			size_t numEntities;
+			size_t numMisc;
 			Entity* l_entities;
+			size_t* l_miscIndices;
 		};
 	}
 

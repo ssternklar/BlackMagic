@@ -60,12 +60,14 @@ SceneData::Handle SceneData::Load(std::string scenePath)
 	EntityData::Handle entity;
 
 	uint8_t willExport;
-	size_t numEntities, meshIndex, materialIndex;
+	size_t numEntities, numMisc, meshIndex, materialIndex, miscIndex;
 	fread_s(&willExport, sizeof(uint8_t), sizeof(willExport), 1, sceneFile);
 	fread_s(&numEntities, sizeof(size_t), sizeof(numEntities), 1, sceneFile);
+	fread_s(&numMisc, sizeof(size_t), sizeof(numMisc), 1, sceneFile);
 	
 	h->willExport = willExport == 1;
 	h->entities.reserve(numEntities);
+	h->misc.reserve(numMisc);
 	
 	for (size_t i = 0; i < numEntities; ++i)
 	{
@@ -82,6 +84,12 @@ SceneData::Handle SceneData::Load(std::string scenePath)
 
 		fread_s(&materialIndex, sizeof(size_t), sizeof(size_t), 1, sceneFile);
 		entity->material = AssetManager::Instance().GetAsset<MaterialData>(materialIndex).handle;
+	}
+
+	for (size_t i = 0; i < numMisc; ++i)
+	{
+		fread_s(&miscIndex, sizeof(size_t), sizeof(size_t), 1, sceneFile);
+		h->misc.push_back(AssetManager::Instance().GetAsset<MiscData>(miscIndex).handle);
 	}
 
 	fclose(sceneFile);
@@ -102,11 +110,13 @@ void SceneData::Save(Handle handle)
 	}
 
 	uint8_t willExport = (handle->willExport ? 1 : 0);
-	size_t numEntities, meshIndex, materialIndex;
+	size_t numEntities, numMisc, meshIndex, materialIndex, miscIndex;
 	numEntities = handle->entities.size();
+	numMisc = handle->misc.size();
 
 	fwrite(&willExport, sizeof(uint8_t), 1, sceneFile);
 	fwrite(&numEntities, sizeof(size_t), 1, sceneFile);
+	fwrite(&numMisc, sizeof(size_t), 1, sceneFile);
 
 	for (size_t i = 0; i < numEntities; ++i)
 	{
@@ -120,6 +130,12 @@ void SceneData::Save(Handle handle)
 
 		materialIndex = AssetManager::Instance().GetIndex<MaterialData>(handle->entities[i]->material);
 		fwrite(&materialIndex, sizeof(size_t), 1, sceneFile);
+	}
+
+	for (size_t i = 0; i < numMisc; ++i)
+	{
+		miscIndex = AssetManager::Instance().GetIndex<MiscData>(handle->misc[i]);
+		fwrite(&miscIndex, sizeof(size_t), 1, sceneFile);
 	}
 
 	fclose(sceneFile);
@@ -197,6 +213,9 @@ std::vector<uint16_t> SceneData::Export(std::string path, Handle handle)
 		if (check == uIDs.end())
 			uIDs.push_back(matUID);
 	}
+
+	for (i = 0; i < handle->misc.size(); ++i)
+		uIDs.push_back((uint16_t)AssetManager::Instance().GetAsset<MiscData>(handle->misc[i]).uID);
 
 	fileData.numAssets = (uint16_t)uIDs.size();
 	fwrite(&fileData.numAssets, sizeof(Export::Scene::File::numAssets), 1, sceneFile);

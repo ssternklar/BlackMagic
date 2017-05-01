@@ -28,6 +28,8 @@ Tool::Tool()
 	gui.textureImporter = false;
 	gui.shaderImporter = false;
 	gui.shaderType = 0;
+	gui.miscImporter = false;
+	gui.miscEdit = false;
 	gui.sceneCreate = false;
 	gui.sceneIndex = -1;
 	gui.exitTool = false;

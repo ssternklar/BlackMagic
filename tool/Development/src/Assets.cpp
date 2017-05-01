@@ -24,11 +24,12 @@ bool AssetManager::CreateProject(std::string folder)
 	SetCurrentDirectoryA(folder.c_str());
 
 	FileUtil::CreateDirectoryRecursive("assets/defaults/");
-	FileUtil::CreateDirectoryRecursive("assets/models/");
-	FileUtil::CreateDirectoryRecursive("assets/textures/");
-	FileUtil::CreateDirectoryRecursive("assets/scenes/");
-	FileUtil::CreateDirectoryRecursive("assets/shaders/");
-	FileUtil::CreateDirectoryRecursive("assets/materials/");
+	FileUtil::CreateDirectoryRecursive(MeshData::Instance().root);
+	FileUtil::CreateDirectoryRecursive(TextureData::Instance().root);
+	FileUtil::CreateDirectoryRecursive(SceneData::Instance().root);
+	FileUtil::CreateDirectoryRecursive(VertexShaderData::Instance().root);
+	FileUtil::CreateDirectoryRecursive(MaterialData::Instance().root);
+	FileUtil::CreateDirectoryRecursive(MiscData::Instance().root);
 
 	FILE* projFile;
 	fopen_s(&projFile, "churo.proj", "wb");
@@ -51,6 +52,7 @@ bool AssetManager::CreateProject(std::string folder)
 	meta.numVertexShaders = 1;
 	meta.numPixelShaders = 1;
 	meta.numMaterials = 1;
+	meta.numMisc = 0;
 	meta.numScenes = 0;
 	fwrite(&meta.nextUID, sizeof(Internal::Proj::Meta), 1, projFile);
 
@@ -205,6 +207,16 @@ bool AssetManager::LoadProject(std::string folder)
 			SetDefault<MaterialData>(materialAsset.handle);
 	}
 
+	Asset<MiscData> miscAsset;
+	for (size_t i = 0; i < meta.numMisc; ++i)
+	{
+		fread_s(&miscAsset.uID, sizeof(Internal::Proj::Asset::uID), sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		miscAsset.path = FileUtil::GetStringInFile(projFile);
+		miscAsset.name = FileUtil::GetStringInFile(projFile);
+		miscAsset.handle = MiscData::Instance().Load(miscAsset.path);
+		AddAsset(miscAsset);
+	}
+
 	Asset<SceneData> sceneAsset;
 	for (size_t i = 0; i < meta.numScenes; ++i)
 	{
@@ -251,6 +263,7 @@ void AssetManager::SaveProject()
 	Tracker<VertexShaderData> vertexShaderTracker = trackers;
 	Tracker<PixelShaderData> pixelShaderTracker = trackers;
 	Tracker<MaterialData> materialTracker = trackers;
+	Tracker<MiscData> miscTracker = trackers;
 
 	MeshData::Handle& defaultMesh = defaults;
 	TextureData::Handle& defaultTexture = defaults;
@@ -271,6 +284,7 @@ void AssetManager::SaveProject()
 		vertexShaderTracker.assets.size(),
 		pixelShaderTracker.assets.size(),
 		materialTracker.assets.size(),
+		miscTracker.assets.size(),
 		sceneTracker.assets.size()
 	};
 	fwrite(&meta.nextUID, sizeof(Internal::Proj::Meta), 1, projFile);
@@ -310,6 +324,13 @@ void AssetManager::SaveProject()
 		fwrite(&materialTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
 		fwrite(materialTracker.assets[i].path.c_str(), materialTracker.assets[i].path.length() + 1, 1, projFile);
 		fwrite(materialTracker.assets[i].name.c_str(), materialTracker.assets[i].name.length() + 1, 1, projFile);
+	}
+
+	for (size_t i = 0; i < meta.numMisc; ++i)
+	{
+		fwrite(&miscTracker.assets[i].uID, sizeof(Internal::Proj::Asset::uID), 1, projFile);
+		fwrite(miscTracker.assets[i].path.c_str(), miscTracker.assets[i].path.length() + 1, 1, projFile);
+		fwrite(miscTracker.assets[i].name.c_str(), miscTracker.assets[i].name.length() + 1, 1, projFile);
 	}
 
 	for (size_t i = 0; i < meta.numScenes; ++i)
@@ -387,6 +408,7 @@ bool AssetManager::Export(std::string name, bool force)
 	Tracker<VertexShaderData> vertexShaderTracker = trackers;
 	Tracker<PixelShaderData> pixelShaderTracker = trackers;
 	Tracker<MaterialData> materialTracker = trackers;
+	Tracker<MiscData> miscTracker = trackers;
 
 	// export all assets and build file paths
 	for (i = 0; i < meshTracker.assets.size(); ++i)
@@ -455,6 +477,19 @@ bool AssetManager::Export(std::string name, bool force)
 		filePathBlob += filePath + '\0';
 
 		TextureData::Instance().Export(filePath, textureTracker.assets[i].handle);
+	}
+
+	for (i = 0; i < miscTracker.assets.size(); ++i)
+	{
+		auto check = std::find(uIDs.begin(), uIDs.end(), miscTracker.assets[i].uID);
+		if (check == uIDs.end())
+			continue;
+
+		filePathIndexes.push_back(filePathBlob.size());
+		filePath = StringManip::ReplaceAll(miscTracker.assets[i].path, "assets/", exportFolder);
+		filePathBlob += filePath + '\0';
+
+		MiscData::Instance().Export(filePath, miscTracker.assets[i].handle);
 	}
 
 	// process file path blob
