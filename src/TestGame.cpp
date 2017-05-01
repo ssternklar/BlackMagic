@@ -44,6 +44,7 @@ void TestGame::LoadContent()
 	Quaternion quatIdentity = CreateQuaternionIdentity();
 	Vector3 defaultScale = CreateVector3(1.0f, 1.0f, 1.0f);
 	auto sphere = std::shared_ptr<Mesh>(content->UntrackedLoad<Mesh>("/models/sphere.bmmesh"));
+	auto plane = std::shared_ptr<Mesh>(content->UntrackedLoad<Mesh>("/models/plane.bmmesh"));
 	auto gPassVS = content->Load<VertexShader>(std::string("/shaders/GBufferVS.cso"));
 	auto gPassPS = content->Load<PixelShader>(std::string("/shaders/GBufferPS.cso"));
 	auto sphereTex = content->Load<Texture>(std::string("/textures/test_texture.png"));
@@ -54,9 +55,14 @@ void TestGame::LoadContent()
 		gPassVS, gPassPS
 	);
 
+	std::shared_ptr<Texture> planeAlbedo;
+	std::shared_ptr<Texture> planeMetal;
+	std::shared_ptr<Texture> planeRoughness;
+
 	mat.SetResource("normalMap", Material::ResourceStage::PS, sphereNormals, Material::ResourceStorageType::Static);
 	mat.SetResource("mainSampler", Material::ResourceStage::PS, sampler, Material::ResourceStorageType::Static);
 	
+
 	for(float y = 0; y < 12; y++)
 	{
 		unsigned int metalness = 255;
@@ -143,11 +149,27 @@ void TestGame::LoadContent()
 			matInstance.SetResource("roughnessMap", Material::ResourceStage::PS, roughnessTex, Material::ResourceStorageType::Instance);
 			auto p = CreateVector3(x, y, 0);
 			_objects.push_back(new (mem) Entity(CreateVector3(x, y, 0), CreateQuaternionIdentity(), sphere, matInstance));
+		
+			if (static_cast<unsigned int>(y) == 11 && static_cast<unsigned int>(x) == 1)
+			{
+				planeAlbedo = albedoTex;
+				planeRoughness = roughnessTex;
+				planeMetal = metalnessTex;
+			}
 		}
 	}
+
+	auto planeMem = allocator.allocate<Entity>();
+	mat.SetResource("albedoMap", Material::ResourceStage::PS, planeAlbedo, Material::ResourceStorageType::Static);
+	mat.SetResource("metalnessMap", Material::ResourceStage::PS, planeMetal, Material::ResourceStorageType::Static);
+	mat.SetResource("roughnessMap", Material::ResourceStage::PS, planeRoughness, Material::ResourceStorageType::Instance);
+	auto ptr = new (planeMem) Entity(CreateVector3(5.5f, 5.5f, 2.0f), CreateQuaternion(CreateVector3(1.0, 0, 0), -3.14f / 2.0f), plane, mat);
+	ptr->GetTransform().SetScale(CreateVector3(11.0f, 1.0f, 11.0f));
+	_objects.push_back(ptr);
+	//_objects.push_back(new (planeMem) Entity(CreateVector3(0, 0, 2.0f), CreateQuaternion(CreateVector3(1.0, 0, 0), -3.14f/2.0f), plane, mat));
 #endif
 	auto sdr = PlatformBase::GetSingleton()->GetContentManager()->UntrackedLoad<WAVFile>("CityEscape.wav");
-	PlatformBase::GetSingleton()->GetAudioManager()->PlayBGM(sdr, .6f);
+	//PlatformBase::GetSingleton()->GetAudioManager()->PlayBGM(sdr, .6f);
 }
 
 void TestGame::Update(float deltaTime)

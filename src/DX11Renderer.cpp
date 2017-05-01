@@ -211,7 +211,7 @@ HRESULT DX11Renderer::InitDx(HWND window, UINT width, UINT height)
 	swapDesc.BufferDesc.Height = height;
 	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
 	swapDesc.BufferDesc.RefreshRate.Denominator = 1;
-	swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -314,7 +314,7 @@ void DX11Renderer::Init(ContentManager* content)
 	shadowSampDesc.BorderColor[1] = 0.0f;
 	shadowSampDesc.BorderColor[2] = 0.0f;
 	shadowSampDesc.BorderColor[3] = 0.0f;
-	shadowSampDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	shadowSampDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
 	shadowSampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 	_shadowSampler = CreateSampler(shadowSampDesc);
 
@@ -324,7 +324,7 @@ void DX11Renderer::Init(ContentManager* content)
 	shadowRSDesc.DepthClipEnable = true;
 	shadowRSDesc.DepthBias = 1000;
 	shadowRSDesc.DepthBiasClamp = 0.0f;
-	shadowRSDesc.SlopeScaledDepthBias = 1.0f;
+	shadowRSDesc.SlopeScaledDepthBias = 5.0f;
 	_device->CreateRasterizerState(&shadowRSDesc, _shadowRS.ReleaseAndGetAddressOf());
 	//Just need a default sampler, nothing fancy
 	_skyboxSampler = CreateSampler(sampDesc);
@@ -422,7 +422,7 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 		float zFar = (thisCascade + 1)*coeff;
 
 		auto subfrustum = DirectX::BoundingFrustum(XMMatrixPerspectiveFovLH(CAM_FOV, static_cast<float>(_width) / _height, zNear, zFar));
-		subfrustum.Transform(subfrustum, XMMatrixTranspose(XMMatrixInverse(nullptr, vT)));
+		subfrustum.Transform(subfrustum, (XMMatrixInverse(nullptr, vT)));
 		subfrustum.GetCorners(points);
 
 		XMVECTOR centroid = XMVectorZero();
@@ -549,7 +549,7 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 
 	const Material* currentMaterial = nullptr;
 
-	//RenderShadowMaps(cam, objects, sceneLight);
+	RenderShadowMaps(cam, objects, sceneLight);
 
 
 	//TODO: Sort renderables by material and texture to minimize state switches

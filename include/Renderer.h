@@ -6,7 +6,7 @@
 #include "Projector.h"
 #include "BMMath.h"
 #define NUM_SHADOW_CASCADES 5
-#define SHADOWMAP_DIM 1025
+#define SHADOWMAP_DIM 4096
 
 namespace BlackMagic
 {
