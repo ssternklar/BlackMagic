@@ -161,6 +161,7 @@
     <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\GenericJob.cpp" />
     <ClCompile Include="src\InputData.cpp" />
+    <ClCompile Include="src\RacingScene.cpp" />
     <ClCompile Include="src\Resource.cpp" />
     <ClCompile Include="src\LinkedList.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -206,6 +207,7 @@
     <ClInclude Include="include\GraphicsDevice.h" />
     <ClInclude Include="include\ContentJob.h" />
     <ClInclude Include="include\Handles.h" />
+    <ClInclude Include="include\RacingScene.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\InputData.h" />
     <ClInclude Include="include\LinkedList.h" />
@@ -219,6 +221,7 @@
     <ClInclude Include="include\DX11Renderer.h" />
     <ClInclude Include="include\PlatformResourceTypes.h" />
     <ClInclude Include="include\Scene.h" />
+    <ClInclude Include="include\SceneBasedGame.h" />
     <ClInclude Include="include\SimpleShader.h" />
     <ClInclude Include="include\StdThreadManager.h" />
     <ClInclude Include="include\TestGame.h" />

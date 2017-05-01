@@ -51,6 +51,8 @@ namespace BlackMagic
 		{
 			DestructAndDeallocate<T>(_allocator, thing, 1);
 		}
+
+		void ForceAssetCleanup(ManifestEntry* entry);
 		void AssetGC();
 
 		template<typename T>

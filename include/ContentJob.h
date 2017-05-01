@@ -1,17 +1,17 @@
 #pragma once
-
+#include "ContentClasses.h"
 namespace BlackMagic
 {
 	class ContentJob_Base
 	{
 		friend class ThreadManager;
 	protected:
-		void* resourceLocation;
+		AssetPointer_Base resourceLocation;
 		bool inProgress;
-		bool done;
 	public:
-		char* resourceName;
-		ContentJob_Base(char* resourceName);
+		bool done;
+		const char* resourceName;
+		ContentJob_Base(const char* resourceName);
 		void WaitUntilJobIsComplete();
 		virtual void Run() = 0;
 	};
@@ -21,7 +21,12 @@ namespace BlackMagic
 	class ContentJob : public ContentJob_Base
 	{
 	public:
-		T* GetResult() { return static_cast<T>(resourceLocation); };
+		ContentJob(const char* resourceName) : ContentJob_Base(resourceName) {};
+		AssetPointer<T> GetResult()
+		{
+			WaitUntilJobIsComplete();
+			return dynamic_cast<AssetPointer<T>>(resourceLocation);
+		};
 		virtual void Run() override;
 	};
 }

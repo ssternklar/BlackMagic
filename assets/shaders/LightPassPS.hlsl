@@ -3,7 +3,7 @@
 #define ZNEAR 0.1f
 #define ZFAR 100.0f
 #define SPLIT_SIZE ((ZFAR - ZNEAR)/NUM_SHADOW_CASCADES)
-#define GEN_SHADOW_MAPS 0
+#define GEN_SHADOW_MAPS 1
 #define PI 3.141592654
 
 struct DirectionalLight
@@ -98,7 +98,7 @@ float3 ApproximateIBL(float3 specColor, float r, float3 n, float3 v)
 	uint numLevels = 0;
 	uint _ = 0;
 	skyboxRadianceMap.GetDimensions(0, _, _, numLevels);
-	float2 brdf = cosLookup.Sample(mainSampler, float2(nDotV, 1-r)).rg;
+	float2 brdf = pow(cosLookup.Sample(mainSampler, float2(nDotV, 1-r)), 2.2).rg;
 	float3 filteredEnvColor = pow(skyboxRadianceMap.SampleLevel(envSampler, dir, r * numLevels), 2.2);
     return filteredEnvColor * (specColor * brdf.r + brdf.g);
 }
@@ -136,15 +136,16 @@ float linearizeDepth(float logDepth, float n, float f)
 	return (2 * n) / (f + n - logDepth * (f - n));
 }
 
-float sampleShadowMap(float3 pos, float cascade)
+float sampleShadowMap(float3 pos, float3 normal, float cascade)
 {
 	float4 lightspacePos = mul(float4(pos, 1.0f), mul(lightView[cascade], lightProjection[cascade]));
 	lightspacePos /= lightspacePos.w;
 	float4 shadowCoord = lightspacePos / 2 + 0.5f;
 	shadowCoord.y = 1 - shadowCoord.y;
-	
+
 	//8x8 PCF
 	float sMap = 0.0f;
+	float center = shadowMap.SampleCmpLevelZero(shadowSampler, float3(shadowCoord.xy, cascade), lightspacePos.z, int2(0, 0));
 	for (int y = -3; y <= 3; y++)
 	{
 		for (int x = -3; x <= 3; x++)
@@ -152,7 +153,7 @@ float sampleShadowMap(float3 pos, float cascade)
 			sMap += shadowMap.SampleCmpLevelZero(shadowSampler, float3(shadowCoord.xy, cascade), lightspacePos.z, int2(x,y));
 		}
 	}
-	sMap /= 64;
+	sMap /= 48;
 	return sMap;
 }
 
@@ -170,18 +171,29 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	float linearDepth = linearizeDepth((depth.Sample(mainSampler, input.uv).r), ZNEAR, ZFAR);
 	float depthID = floor(linearDepth * NUM_SHADOW_CASCADES);
+	/*float3 shadowColor = float3(0, 0, 0);
+	if (depthID <= 1.0)
+		shadowColor = float3(1, 0, 0);
+	else if (depthID <= 2.0)
+		shadowColor = float3(0, 1, 0);
+	else if (depthID <= 3.0)
+		shadowColor = float3(0, 0, 1);
+	else if (depthID <= 4.0)
+		shadowColor = float3(1, 1, 0);
+	else
+		shadowColor = float3(0, 1, 1); */
 
 #if GEN_SHADOW_MAPS == 1
 	//Based on MJP's CSM blending implementation
 	float distToNextCascade = (ZNEAR + (depthID+1) * SPLIT_SIZE)/ZFAR-linearDepth;
-	float shadow = sampleShadowMap(buffer.position, depthID);
+	float shadow = sampleShadowMap(buffer.position, buffer.normal, depthID);
 	//TODO: Get rid of this branch
 	if (distToNextCascade <= 0.1f && depthID < NUM_SHADOW_CASCADES-1)
 	{
-		float nextShadow = sampleShadowMap(buffer.position, depthID+1);
+		float nextShadow = sampleShadowMap(buffer.position, buffer.normal, depthID+1);
 		float t = smoothstep(0.0f, 0.1f, distToNextCascade);
 		shadow = lerp(nextShadow, shadow, t);
 	}
 #endif
-	return float4(colorFromScenelight(buffer), linearDepth < 1);
+	return float4(pow(colorFromScenelight(buffer)*(shadow/2 + 0.5), 1), linearDepth < 1);
 }
