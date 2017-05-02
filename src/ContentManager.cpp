@@ -11,6 +11,7 @@
 #include "Mesh.h"
 #include "WAVFile.h"
 #include "Scene.h"
+#include "Spline.h"
 
 using namespace BlackMagic;
 
@@ -376,45 +377,43 @@ template<>
 void ContentManager::SetupManifest(ManifestEntry* entry, Material* resource)
 {
 	assert(false);
-
 }
 
-/*
 template<>
-std::shared_ptr<Spline> ContentManager::load_Internal(const std::wstring& name)
+Spline* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
-	auto alloc = _resources.get_allocator();
-	auto fullPath = directory + L"/" + name;
-	std::ifstream in(fullPath, std::ios::binary);
-	unsigned int pieces = 0;
-	size_t memorySize = 0;
-	byte* memory = 0;
-	if (in.is_open())
+	auto file = AssetFile{ directory, fileName, _allocator };
+	uint32_t numSegments = *reinterpret_cast<uint32_t*>(file.memory);
+	float* fileMem = reinterpret_cast<float*>(file.memory) + 1;
+	
+	Spline* spline = AllocateAndConstruct<Spline>(_allocator, 1);
+	spline->segmentCount = numSegments;
+	SplinePiece* pieces = AllocateAndConstruct<SplinePiece>(_allocator, numSegments);
+	spline->segments = pieces;
+	for (int i = 0; i < numSegments; i++)
 	{
-		in.read((char*)&pieces, 4);
-		memorySize = sizeof(unsigned int) * 4 + sizeof(SplinePiece) * pieces;
-		memory = (byte*)_allocator->allocate(memorySize, 1);
-		in.seekg(std::ios::beg);
-		in.read((char*)memory, memorySize);
-		in.close();
+		pieces[i].start.position = CreateVector3(fileMem[0], fileMem[1], fileMem[2]);
+		pieces[i].start.rotation = CreateQuaternion(fileMem[3], fileMem[4], fileMem[5], fileMem[6]);
+		pieces[i].start.scale = CreateVector3(fileMem[7], fileMem[8], fileMem[9]);
+		pieces[i].start.tangent = CreateVector3(fileMem[10], fileMem[11], fileMem[12]);
+		pieces[i].start.normal = CreateVector3(fileMem[13], fileMem[14], fileMem[15]);
+		fileMem += 16;
+		pieces[i].end.position = CreateVector3(fileMem[0], fileMem[1], fileMem[2]);
+		pieces[i].end.rotation = CreateQuaternion(fileMem[3], fileMem[4], fileMem[5], fileMem[6]);
+		pieces[i].end.scale = CreateVector3(fileMem[7], fileMem[8], fileMem[9]);
+		pieces[i].end.tangent = CreateVector3(fileMem[10], fileMem[11], fileMem[12]);
+		pieces[i].end.normal = CreateVector3(fileMem[13], fileMem[14], fileMem[15]);
+		fileMem += 16;
 	}
+	return spline;
+}
 
-	//Fix spline pointers
-	Spline* sp = reinterpret_cast<Spline*>(memory);
-	sp->segments = reinterpret_cast<SplinePiece*>(memory + 16);
-
-	std::shared_ptr<Spline> ret =
-		std::shared_ptr<Spline>(sp,
-			[&](Spline* splineToDelete) {
-		if (splineToDelete)
-		{
-			_allocator->deallocate((void*)splineToDelete, sizeof(unsigned int) * 4 + sizeof(SplineControlPoint) * splineToDelete->segmentCount, 1);
-		}
-	}, BlackMagic::AllocatorSTLAdapter<Spline, BlackMagic::BestFitAllocator>(_allocator));
-
-	//_resources[name] = ret;
-	return ret;
-}*/
+template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, Spline* resource)
+{
+	entry->resource = resource;
+	entry->type = ManifestEntry::SPLINE;
+}
 
 ManifestEntry::ResourceType GetTypeFromFileName(const char* fileName)
 {
@@ -433,6 +432,10 @@ ManifestEntry::ResourceType GetTypeFromFileName(const char* fileName)
 	else if (strstr(fileName, ".bmspline"))
 	{
 		return ManifestEntry::SPLINE;
+	}
+	else if (strstr(fileName, ".bmmat"))
+	{
+		return ManifestEntry::MATERIAL;
 	}
 	else
 	{
@@ -457,7 +460,10 @@ UnknownContentType* ContentManager::load_Internal(const char* fileName, int file
 		return reinterpret_cast<UnknownContentType*>(load_Internal<Texture>(fileName, fileSize));
 		break;
 	case ManifestEntry::SPLINE:
-		//return load_Internal<Spline>(fileName, fileSize);
+		return reinterpret_cast<UnknownContentType*>(load_Internal<Spline>(fileName, fileSize));
+		break;
+	case ManifestEntry::MATERIAL:
+		//return reinterpret_cast<UnknownContentType*>(load_Internal<Material>(fileName, fileSize));
 		//break;
 	default:
 		//Can't deduce type from file extension alone

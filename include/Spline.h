@@ -21,14 +21,12 @@ namespace BlackMagic
 		Vector3 GetControlPoint();
 	};
 
-	class SplinePiece
+	struct SplinePiece
 	{
-	private:
 		SplineControlPoint start;
 		SplineControlPoint end;
 		Vector3 GetSplinePoint(float t);
 		Vector3 GetSplineDerivative(float t);
-	public:
 		SplineControlPoint GetPoint(float t);
 		float GuessNearestPoint(Vector3& point, float& outDistanceSquared);
 	};

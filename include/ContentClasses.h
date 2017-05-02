@@ -15,7 +15,8 @@ namespace BlackMagic
 			PIXEL_SHADER,
 			WAVFILE,
 			SPLINE,
-			SCENE
+			SCENE,
+			MATERIAL
 		};
 		char* resourceName;
 		int uid;
