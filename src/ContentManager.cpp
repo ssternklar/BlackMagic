@@ -54,9 +54,8 @@ void ContentManager::ForceAssetCleanup(ManifestEntry* entry)
 			DestructAndDeallocate(_allocator, (SceneDesc*)entry->resource, 1);
 			break;
 		case ManifestEntry::SPLINE:
-			Spline* sp = (Spline*)entry->resource;
-			DestructAndDeallocate(_allocator, sp->segments, sp->segmentCount);
-			DestructAndDeallocate(_allocator, sp, 1);
+			DestructAndDeallocate(_allocator, ((Spline*)entry->resource)->segments, ((Spline*)entry->resource)->segmentCount);
+			DestructAndDeallocate(_allocator, ((Spline*)entry->resource), 1);
 			break;
 		case ManifestEntry::MATERIAL:
 			DestructAndDeallocate(_allocator, (Material*)entry->resource, 1);
@@ -375,21 +374,30 @@ SceneDesc* ContentManager::load_Internal(const char* fileName, int fileSize)
 }
 
 template<>
+void ContentManager::SetupManifest(ManifestEntry* entry, SceneDesc* resource)
+{
+	entry->resource = resource;
+	entry->type = ManifestEntry::SCENE;
+}
+
+template<>
 Material* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	auto file = AssetFile{ directory, fileName, _allocator };
 	uint16_t* mem = (uint16_t*)file.memory;
+	auto manifest = GetManifestByUID(*mem);
 	auto vs = Load<VertexShader>(std::string(
-		GetManifestByUID(*mem)->resourceName
+		manifest->resourceName
 	));
+	manifest = GetManifestByUID(*(++mem));
 	auto ps = Load<PixelShader>(std::string(
-		GetManifestByUID(*(++mem))->resourceName
+		manifest->resourceName
 	));
 	uint8_t* mem2 = (uint8_t*)(++mem);
 	uint8_t numTex = *mem2;
 	uint8_t numSamplers = *(++mem2);
 	++mem;
-	Material* m = AllocateAndConstruct<Material>(_allocator, 1, vs, ps);
+	Material* m = AllocateAndConstruct<Material>(_allocator, 1, *_allocator, vs, ps);
 	const char* namesSegment = (const char*)(mem + numSamplers + (numTex * 2));
 	
 	for (int i = 0; i < numTex; i++)
@@ -399,7 +407,8 @@ Material* ContentManager::load_Internal(const char* fileName, int fileSize)
 		std::shared_ptr<Texture> shaderTexture = Load<Texture>(std::string(
 			GetManifestByUID(texUID)->resourceName
 		));
-		m->SetResource(std::string(&namesSegment[texNameIndex]), Material::ResourceStage::PS, shaderTexture);
+		auto s = std::string(&namesSegment[texNameIndex]);
+		m->SetResource(s, Material::ResourceStage::PS, shaderTexture);
 	}
 
 	for (int i = 0; i < numSamplers; i++)
@@ -503,8 +512,8 @@ UnknownContentType* ContentManager::load_Internal(const char* fileName, int file
 		return reinterpret_cast<UnknownContentType*>(load_Internal<Spline>(fileName, fileSize));
 		break;
 	case ManifestEntry::MATERIAL:
-		//return reinterpret_cast<UnknownContentType*>(load_Internal<Material>(fileName, fileSize));
-		//break;
+		return reinterpret_cast<UnknownContentType*>(load_Internal<Material>(fileName, fileSize));
+		break;
 	default:
 		//Can't deduce type from file extension alone
 		assert(false);

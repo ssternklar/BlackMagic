@@ -32,9 +32,8 @@ namespace BlackMagic
 
 	class AssetPointer_Base
 	{
-	protected:
-		ManifestEntry* entry;
 	public:
+		ManifestEntry* entry = nullptr;
 		AssetPointer_Base(ManifestEntry* entry)
 		{
 			if (entry)

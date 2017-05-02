@@ -12,7 +12,7 @@ const Renderable* Entity::AsRenderable() const
 	return static_cast<const Renderable*>(this);
 }
 
-void Entity::Update()
+void Entity::Update(float deltaTime)
 {
 	
 }

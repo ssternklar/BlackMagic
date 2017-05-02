@@ -52,6 +52,7 @@
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\RacingScene.cpp" />
     <ClCompile Include="src\Spline.cpp" />
+    <ClCompile Include="src\MenuCursor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -103,6 +104,7 @@
     <ClInclude Include="include\RacingScene.h" />
     <ClInclude Include="include\SceneBasedGame.h" />
     <ClInclude Include="include\Spline.h" />
+    <ClInclude Include="include\MenuCursor.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\ShaderBase.hlsli" />

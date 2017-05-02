@@ -161,6 +161,7 @@
     <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\GenericJob.cpp" />
     <ClCompile Include="src\InputData.cpp" />
+    <ClCompile Include="src\MenuCursor.cpp" />
     <ClCompile Include="src\RacingScene.cpp" />
     <ClCompile Include="src\Resource.cpp" />
     <ClCompile Include="src\LinkedList.cpp" />
@@ -208,6 +209,7 @@
     <ClInclude Include="include\GraphicsDevice.h" />
     <ClInclude Include="include\ContentJob.h" />
     <ClInclude Include="include\Handles.h" />
+    <ClInclude Include="include\MenuCursor.h" />
     <ClInclude Include="include\RacingScene.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\InputData.h" />

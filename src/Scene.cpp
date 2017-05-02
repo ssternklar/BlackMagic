@@ -3,7 +3,12 @@
 #include "ContentManager.h"
 using namespace BlackMagic;
 
-void Scene::Init(BlackMagic::BestFitAllocator* sceneAllocator, AssetPointer<SceneDesc> desc)
+BlackMagic::Scene::Scene(BlackMagic::BestFitAllocator* allocator)
+{
+	alloc = allocator;
+}
+
+void Scene::Init(AssetPointer<SceneDesc> desc)
 {
 	auto file = (uint16_t*)(desc->fileHandle);
 	auto uidCount = *file;
@@ -12,7 +17,6 @@ void Scene::Init(BlackMagic::BestFitAllocator* sceneAllocator, AssetPointer<Scen
 	auto sceneFileEntityCount = *file;
 	byte* entities = (byte*)(++file);
 
-	alloc = sceneAllocator;
 	AssetPointer<UnknownContentType>* b = alloc->allocate<BlackMagic::AssetPointer<UnknownContentType>>(uidCount);
 	ContentManager* cm = PlatformBase::GetSingleton()->GetContentManager();
 	for (int i = 0; i < uidCount; i++)

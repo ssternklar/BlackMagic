@@ -12,7 +12,7 @@ namespace BlackMagic
 		virtual ~Entity() = default;
 
 		const Renderable* AsRenderable() const;
-		void Update();
+		virtual void Update(float deltaTime);
 	private:
 	};	
 }
