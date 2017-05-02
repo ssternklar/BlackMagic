@@ -52,6 +52,15 @@ void ContentManager::ForceAssetCleanup(ManifestEntry* entry)
 		case ManifestEntry::SCENE:
 			_allocator->deallocate(((void*)((SceneDesc*)entry->resource)->fileHandle), entry->size);
 			DestructAndDeallocate(_allocator, (SceneDesc*)entry->resource, 1);
+			break;
+		case ManifestEntry::SPLINE:
+			Spline* sp = (Spline*)entry->resource;
+			DestructAndDeallocate(_allocator, sp->segments, sp->segmentCount);
+			DestructAndDeallocate(_allocator, sp, 1);
+			break;
+		case ManifestEntry::MATERIAL:
+			DestructAndDeallocate(_allocator, (Material*)entry->resource, 1);
+			break;
 		default:
 			break;
 		}
@@ -368,15 +377,46 @@ SceneDesc* ContentManager::load_Internal(const char* fileName, int fileSize)
 template<>
 Material* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
-	//auto file = AssetFile{ directory, fileName, _allocator };
-	assert(false);
-	return nullptr;
+	auto file = AssetFile{ directory, fileName, _allocator };
+	uint16_t* mem = (uint16_t*)file.memory;
+	auto vs = Load<VertexShader>(std::string(
+		GetManifestByUID(*mem)->resourceName
+	));
+	auto ps = Load<PixelShader>(std::string(
+		GetManifestByUID(*(++mem))->resourceName
+	));
+	uint8_t* mem2 = (uint8_t*)(++mem);
+	uint8_t numTex = *mem2;
+	uint8_t numSamplers = *(++mem2);
+	++mem;
+	Material* m = AllocateAndConstruct<Material>(_allocator, 1, vs, ps);
+	const char* namesSegment = (const char*)(mem + numSamplers + (numTex * 2));
+	
+	for (int i = 0; i < numTex; i++)
+	{
+		uint16_t texNameIndex = *(++mem);
+		uint16_t texUID = *(++mem);
+		std::shared_ptr<Texture> shaderTexture = Load<Texture>(std::string(
+			GetManifestByUID(texUID)->resourceName
+		));
+		m->SetResource(std::string(&namesSegment[texNameIndex]), Material::ResourceStage::PS, shaderTexture);
+	}
+
+	for (int i = 0; i < numSamplers; i++)
+	{
+		uint16_t samplerNameIndex = *(++mem);
+		Sampler s = PlatformBase::GetSingleton()->GetRenderer()->CreateSampler();
+		m->SetResource(std::string(&namesSegment[samplerNameIndex]), Material::ResourceStage::PS, s);
+	}
+
+	return m;
 }
 
 template<>
 void ContentManager::SetupManifest(ManifestEntry* entry, Material* resource)
 {
-	assert(false);
+	entry->resource = resource;
+	entry->type = ManifestEntry::MATERIAL;
 }
 
 template<>
