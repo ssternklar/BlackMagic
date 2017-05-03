@@ -173,6 +173,7 @@
     <ClCompile Include="src\DX11Renderer.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\SimpleShader.cpp" />
+    <ClCompile Include="src\Spline.cpp" />
     <ClCompile Include="src\StdThreadManager.cpp" />
     <ClCompile Include="src\TestGame.cpp" />
     <ClCompile Include="src\TestJob.cpp" />
@@ -223,6 +224,7 @@
     <ClInclude Include="include\Scene.h" />
     <ClInclude Include="include\SceneBasedGame.h" />
     <ClInclude Include="include\SimpleShader.h" />
+    <ClInclude Include="include\Spline.h" />
     <ClInclude Include="include\StdThreadManager.h" />
     <ClInclude Include="include\TestGame.h" />
     <ClInclude Include="include\TestJob.h" />

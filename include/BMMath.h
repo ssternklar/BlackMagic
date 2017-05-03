@@ -54,7 +54,8 @@ namespace BlackMagic
 	float GetX(Vector3 vec);
 	float GetY(Vector3 vec);
 	float GetZ(Vector3 vec);
-
+	float Magnitude(Vector3 vec);
+	float SquareMagnitude(Vector3 vec);
 
 	Vector4 CreateVector4(float x, float y, float z, float w);
 	Vector4 CreateVector4(Vector4 other);
@@ -73,7 +74,8 @@ namespace BlackMagic
 	float GetY(Vector4 vec);
 	float GetZ(Vector4 vec);
 	float GetW(Vector4 vec);
-
+	float Magnitude(Vector4 vec);
+	float SquareMagnitude(Vector4 vec);
 
 	Matrix4 CreateMatrix4(float* data);
 	Matrix4 CreateMatrix4(Vector4 a, Vector4 b, Vector4 c, Vector4 d);
