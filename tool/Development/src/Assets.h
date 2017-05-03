@@ -154,17 +154,14 @@ typename T::Handle AssetManager::GetHandle(std::string fullPath)
 template<class T>
 void AssetManager::TrackAsset(typename T::Handle handle, std::string fullPath)
 {
-	Tracker<T>& tracker = trackers;
-	tracker.fullPaths[fullPath] = tracker.assets.size();
-	tracker.handles[handle] = tracker.assets.size();
-
 	Asset<T> asset;
 	asset.handle = handle;
 	asset.uID = nextUID++;
 	asset.path = fullPath;
 	asset.name = StringManip::FileName(fullPath); // TODO manage better later? IE no duplicates
 
-	tracker.assets.push_back(asset);
+	printf("Tracking new asset...\n");
+	AddAsset<T>(asset);
 }
 
 template<class T>
@@ -186,4 +183,6 @@ void AssetManager::AddAsset(Asset<T> asset)
 	tracker.fullPaths[asset.path] = tracker.assets.size();
 	tracker.handles[asset.handle] = tracker.assets.size();
 	tracker.assets.push_back(asset);
+
+	printf("Added new asset:\n\tUID: %zu\n\tName: %s\n\tPath: %s\n", asset.uID, asset.name.c_str(), asset.path.c_str());
 }
