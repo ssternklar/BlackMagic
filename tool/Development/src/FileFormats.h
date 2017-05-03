@@ -139,7 +139,7 @@ namespace Export
 		{
 			uint16_t numAssets;
 			uint16_t* l_UIDs;
-			size_t numEntities;
+			uint16_t numEntities;
 			Entity* l_entities;
 		};
 	}
