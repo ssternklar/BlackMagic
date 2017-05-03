@@ -14,8 +14,8 @@ Material::Material(
 	: _vertShader(vs),
 	_pixelShader(ps),
 	_allocator(&allocator),
-	_staticData(&allocator),
-	_instanceData(&allocator)
+	_staticData(AllocatorAdapter(&allocator)),
+	_instanceData(AllocatorAdapter(&allocator))
 {
 
 }

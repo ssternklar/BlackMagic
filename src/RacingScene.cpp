@@ -62,7 +62,7 @@ void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::Ass
 		camera->Update(transform);
 		break;
 	case SceneTags::ARBITRARY:
-		entities.push_back(AllocateAndConstruct<Entity>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), material));
+		entities.push_back(AllocateAndConstruct<Entity>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material));
 		break;
 	case SceneTags::PLAY_EASY:
 		menuPositions[0] = transform;

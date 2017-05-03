@@ -27,7 +27,7 @@ void Scene::Init(AssetPointer<SceneDesc> desc)
 	sceneAssets = b;
 	sceneAssetCount = uidCount;
 
-	byte* entities = (byte*)(++file);
+	byte* entities = (byte*)(file);
 
 	for (int i = 0; i < sceneFileEntityCount; i++)
 	{

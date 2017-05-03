@@ -5,7 +5,7 @@
 using namespace BlackMagic;
 
 MenuCursor::MenuCursor(Transform & myTransform, AssetPointer<Mesh> mesh, AssetPointer<Material> material, Transform * transforms) : Entity(myTransform.GetPosition(), myTransform.GetRotation(),
-	PlatformBase::GetSingleton()->GetContentManager()->ConvertToSharedPtr(mesh),
+	(mesh),
 	*material)
 {
 
