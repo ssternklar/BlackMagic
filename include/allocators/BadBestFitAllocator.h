@@ -13,7 +13,7 @@ namespace BlackMagic
 		{
 		public:
 			size_t sizeOfThis;
-			header* nextFree;
+			header* nextFree = nullptr;
 		};
 		size_t size;
 		size_t alignment;

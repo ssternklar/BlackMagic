@@ -30,9 +30,6 @@ namespace BlackMagic
 		template<class T>
 		using BMList = std::vector<T, AllocatorAdapter<T>>;
 
-		const unsigned int SIZE_OF_SCENE_FILE_ENTITY = 54;
-		const unsigned int SIZE_OF_TRANSFORM_FLOATS = 48;
-
 		BlackMagic::BestFitAllocator* alloc;
 		BlackMagic::AssetPointer<BlackMagic::UnknownContentType>* sceneAssets;
 		int sceneAssetCount;

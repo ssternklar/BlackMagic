@@ -16,6 +16,7 @@ public:
 
 	Camera* camera;
 	BMList<BlackMagic::Entity*> entities;
+	DirectionalLight _globalLight;
 
 	virtual void Update(float deltaTime) override;
 	virtual void Draw(float deltaTime) override;

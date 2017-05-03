@@ -42,7 +42,8 @@ public:
 		platformBase->GetThreadManager()->DestroyContentJob(nextScene);
 		platformBase->GetContentManager()->ForceAssetCleanup(sceneDesc.entry);
 		nextScene = nullptr;
-		BlackMagic::DestructAndDeallocate<SceneType>(gameAllocator, prevScene, 1);
+		if(prevScene)
+			BlackMagic::DestructAndDeallocate<SceneType>(gameAllocator, prevScene, 1);
 	}
 
 	virtual void Init(BlackMagic::byte* gameMemory, size_t memorySize)
@@ -54,7 +55,7 @@ public:
 
 	virtual void Update(float deltaTime)
 	{
-		if (nextScene->done)
+		if (nextScene && nextScene->done)
 		{
 			SwapScene();
 		}

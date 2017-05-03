@@ -402,20 +402,21 @@ Material* ContentManager::load_Internal(const char* fileName, int fileSize)
 	
 	for (int i = 0; i < numTex; i++)
 	{
-		uint16_t texNameIndex = *(++mem);
 		uint16_t texUID = *(++mem);
+		uint16_t texNameIndex = *(++mem);
+		manifest = GetManifestByUID(texUID);
 		std::shared_ptr<Texture> shaderTexture = Load<Texture>(std::string(
-			GetManifestByUID(texUID)->resourceName
+			manifest->resourceName
 		));
 		auto s = std::string(&namesSegment[texNameIndex]);
-		m->SetResource(s, Material::ResourceStage::PS, shaderTexture);
+		m->SetResource(s, Material::ResourceStage::PS, shaderTexture, Material::ResourceStorageType::Instance);
 	}
 
 	for (int i = 0; i < numSamplers; i++)
 	{
-		uint16_t samplerNameIndex = *(++mem);
+		uint16_t samplerNameIndex = *(mem);
 		Sampler s = PlatformBase::GetSingleton()->GetRenderer()->CreateSampler();
-		m->SetResource(std::string(&namesSegment[samplerNameIndex]), Material::ResourceStage::PS, s);
+		m->SetResource(std::string(&namesSegment[samplerNameIndex]), Material::ResourceStage::PS, s, Material::ResourceStorageType::Instance);
 	}
 
 	return m;

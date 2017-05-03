@@ -89,7 +89,7 @@ void Material::SetResource(std::string name, ResourceStage s, const std::shared_
 		ResourceData dat;
 		dat.stage = s;
 		dat.type = ResourceType::Texture;
-		dat.data = tex.get();
+		dat.data = (void*)(&tex);
 		dat.size = sizeof(std::shared_ptr<Texture>);
 		UploadData(name, dat);
 	}
@@ -115,8 +115,8 @@ void Material::SetResource(std::string name, ResourceStage s, const Sampler& sam
 		ResourceData dat;
 		dat.stage = s;
 		dat.type = ResourceType::Sampler;
-		dat.data = sampler.As<SamplerHandle>();
-		dat.size = sizeof(SamplerHandle);
+		dat.data = (void*)&s;
+		dat.size = sizeof(Sampler);
 		UploadData(name, dat);
 	}
 	else
