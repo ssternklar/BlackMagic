@@ -4,6 +4,8 @@
 #include "WindowsPlatform.h"
 #endif
 
+#include "TestGame.h"
+
 #include "SceneBasedGame.h"
 #include "RacingScene.h"
 
@@ -19,7 +21,8 @@ int WINAPI WinMain(
 {
 	BlackMagic::WindowsPlatform platform(hInstance);
 	platform.BlackMagicInit();
-	SceneBasedGame<RacingScene>* game = new SceneBasedGame<RacingScene>("scenes/title.scene");
+	TestGame* game = new TestGame;
+	//SceneBasedGame<RacingScene>* game = new SceneBasedGame<RacingScene>("scenes/title.scene");
 	game->RunGame();
 	delete game;
 	platform.BlackMagicCleanup();

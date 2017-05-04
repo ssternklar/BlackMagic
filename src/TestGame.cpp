@@ -43,12 +43,11 @@ void TestGame::LoadContent()
 	auto content = PlatformBase::GetSingleton()->GetContentManager();
 	Quaternion quatIdentity = CreateQuaternionIdentity();
 	Vector3 defaultScale = CreateVector3(1.0f, 1.0f, 1.0f);
-	auto sphere = content->Load<Mesh>("/models/sphere.bmmesh");
-	auto plane = content->Load<Mesh>("/models/plane.bmmesh");
-	auto gPassVS = content->Load<VertexShader>(std::string("/shaders/GBufferVS.cso"));
-	auto gPassPS = content->Load<PixelShader>(std::string("/shaders/GBufferPS.cso"));
-	auto sphereTex = content->Load<Texture>(std::string("/textures/test_texture.png"));
-	auto sphereNormals = content->Load<Texture>(std::string("/textures/blank_normals.png"));
+	auto sphere = content->Load<Mesh>("models/sphere.bmmesh");
+	auto plane = content->Load<Mesh>("models/plane.bmmesh");
+	auto gPassVS = content->Load<VertexShader>(std::string("shaders/GBufferVS.cso"));
+	auto gPassPS = content->Load<PixelShader>(std::string("shaders/GBufferPS.cso"));
+	auto sphereNormals = content->Load<Texture>(std::string("textures/blank_normals.png"));
 	auto sampler = PlatformBase::GetSingleton()->GetRenderer()->CreateSampler();
 	auto mat = Material(
 		&allocator,
