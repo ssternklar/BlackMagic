@@ -183,8 +183,8 @@ char path[256]; \
 memset(path, 0, 256); \
 strcpy_s(path, directory); \
 strcat_s(path, fileName); \
-byte* ##X = (byte*)_allocator->allocate(fileSize); \
-if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, ##X, fileSize)) \
+byte* X = (byte*)_allocator->allocate(fileSize); \
+if (!PlatformBase::GetSingleton()->ReadFileIntoMemory(path, X, fileSize)) \
 { \
 	assert(false); \
 } \

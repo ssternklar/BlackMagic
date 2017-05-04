@@ -39,7 +39,6 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 
 void TestGame::LoadContent()
 {
-#ifdef BM_PLATFORM_WINDOWS	
 	auto content = PlatformBase::GetSingleton()->GetContentManager();
 	Quaternion quatIdentity = CreateQuaternionIdentity();
 	Vector3 defaultScale = CreateVector3(1.0f, 1.0f, 1.0f);
@@ -166,8 +165,6 @@ void TestGame::LoadContent()
 	auto ptr = new (planeMem) Entity(CreateVector3(5.5f, 5.5f, 2.0f), CreateQuaternion(CreateVector3(1.0, 0, 0), -3.14f / 2.0f), plane, mat);
 	ptr->GetTransform().SetScale(CreateVector3(11.0f, 1.0f, 11.0f));
 	_objects.push_back(ptr);
-	//_objects.push_back(new (planeMem) Entity(CreateVector3(0, 0, 2.0f), CreateQuaternion(CreateVector3(1.0, 0, 0), -3.14f/2.0f), plane, mat));
-#endif
 	auto sdr = PlatformBase::GetSingleton()->GetContentManager()->UntrackedLoad<WAVFile>("CityEscape.wav");
 	//PlatformBase::GetSingleton()->GetAudioManager()->PlayBGM(sdr, .6f);
 }
