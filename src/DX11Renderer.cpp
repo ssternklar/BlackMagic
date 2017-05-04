@@ -274,23 +274,23 @@ void DX11Renderer::Init(ContentManager* content)
 
 	_device->CreateBuffer(&vbDesc, &vbData, _quad.ReleaseAndGetAddressOf());
 
-	_skybox = content->UntrackedLoad<Mesh>(("/models/skybox.bmmesh"));
-	_skyboxTex = content->UntrackedLoad<Cubemap>(("/textures/park_skybox_env.dds"));
-	_skyboxRadiance = content->UntrackedLoad<Cubemap>(("/textures/park_skybox_radiance.dds"));
-	_skyboxIrradiance = content->UntrackedLoad<Cubemap>(("/textures/park_skybox_irradiance.dds"));
-	_cosLookup = content->UntrackedLoad<Texture>(("/textures/cosLUT.png"));
+	_skybox = content->UntrackedLoad<Mesh>(("models/skybox.bmmesh"));
+	_skyboxTex = content->UntrackedLoad<Cubemap>(("textures/park_skybox_env.dds"));
+	_skyboxRadiance = content->UntrackedLoad<Cubemap>(("textures/park_skybox_radiance.dds"));
+	_skyboxIrradiance = content->UntrackedLoad<Cubemap>(("textures/park_skybox_irradiance.dds"));
+	_cosLookup = content->UntrackedLoad<Texture>(("textures/cosLUT.png"));
 
 	//Load device-specific shaders
-	_lightPassVS = content->UntrackedLoad<VertexShader>(("/shaders/QuadVS.cso"));
-	_lightPassPS = content->UntrackedLoad<PixelShader>(("/shaders/LightPassPS.cso"));
-	_shadowMapVS = content->UntrackedLoad<VertexShader>(("/shaders/ShadowMapVS.cso"));
-	_skyboxVS = content->UntrackedLoad<VertexShader>(("/shaders/SkyboxVS.cso"));
-	_skyboxPS = content->UntrackedLoad<PixelShader>(("/shaders/SkyboxPS.cso"));
-	_fxaaVS = content->UntrackedLoad<VertexShader>(("/shaders/FXAA_VS.cso"));
-	_fxaaPS = content->UntrackedLoad<PixelShader>(("/shaders/FXAA_PS.cso"));
-	_projectionPS = content->UntrackedLoad<PixelShader>(("/shaders/ProjectorPS.cso"));
-	_mergePS = content->UntrackedLoad<PixelShader>(("/shaders/FinalMerge.cso"));
-	//_tonemapPS = content->UntrackedLoad<PixelShader>(("/shaders/ReinhardTonemapping.hlsl"));
+	_lightPassVS = content->UntrackedLoad<VertexShader>(("shaders/QuadVS.cso"));
+	_lightPassPS = content->UntrackedLoad<PixelShader>(("shaders/LightPassPS.cso"));
+	_shadowMapVS = content->UntrackedLoad<VertexShader>(("shaders/ShadowMapVS.cso"));
+	_skyboxVS = content->UntrackedLoad<VertexShader>(("shaders/SkyboxVS.cso"));
+	_skyboxPS = content->UntrackedLoad<PixelShader>(("shaders/SkyboxPS.cso"));
+	_fxaaVS = content->UntrackedLoad<VertexShader>(("shaders/FXAA_VS.cso"));
+	_fxaaPS = content->UntrackedLoad<PixelShader>(("shaders/FXAA_PS.cso"));
+	_projectionPS = content->UntrackedLoad<PixelShader>(("shaders/ProjectorPS.cso"));
+	_mergePS = content->UntrackedLoad<PixelShader>(("shaders/FinalMerge.cso"));
+	//_tonemapPS = content->UntrackedLoad<PixelShader>(("shaders/ReinhardTonemapping.hlsl"));
 
 	//Set up g-buffer sampler
 	D3D11_SAMPLER_DESC sampDesc = {};
@@ -487,12 +487,13 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 		for (auto* o : objects)
 		{
 			auto& mesh = o->AsRenderable()->_mesh;
-			auto vBuf = mesh->VertexBuffer().As<BufferHandle>();
-			auto iBuf = mesh->IndexBuffer().As<BufferHandle>();
+			BufferHandle vBuf = mesh->VertexBuffer().As<BufferHandle>();
+			BufferHandle iBuf = mesh->IndexBuffer().As<BufferHandle>();
 			_shadowMapVS->SetMatrix4x4("model", o->GetTransform().Matrix());
 			_shadowMapVS->CopyBufferData("PerInstance");
 			_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
 			_context->IASetIndexBuffer(iBuf, DXGI_FORMAT_R32_UINT, 0);
+			UINT indexCount = mesh->IndexCount();
 			_context->DrawIndexed((UINT)mesh->IndexCount(), 0, 0);
 		}
 

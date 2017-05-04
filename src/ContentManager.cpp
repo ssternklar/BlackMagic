@@ -309,7 +309,7 @@ VertexShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 	strcpy_s(path, directory);
 	strcat_s(path, fileName);
 	//Windows doesn't like strcpy :(
-	char* replacePoint = path + strlen(path) - strlen(".hlsl");
+	char* replacePoint = strrchr(path, '.');
 	const char* toReplace = renderer->GetShaderExtension();
 	for (int i = 0; i <= strlen(toReplace); i++)
 	{
@@ -345,7 +345,7 @@ PixelShader* ContentManager::load_Internal(const char* fileName, int fileSize)
 	strcpy_s(path, directory);
 	strcat_s(path, fileName);
 	//Windows doesn't like strcpy :(
-	char* replacePoint = path + strlen(path) - strlen(".hlsl") + 1;
+	char* replacePoint = strrchr(path, '.');
 	const char* toReplace = renderer->GetShaderExtension();
 	for (int i = 0; i <= strlen(toReplace); i++)
 	{
