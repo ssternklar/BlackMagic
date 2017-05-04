@@ -52,12 +52,10 @@ enum class SceneTags
 	QUIT = 5,
 	CURSOR = 6,
 };
-#include "ContentManager.h"
+
 void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::AssetPointer<BlackMagic::Mesh> mesh, BlackMagic::AssetPointer<BlackMagic::Material> material)
 {
 
-	Material* m = material.get();
-	BestFitAllocator* al = PlatformBase::GetSingleton()->GetContentManager()->GetAllocator();
 	switch ((SceneTags)tag)
 	{
 	case SceneTags::CAMERA:
