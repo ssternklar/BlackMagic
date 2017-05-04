@@ -87,7 +87,8 @@ namespace BlackMagic
 			}
 			else
 			{
-				SetupManifest(entry, load_Internal<T>(entry->resourceName, entry->size));
+				T* resource = load_Internal<T>(entry->resourceName, entry->size);
+				SetupManifest<T>(entry, resource);
 				return AssetPointer<T>(entry);
 			}
 			assert(false); // No file found
@@ -99,17 +100,25 @@ namespace BlackMagic
 		//for compatibility, will be removed later
 
 		template<typename T>
-		std::shared_ptr<T> Load(std::string str)
+		std::shared_ptr<T> ConvertToSharedPtr(AssetPointer<T> assetPtr)
 		{
-			BestFitAllocator* allocLocal = _allocator;
-			T* retLocal = (Load<T>(str.c_str()).get());
-			std::shared_ptr<T> ret(retLocal,
+			ManifestEntry* entry = assetPtr.entry;
+			BM_PLATFORM_ATOMIC_ADD(&entry->refcount, 1);
+			std::shared_ptr<T> ret(assetPtr.get(),
 				[=](T* foo) {
-				//Do nothing, AssetGC takes care of cleanup
+				BM_PLATFORM_ATOMIC_ADD(&entry->refcount, -1);
 			});
 			return ret;
 		}
 
+		template<typename T>
+		std::shared_ptr<T> Load(std::string str)
+		{
+			BestFitAllocator* allocLocal = _allocator;
+			std::shared_ptr<T> ret = ConvertToSharedPtr<T>(Load<T>(str.c_str()));
+			return ret;
+		}
+		
 		BestFitAllocator* GetAllocator()
 		{
 			return _allocator;

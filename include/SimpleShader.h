@@ -60,7 +60,7 @@ struct SimpleSampler
 // --------------------------------------------------------
 // Base abstract class for simplifying shader handling
 // --------------------------------------------------------
-class ISimpleShader : public BlackMagic::Resource
+class ISimpleShader
 {
 public:
 	ISimpleShader(ID3D11Device* device, ID3D11DeviceContext* context);

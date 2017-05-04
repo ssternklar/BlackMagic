@@ -31,6 +31,7 @@ namespace BlackMagic
 		virtual void ReleaseResource(void*) = 0;
 		virtual Sampler CreateSampler() = 0;
 		virtual GraphicsContext GetCurrentContext() = 0;
+		virtual const char* GetShaderExtension() = 0;
 		/*virtual GraphicsShader CreateShader(GraphicsShader::ShaderType shaderType, const char* shaderPath);
 		virtual void CleanupShader(GraphicsShader::ShaderType shaderType, GraphicsShader shader);
 		*/

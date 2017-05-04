@@ -1,4 +1,5 @@
 #pragma once
+#include "allocators/globals.h"
 #include "allocators/BadBestFitAllocator.h"
 #include "ContentClasses.h"
 #include "Scene.h"
@@ -7,6 +8,8 @@
 template<typename SceneType>
 class SceneBasedGame : public BlackMagic::GameAbstraction
 {
+	static SceneBasedGame* singleton;
+
 	BlackMagic::BestFitAllocator* gameAllocator;
 	SceneType* currentScene;
 	BlackMagic::ContentJob<BlackMagic::SceneDesc>* nextScene;
@@ -14,37 +17,45 @@ class SceneBasedGame : public BlackMagic::GameAbstraction
 public:
 	SceneBasedGame(const char* initialSceneToLoad)
 	{
-		initialSceneName = initialScene;
+		initialSceneName = initialSceneToLoad;
+		singleton = this;
+	}
+
+	static SceneBasedGame* GetSingleton()
+	{
+		return singleton;
 	}
 
 	void StartSceneLoad(const char* sceneName)
 	{
-		BlackMagic::PlatformBase::GetSingleton()->GetThreadManager()->CreateContentJob<BlackMagic::Scene>(sceneName);
+		nextScene = BlackMagic::PlatformBase::GetSingleton()->GetThreadManager()->CreateContentJob<BlackMagic::SceneDesc>(sceneName);
 	}
 
 	void SwapScene()
 	{
+		nextScene->WaitUntilJobIsComplete();
 		auto sceneDesc = nextScene->GetResult();
-		auto prevScene = currentScene;
+		SceneType* prevScene = currentScene;
 		auto platformBase = BlackMagic::PlatformBase::GetSingleton();
-		currentScene = AllocateAndConstruct<SceneType>(gameAllocator, 1);
-		currentScene.Init(gameAllocator, sceneDesc);
+		currentScene = BlackMagic::AllocateAndConstruct<SceneType>(gameAllocator, 1, gameAllocator);
+		currentScene->Init(sceneDesc);
 		platformBase->GetThreadManager()->DestroyContentJob(nextScene);
-		platformBase->GetContentManager()->ForceAssetCleanup(sceneDesc);
+		platformBase->GetContentManager()->ForceAssetCleanup(sceneDesc.entry);
 		nextScene = nullptr;
-		DestructAndDeallocate<SceneType>(gameAllocator, prevScene);
+		if(prevScene)
+			BlackMagic::DestructAndDeallocate<SceneType>(gameAllocator, prevScene, 1);
 	}
 
-	virtual void Init(byte* gameMemory, size_t memorySize)
+	virtual void Init(BlackMagic::byte* gameMemory, size_t memorySize)
 	{
 		gameAllocator = new (gameMemory) BlackMagic::BestFitAllocator(16, memorySize);
 		StartSceneLoad(initialSceneName);
-		SwapScene<SceneType>();
+		SwapScene();
 	}
 
 	virtual void Update(float deltaTime)
 	{
-		if (nextScene->done)
+		if (nextScene && nextScene->done)
 		{
 			SwapScene();
 		}
