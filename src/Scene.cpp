@@ -40,6 +40,7 @@ void Scene::Init(AssetPointer<SceneDesc> desc)
 		entities += sizeof(uint16_t);
 		AssetPointer<Material> mat = cm->Load<Material>(*(uint16_t*)(entities));
 		ProcessType(tag, t, mesh, mat);
+		entities += sizeof(uint16_t);
 	}
 }
 

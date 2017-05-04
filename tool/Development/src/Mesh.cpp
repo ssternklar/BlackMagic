@@ -87,7 +87,7 @@ MeshData::Handle MeshData::Load(std::string modelPath)
 			h->verts[vertOffset + i].normal = DirectX::XMFLOAT3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 			h->verts[vertOffset + i].tangent = DirectX::XMFLOAT3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
 			h->verts[vertOffset + i].bitangent = DirectX::XMFLOAT3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
-			h->verts[vertOffset + i].uv = DirectX::XMFLOAT2(mesh->mTextureCoords[0][i].x, 1 - mesh->mTextureCoords[0][i].y);
+			h->verts[vertOffset + i].uv = DirectX::XMFLOAT2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
 		}
 
 		for (size_t i = 0; i < mesh->mNumFaces; ++i)

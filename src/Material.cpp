@@ -7,21 +7,21 @@
 using namespace BlackMagic;
 
 Material::Material(
-	BestFitAllocator& allocator,
+	BestFitAllocator* allocator,
 	const std::shared_ptr<SimpleVertexShader>& vs,
 	const std::shared_ptr<SimplePixelShader>& ps
 )
 	: _vertShader(vs),
 	_pixelShader(ps),
-	_allocator(&allocator),
-	_staticData(AllocatorAdapter(&allocator)),
-	_instanceData(AllocatorAdapter(&allocator))
+	_allocator(allocator),
+	_staticData(AllocatorAdapter(allocator)),
+	_instanceData(AllocatorAdapter(allocator))
 {
 
 }
 
 Material::Material(const Material& m)
-	: Material(*m._allocator, m._vertShader, m._pixelShader)
+	: Material(m._allocator, m._vertShader, m._pixelShader)
 {
 	_staticData = m._staticData;
 	_instanceData = m._instanceData;

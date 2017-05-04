@@ -397,9 +397,9 @@ Material* ContentManager::load_Internal(const char* fileName, int fileSize)
 	uint8_t numTex = *mem2;
 	uint8_t numSamplers = *(++mem2);
 	++mem;
-	Material* m = AllocateAndConstruct<Material>(_allocator, 1, *_allocator, vs, ps);
+	Material* m = AllocateAndConstruct<Material>(_allocator, 1, _allocator, vs, ps);
 	const char* namesSegment = (const char*)(mem + numSamplers + (numTex * 2));
-	
+
 	for (int i = 0; i < numTex; i++)
 	{
 		uint16_t texUID = *(++mem);

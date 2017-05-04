@@ -40,7 +40,7 @@ namespace BlackMagic
 
 		Material() = default;
 		Material(
-			BestFitAllocator& allocator,
+			BestFitAllocator* allocator,
 			const std::shared_ptr<SimpleVertexShader>& vs, 
 			const std::shared_ptr<SimplePixelShader>& ps
 		);

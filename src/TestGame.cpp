@@ -51,7 +51,7 @@ void TestGame::LoadContent()
 	auto sphereNormals = content->Load<Texture>(std::string("/textures/blank_normals.png"));
 	auto sampler = PlatformBase::GetSingleton()->GetRenderer()->CreateSampler();
 	auto mat = Material(
-		allocator,
+		&allocator,
 		gPassVS, gPassPS
 	);
 

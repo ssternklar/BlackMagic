@@ -87,7 +87,8 @@ namespace BlackMagic
 			}
 			else
 			{
-				SetupManifest(entry, load_Internal<T>(entry->resourceName, entry->size));
+				T* resource = load_Internal<T>(entry->resourceName, entry->size);
+				SetupManifest<T>(entry, resource);
 				return AssetPointer<T>(entry);
 			}
 			assert(false); // No file found

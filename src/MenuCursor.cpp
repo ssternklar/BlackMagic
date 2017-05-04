@@ -8,7 +8,7 @@ MenuCursor::MenuCursor(Transform & myTransform, AssetPointer<Mesh> mesh, AssetPo
 	(mesh),
 	*material)
 {
-
+	this->transforms = transforms;
 }
 
 void MenuCursor::Update(float deltaTime)
