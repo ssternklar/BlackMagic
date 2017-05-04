@@ -45,8 +45,8 @@ void TestGame::LoadContent()
 	Vector3 defaultScale = CreateVector3(1.0f, 1.0f, 1.0f);
 	auto sphere = content->Load<Mesh>("models/sphere.bmmesh");
 	auto plane = content->Load<Mesh>("models/plane.bmmesh");
-	auto gPassVS = content->Load<VertexShader>(std::string("shaders/GBufferVS.cso"));
-	auto gPassPS = content->Load<PixelShader>(std::string("shaders/GBufferPS.cso"));
+	auto gPassVS = content->Load<VertexShader>(std::string("shaders/GBufferVS.hlsl"));
+	auto gPassPS = content->Load<PixelShader>(std::string("shaders/GBufferPS.hlsl"));
 	auto sphereNormals = content->Load<Texture>(std::string("textures/blank_normals.png"));
 	auto sampler = PlatformBase::GetSingleton()->GetRenderer()->CreateSampler();
 	auto mat = Material(

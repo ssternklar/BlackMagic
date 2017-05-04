@@ -1227,3 +1227,8 @@ GraphicsContext DX11Renderer::GetCurrentContext()
 {
 	return _context.Get();
 }
+
+const char * BlackMagic::DX11Renderer::GetShaderExtension()
+{
+	return ".cso";
+}

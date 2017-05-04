@@ -37,6 +37,7 @@ namespace BlackMagic {
 		virtual void ReleaseResource(void* resource) override;
 		virtual void AddResourceRef(void* resource) override;
 		virtual GraphicsContext GetCurrentContext() override;
+		virtual const char* GetShaderExtension() override;
 
 	private:
 		ComPtr<ID3D11Device> _device;
