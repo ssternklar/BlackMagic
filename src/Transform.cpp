@@ -5,7 +5,7 @@ using namespace BlackMagic;
 Transform::Transform()
 {
 	position = { 0, 0, 0 };
-	rotation = { 0, 0, 0, 1 };
+	rotation = CreateQuaternionIdentity();
 	scale = { 1, 1, 1 };
 }
 

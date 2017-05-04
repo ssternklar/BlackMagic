@@ -36,7 +36,6 @@ void RacingScene::Draw(float deltaTime)
 	const Vector4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
 	renderer->Clear(color);
 	std::vector<Entity*> renderables(entities.begin(), entities.end());
-	renderables.reserve(121);
 	//renderer->Cull(camera, entities, renderables);
 	renderer->Render(*camera, renderables, _globalLight);
 	renderer->Present(0, 0);
@@ -55,12 +54,14 @@ enum class SceneTags
 
 void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::AssetPointer<BlackMagic::Mesh> mesh, BlackMagic::AssetPointer<BlackMagic::Material> material)
 {
-
+	unsigned int width, height;
+	PlatformBase::GetSingleton()->GetScreenDimensions(&width, &height);
 	switch ((SceneTags)tag)
 	{
 	case SceneTags::CAMERA:
-		camera = AllocateAndConstruct<Camera>(alloc, 1, CreateVector3(0,-1,-2));
+		camera = AllocateAndConstruct<Camera>(alloc, 1, CreateVector3(0, 1, -2));
 		camera->Update(transform);
+		camera->UpdateProjectionMatrix(width, height);
 		break;
 	case SceneTags::ARBITRARY:
 		entities.push_back(AllocateAndConstruct<Entity>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material));
