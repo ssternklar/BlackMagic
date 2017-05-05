@@ -64,6 +64,10 @@ namespace BlackMagic {
 		Sampler _gBufferSampler;
 		ComPtr<ID3D11Buffer> _quad;
 		Texture* _cosLookup;
+		ComPtr<ID3D11Buffer> _directionalLightBuffer;
+		ComPtr<ID3D11Buffer> _pointLightBuffer;
+		ComPtr<ID3D11ShaderResourceView> _directionalLightSRV;
+		ComPtr<ID3D11ShaderResourceView> _pointLightSRV;
 
 		D3D_FEATURE_LEVEL _featureLevel;
 		UINT _width, _height;

@@ -4,7 +4,7 @@
 
 #include "allocators/AllocatorSTLAdapter.h"
 #include "allocators/BadBestFitAllocator.h"
-#include "DirectionalLight.h"
+#include "Lights.h"
 #include "SimpleShader.h"
 #include "Texture.h"
 

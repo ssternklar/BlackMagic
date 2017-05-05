@@ -1209,6 +1209,22 @@ void DX11Renderer::InitBuffers()
 	viewport.MaxDepth = 1.0f;
 	_context->RSSetViewports(1, &viewport);
 
+	D3D11_BUFFER_DESC dirLightDesc = { 0 };
+	dirLightDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	dirLightDesc.ByteWidth = sizeof(DirectionalLight) * 16;
+	dirLightDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	dirLightDesc.StructureByteStride = sizeof(DirectionalLight);
+	dirLightDesc.Usage = D3D11_USAGE_DEFAULT;
+	
+
+	D3D11_BUFFER_DESC pointLightDesc = { 0 };
+	pointLightDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	pointLightDesc.ByteWidth = sizeof(PointLight) * 1024;
+	pointLightDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	pointLightDesc.StructureByteStride = sizeof(PointLight);
+	pointLightDesc.Usage = D3D11_USAGE_DEFAULT;
+
+
 }
 
 Texture* DX11Renderer::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)

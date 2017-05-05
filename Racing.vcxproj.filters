@@ -62,7 +62,6 @@
     <ClInclude Include="include\allocators\StackAllocator.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ContentManager.h" />
-    <ClInclude Include="include\DirectionalLight.h" />
     <ClInclude Include="include\GameAbstraction.h" />
     <ClInclude Include="include\GameObject.h" />
     <ClInclude Include="include\GenericJob.h" />
@@ -105,6 +104,7 @@
     <ClInclude Include="include\SceneBasedGame.h" />
     <ClInclude Include="include\Spline.h" />
     <ClInclude Include="include\MenuCursor.h" />
+    <ClInclude Include="include\Lights.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\ShaderBase.hlsli" />
