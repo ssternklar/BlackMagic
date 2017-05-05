@@ -21,8 +21,8 @@ int WINAPI WinMain(
 {
 	BlackMagic::WindowsPlatform platform(hInstance);
 	platform.BlackMagicInit();
-	TestGame* game = new TestGame;
-	//SceneBasedGame<RacingScene>* game = new SceneBasedGame<RacingScene>("scenes/title.scene");
+	//TestGame* game = new TestGame;
+	SceneBasedGame<RacingScene>* game = new SceneBasedGame<RacingScene>("scenes/title.scene");
 	game->RunGame();
 	delete game;
 	platform.BlackMagicCleanup();

@@ -46,8 +46,8 @@ enum class SceneTags
 	CAMERA = 0,
 	ARBITRARY = 1,
 	PLAY_EASY = 2,
-	PLAY_MEDIUM = 3,
-	PLAY_HARD = 4,
+	PLAY_MEDIUM = 3, //not used
+	PLAY_HARD = 4,   //not used
 	QUIT = 5,
 	CURSOR = 6,
 };
@@ -70,13 +70,13 @@ void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::Ass
 		menuPositions[0] = transform;
 		break;
 	case SceneTags::PLAY_MEDIUM:
-		menuPositions[1] = transform;
-		break;
+		//menuPositions[1] = transform;
+		//break;
 	case SceneTags::PLAY_HARD:
-		menuPositions[2] = transform;
-		break;
+		//menuPositions[2] = transform;
+		//break;
 	case SceneTags::QUIT:
-		menuPositions[3] = transform;
+		menuPositions[1] = transform;
 		break;
 	case SceneTags::CURSOR:
 		cursor = AllocateAndConstruct<MenuCursor>(alloc, 1, transform, mesh, material, menuPositions);

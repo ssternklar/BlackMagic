@@ -23,12 +23,8 @@ void MenuCursor::Update(float deltaTime)
 	{
 		currentIndex += 1;
 	}
-	while (GetX(transforms[currentIndex].GetPosition()) == 0)
-	{
-		currentIndex++;
-		currentIndex = ((currentIndex % 4) + currentIndex) % 4;
-	}
-	
+	currentIndex = abs(currentIndex) % 2;
+	printf("%d\n", currentIndex);
 	prevUp = inputData->GetButton(3);
 	prevDown = inputData->GetButton(5);
 
