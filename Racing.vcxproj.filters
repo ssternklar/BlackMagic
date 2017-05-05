@@ -107,6 +107,7 @@
     <ClInclude Include="include\Lights.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\shaders\ShaderBase.hlsli" />
+    <None Include="assets\shaders\PBRFuncs.hlsli" />
+    <None Include="assets\shaders\ShaderUtils.hlsli" />
   </ItemGroup>
 </Project>

@@ -541,7 +541,7 @@ _context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
 }
 */
 
-void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight)
+void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight, unsigned int numDirectionalLights, unsigned int numPointLights)
 {
 	static UINT stride = sizeof(Vertex);
 	static UINT quadStride = sizeof(XMFLOAT2);
@@ -551,7 +551,6 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*, Allocato
 	const Material* currentMaterial = nullptr;
 
 	RenderShadowMaps(cam, objects, sceneLight);
-
 
 	//TODO: Sort renderables by material and texture to minimize state switches
 	ID3D11RenderTargetView* rts[] = {
@@ -607,6 +606,8 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*, Allocato
 	_lightPassPS->SetData("sceneLight", &sceneLight, sizeof(DirectionalLight));
 	_lightPassPS->SetData("lightView", &_shadowViews[0], sizeof(Mat4)*NUM_SHADOW_CASCADES);
 	_lightPassPS->SetData("lightProjection", &_shadowProjections[0], sizeof(Mat4)*NUM_SHADOW_CASCADES);
+	_lightPassPS->SetData("numActiveDirectionalLights", &numDirectionalLights, sizeof(unsigned int));
+	_lightPassPS->SetData("numActivePointLights", &numPointLights, sizeof(unsigned int));
 	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
 	_lightPassPS->SetSamplerState("shadowSampler", _shadowSampler.As<SamplerHandle>());
 	_lightPassPS->SetSamplerState("envSampler", _envSampler.As<SamplerHandle>());
@@ -622,6 +623,11 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*, Allocato
 	_lightPassPS->SetShaderResourceView("skyboxIrradianceMap", _skyboxIrradiance->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("cosLookup", _cosLookup->GetShaderResource());
 	_lightPassPS->CopyAllBufferData();
+
+	//auto dLightSlot = _lightPassPS->GetBufferInfo("DLights")->BindIndex;
+	//auto pLightSlot = _lightPassPS->GetBufferInfo("PLights")->BindIndex;
+	_context->PSSetConstantBuffers(1, 1, _dirLightBuffer.GetAddressOf());
+	_context->PSSetConstantBuffers(2, 1, _pointLightBuffer.GetAddressOf());
 
 	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
 	_context->Draw(6, 0);
@@ -1210,20 +1216,18 @@ void DX11Renderer::InitBuffers()
 	_context->RSSetViewports(1, &viewport);
 
 	D3D11_BUFFER_DESC dirLightDesc = { 0 };
-	dirLightDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	dirLightDesc.ByteWidth = sizeof(DirectionalLight) * 16;
+	dirLightDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	dirLightDesc.ByteWidth = sizeof(DirectionalLight) * MAX_DIR_LIGHTS;
 	dirLightDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	dirLightDesc.StructureByteStride = sizeof(DirectionalLight);
-	dirLightDesc.Usage = D3D11_USAGE_DEFAULT;
-	
+	dirLightDesc.Usage = D3D11_USAGE_DYNAMIC;
+	_device->CreateBuffer(&dirLightDesc, nullptr, _dirLightBuffer.ReleaseAndGetAddressOf());
 
 	D3D11_BUFFER_DESC pointLightDesc = { 0 };
-	pointLightDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	pointLightDesc.ByteWidth = sizeof(PointLight) * 1024;
+	pointLightDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	pointLightDesc.ByteWidth = sizeof(PointLight) * MAX_POINT_LIGHTS;
 	pointLightDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	pointLightDesc.StructureByteStride = sizeof(PointLight);
-	pointLightDesc.Usage = D3D11_USAGE_DEFAULT;
-
+	pointLightDesc.Usage = D3D11_USAGE_DYNAMIC;
+	_device->CreateBuffer(&pointLightDesc, nullptr, _pointLightBuffer.ReleaseAndGetAddressOf());
 
 }
 
@@ -1248,4 +1252,25 @@ GraphicsContext DX11Renderer::GetCurrentContext()
 const char * BlackMagic::DX11Renderer::GetShaderExtension()
 {
 	return ".cso";
+}
+
+void DX11Renderer::UpdateLightLists(DirectionalLight* dirLights, size_t numDirLights, off_t dirLightOffset, PointLight* pointLights, size_t numPointLights, off_t pointLightOffset)
+{
+	if (dirLights)
+	{
+		D3D11_MAPPED_SUBRESOURCE bufMap;
+		_context->Map(_dirLightBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &bufMap);
+		DirectionalLight* ptr = static_cast<DirectionalLight*>(bufMap.pData);
+		memcpy(ptr + dirLightOffset, dirLights, numDirLights * sizeof(DirectionalLight));
+		_context->Unmap(_dirLightBuffer.Get(), 0);
+	}
+
+	if (pointLights)
+	{
+		D3D11_MAPPED_SUBRESOURCE bufMap;
+		_context->Map(_pointLightBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &bufMap);
+		PointLight* ptr = static_cast<PointLight*>(bufMap.pData);
+		memcpy(ptr + pointLightOffset, pointLights, numPointLights * sizeof(PointLight));
+		_context->Unmap(_pointLightBuffer.Get(), 0);
+	}
 }

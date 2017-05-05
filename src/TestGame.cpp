@@ -37,6 +37,8 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 		CreateVector3(1, -1, 1),
 		CreateVector3(0, 1, 1)
 	};
+	auto renderer = PlatformBase::GetSingleton()->GetRenderer();
+	renderer->UpdateLightLists(&_globalLight, 1, 0, nullptr, 0, 0);
 }
 
 void TestGame::LoadContent()
@@ -191,6 +193,6 @@ void TestGame::Draw(float deltaTime)
 	//std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>> renderables(AllocatorSTLAdapter<Entity*, BestFitAllocator>(&allocator));
 	//renderables.reserve(121);
 	//renderer->Cull(_camera, _objects, renderables);
-	renderer->Render(_camera, _objects, _globalLight);
+	renderer->Render(_camera, _objects, _globalLight, 1, 0);
 	renderer->Present(0, 0);
 }

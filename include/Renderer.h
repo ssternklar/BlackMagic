@@ -23,7 +23,7 @@ namespace BlackMagic
 		virtual Buffer CreateBuffer(Buffer::Type bufferType, void* data, size_t bufferSize) = 0;
 		virtual void ModifyBuffer(Buffer& buffer, Buffer::Type bufferType, void* newData, size_t newBufferSize) = 0;
 		virtual void Cull(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>> objects, std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objectsToDraw, bool debugDrawEverything = false) = 0;
-		virtual void Render(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight) = 0;
+		virtual void Render(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight, unsigned int numDirectionalLights = 0, unsigned int numPointLights = 0) = 0;
 		virtual void RenderSkybox(const Camera& cam) = 0;
 		virtual Texture CreateTexture(BlackMagic::byte* data, size_t size, Texture::Type type, Texture::Usage usage) = 0;
 		virtual Texture CreateTexture(const TextureDesc& desc) = 0;
@@ -32,6 +32,7 @@ namespace BlackMagic
 		virtual Sampler CreateSampler() = 0;
 		virtual GraphicsContext GetCurrentContext() = 0;
 		virtual const char* GetShaderExtension() = 0;
+		virtual void UpdateLightLists(DirectionalLight* dirLights, size_t numDirLightsToCopy, off_t dirLightOffset, PointLight* pointLights, size_t numPointLightsToCopy, off_t pointLightOffset) = 0;
 		/*virtual GraphicsShader CreateShader(GraphicsShader::ShaderType shaderType, const char* shaderPath);
 		virtual void CleanupShader(GraphicsShader::ShaderType shaderType, GraphicsShader shader);
 		*/

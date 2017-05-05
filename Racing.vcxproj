@@ -106,7 +106,7 @@
       <Command>xcopy /YE "$(SolutionDir)assets\*" "$(TargetDir)assets\"</Command>
     </PostBuildEvent>
     <FxCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\;$(ProjectDir)assets\shaders\</AdditionalIncludeDirectories>
     </FxCompile>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -259,13 +259,6 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="assets\shaders\LightGatherPS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
-    </FxCompile>
     <FxCompile Include="assets\shaders\GBufferPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)assets/shaders/%(Filename).cso</ObjectFileOutput>
@@ -314,7 +307,8 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\shaders\ShaderBase.hlsli" />
+    <None Include="assets\shaders\PBRFuncs.hlsli" />
+    <None Include="assets\shaders\ShaderUtils.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
