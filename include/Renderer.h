@@ -22,8 +22,8 @@ namespace BlackMagic
 		virtual void Present(unsigned int interval, unsigned int flags) = 0;
 		virtual Buffer CreateBuffer(Buffer::Type bufferType, void* data, size_t bufferSize) = 0;
 		virtual void ModifyBuffer(Buffer& buffer, Buffer::Type bufferType, void* newData, size_t newBufferSize) = 0;
-		virtual void Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything = false) = 0;
-		virtual void Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight) = 0;
+		virtual void Cull(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>> objects, std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objectsToDraw, bool debugDrawEverything = false) = 0;
+		virtual void Render(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight) = 0;
 		virtual void RenderSkybox(const Camera& cam) = 0;
 		virtual Texture CreateTexture(BlackMagic::byte* data, size_t size, Texture::Type type, Texture::Usage usage) = 0;
 		virtual Texture CreateTexture(const TextureDesc& desc) = 0;

@@ -24,7 +24,6 @@ void MenuCursor::Update(float deltaTime)
 		currentIndex += 1;
 	}
 	currentIndex = abs(currentIndex) % 2;
-	printf("%d\n", currentIndex);
 	prevUp = inputData->GetButton(3);
 	prevDown = inputData->GetButton(5);
 

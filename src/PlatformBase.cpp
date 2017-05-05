@@ -113,10 +113,14 @@ AudioManager* BlackMagic::PlatformBase::GetAudioManager()
 	return audioManager;
 }
 
-void BlackMagic::PlatformBase::GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage)
+BlackMagic::byte* BlackMagic::PlatformBase::GetGameMemory()
 {
-	*gameMemoryStorage = gameMemory;
-	*gameMemorySizeStorage = gameMemorySize;
+	return gameMemory;
+}
+
+size_t BlackMagic::PlatformBase::GetGameMemorySize()
+{
+	return gameMemorySize;
 }
 
 PlatformBase* BlackMagic::PlatformBase::GetSingleton()

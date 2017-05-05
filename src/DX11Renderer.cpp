@@ -374,7 +374,7 @@ void DX11Renderer::Init(ContentManager* content)
 	_device->CreateBlendState(&projectorBlend, _projectionBlend.ReleaseAndGetAddressOf());
 }
 //TODO: Fix BoundingFrustum generation issues (near&far planes are too close)
-void DX11Renderer::Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything)
+void DX11Renderer::Cull(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>> objects, std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objectsToDraw, bool debugDrawEverything)
 {
 	/*
 	//Collect objects with sphere colliders
@@ -402,7 +402,7 @@ void DX11Renderer::Cull(const Camera& cam, const std::vector<Entity*> objects, s
 	}
 }
 
-void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight)
+void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight)
 {
 	const float coeff = (CAM_FAR_Z - CAM_NEAR_Z) / NUM_SHADOW_CASCADES;
 	auto frustum = cam.Frustum();
@@ -541,7 +541,7 @@ _context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
 }
 */
 
-void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight)
+void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight)
 {
 	static UINT stride = sizeof(Vertex);
 	static UINT quadStride = sizeof(XMFLOAT2);

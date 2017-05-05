@@ -5,9 +5,8 @@ using namespace BlackMagic;
 int BlackMagic::GameAbstraction::RunGame()
 {
 	PlatformBase* platform = PlatformBase::GetSingleton();
-	byte* gameMemory;
-	size_t memSize;
-	platform->GetGameMemory(&gameMemory, &memSize);
+	byte* gameMemory = platform->GetGameMemory();
+	size_t memSize = platform->GetGameMemorySize();
 	Init(gameMemory, memSize);
 	while (!platform->ShouldExit() && !shouldExit)
 	{

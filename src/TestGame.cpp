@@ -8,6 +8,9 @@
 using namespace BlackMagic;
 
 TestGame::TestGame() :
+	allocator(32, PlatformBase::GetSingleton()->GetGameMemorySize(),
+		PlatformBase::GetSingleton()->GetGameMemory()),
+	_objects(AllocatorSTLAdapter<Entity*, BestFitAllocator>(&allocator)),
 	_camera({ 0, 0, -10 }, { 0, 0, 0, 1 })
 {
 }
@@ -22,7 +25,6 @@ void TestGame::Destroy()
 
 void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 {
-	allocator = BestFitAllocator(32, memorySize, gameMemory);
 	LoadContent();
 
 	unsigned int width, height;
@@ -186,10 +188,9 @@ void TestGame::Draw(float deltaTime)
 	auto renderer = PlatformBase::GetSingleton()->GetRenderer();
 	const Vector4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
 	renderer->Clear(color);
-	std::vector<Entity*> renderables;
-
-	renderables.reserve(121);
-	renderer->Cull(_camera, _objects, renderables);
-	renderer->Render(_camera, renderables, _globalLight);
+	//std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>> renderables(AllocatorSTLAdapter<Entity*, BestFitAllocator>(&allocator));
+	//renderables.reserve(121);
+	//renderer->Cull(_camera, _objects, renderables);
+	renderer->Render(_camera, _objects, _globalLight);
 	renderer->Present(0, 0);
 }

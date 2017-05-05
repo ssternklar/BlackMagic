@@ -54,7 +54,8 @@ namespace BlackMagic {
 		ContentManager* GetContentManager();
 		ThreadManager* GetThreadManager();
 		AudioManager* GetAudioManager();
-		void GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage);
+		byte* GetGameMemory();
+		size_t GetGameMemorySize();
 		static PlatformBase* GetSingleton();
 	};
 }

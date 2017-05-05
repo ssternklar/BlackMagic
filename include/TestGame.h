@@ -24,5 +24,5 @@ private:
 	// determining how far the mouse moved in a single frame.
 	BlackMagic::FirstPersonCamera _camera;
 	DirectionalLight _globalLight;
-	std::vector<BlackMagic::Entity*> _objects;
+	std::vector<BlackMagic::Entity*, BlackMagic::AllocatorSTLAdapter<BlackMagic::Entity*, BlackMagic::BestFitAllocator>> _objects;
 };

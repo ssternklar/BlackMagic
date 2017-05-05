@@ -35,9 +35,8 @@ void RacingScene::Draw(float deltaTime)
 	auto renderer = PlatformBase::GetSingleton()->GetRenderer();
 	const Vector4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
 	renderer->Clear(color);
-	std::vector<Entity*> renderables(entities.begin(), entities.end());
 	//renderer->Cull(camera, entities, renderables);
-	renderer->Render(*camera, renderables, _globalLight);
+	renderer->Render(*camera, entities, _globalLight);
 	renderer->Present(0, 0);
 }
 
