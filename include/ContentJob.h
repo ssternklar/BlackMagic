@@ -1,6 +1,8 @@
 #pragma once
 #include "ContentClasses.h"
-#include <PlatformBase.h>
+#include "PlatformBase.h"
+#include "ContentManager.h"
+
 namespace BlackMagic
 {
 	class ContentJob_Base

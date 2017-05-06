@@ -1,5 +1,7 @@
 #include "AudioManager.h"
 #include "PlatformBase.h"
+#include "ThreadManager.h"
+
 using namespace BlackMagic;
 
 void BlackMagic::AudioManager::PlayOneShot(WAVFile* file, float relativeVolume)

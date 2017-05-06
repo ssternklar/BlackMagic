@@ -2,8 +2,10 @@
 #include "allocators/globals.h"
 #include "allocators/BadBestFitAllocator.h"
 #include "ContentClasses.h"
+#include "ThreadManager.h"
 #include "Scene.h"
 #include "GameAbstraction.h"
+#include "ContentJob.h"
 
 template<typename SceneType>
 class SceneBasedGame : public BlackMagic::GameAbstraction

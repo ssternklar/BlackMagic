@@ -1,5 +1,6 @@
 #include "PlatformBase.h"
 #include "ContentManager.h"
+#include "ThreadManager.h"
 
 #ifdef BM_PLATFORM_WINDOWS
 #include <new>

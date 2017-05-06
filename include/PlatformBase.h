@@ -5,14 +5,12 @@
 #include "allocators\BadBestFitAllocator.h"
 #include "Renderer.h"
 #include "InputData.h"
-#include "ThreadManager.h"
 #include "Transform.h"
-
-
 
 namespace BlackMagic {
 
 	class ContentManager;
+	class ThreadManager;
 
 	class PlatformBase
 	{

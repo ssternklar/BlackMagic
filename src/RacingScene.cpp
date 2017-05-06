@@ -4,7 +4,7 @@
 
 using namespace BlackMagic;
 
-SceneBasedGame<RacingScene>* SceneBasedGame<RacingScene>::singleton = nullptr;
+template<> SceneBasedGame<RacingScene>* SceneBasedGame<RacingScene>::singleton = nullptr;
 
 RacingScene::RacingScene(BlackMagic::BestFitAllocator* allocator) : BlackMagic::Scene(allocator), entities(AllocatorAdapter<Entity*>(allocator))
 {
@@ -27,7 +27,9 @@ void RacingScene::Update(float deltaTime)
 	{
 		entity->Update(deltaTime);
 	}
-	camera->Update(Transform());
+
+	Transform t;
+	camera->Update(t);
 }
 
 void RacingScene::Draw(float deltaTime)
