@@ -1,7 +1,8 @@
 #include "MenuCursor.h"
 #include "PlatformBase.h"
 #include "ContentManager.h"
-
+#include "SceneBasedGame.h"
+#include "RacingScene.h"
 using namespace BlackMagic;
 
 MenuCursor::MenuCursor(Transform & myTransform, AssetPointer<Mesh> mesh, AssetPointer<Material> material, Transform * transforms) : Entity(myTransform.GetPosition(), myTransform.GetRotation(),
@@ -27,7 +28,12 @@ void MenuCursor::Update(float deltaTime)
 	prevUp = inputData->GetButton(3);
 	prevDown = inputData->GetButton(5);
 
-	this->_transform.MoveTo(transforms[currentIndex].GetPosition());
+	if (inputData->GetButton(8))
+	{
+		SceneBasedGame<RacingScene>::GetSingleton()->StartSceneLoad("scenes/easyRace.scene");
+	}
+
+	this->_transform = (transforms[currentIndex]);
 
 }
 

@@ -6,7 +6,7 @@ using namespace BlackMagic;
 
 template<> SceneBasedGame<RacingScene>* SceneBasedGame<RacingScene>::singleton = nullptr;
 
-RacingScene::RacingScene(BlackMagic::BestFitAllocator* allocator) : BlackMagic::Scene(allocator), entities(AllocatorAdapter<Entity*>(allocator))
+RacingScene::RacingScene(BlackMagic::BestFitAllocator* allocator) : BlackMagic::Scene(allocator), entities(AllocatorAdapter<Entity*>(allocator)), spline(nullptr)
 {
 	_globalLight = {
 		CreateVector4(0.0f, 0.0f, 0.0f, 1.0f),
@@ -29,6 +29,10 @@ void RacingScene::Update(float deltaTime)
 	}
 
 	Transform t;
+	if (machine)
+	{
+		t = machine->GetTransform();
+	}
 	camera->Update(t);
 }
 
@@ -51,6 +55,8 @@ enum class SceneTags
 	PLAY_HARD = 4,   //not used
 	QUIT = 5,
 	CURSOR = 6,
+	TRACK = 7,
+	MACHINE = 8
 };
 
 void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::AssetPointer<BlackMagic::Mesh> mesh, BlackMagic::AssetPointer<BlackMagic::Material> material)
@@ -83,6 +89,13 @@ void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::Ass
 		cursor = AllocateAndConstruct<MenuCursor>(alloc, 1, transform, mesh, material, menuPositions);
 		entities.push_back(cursor);
 		break;
-		
+	case SceneTags::TRACK:
+		entities.push_back(AllocateAndConstruct<Entity>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material));
+		spline = PlatformBase::GetSingleton()->GetContentManager()->Load<Spline>("misc/track1.bmspline");
+		break;
+	case SceneTags::MACHINE:
+		machine = AllocateAndConstruct<Entity>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material);
+		entities.push_back(machine);
+		break;
 	}
 }

@@ -57,6 +57,16 @@ namespace BlackMagic
 			}
 		}
 
+		AssetPointer_Base& operator=(const AssetPointer_Base& other)
+		{
+			if (other.entry)
+			{
+				entry = other.entry;
+				BM_PLATFORM_ATOMIC_ADD(&(entry->refcount), 1);
+			}
+			return *this;
+		}
+
 		void reset()
 		{
 			if (entry)

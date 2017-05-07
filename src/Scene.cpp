@@ -21,7 +21,7 @@ void Scene::Init(AssetPointer<SceneDesc> desc)
 	ContentManager* cm = PlatformBase::GetSingleton()->GetContentManager();
 	for (int i = 0; i < uidCount; i++)
 	{
-		b[i] = cm->Load<UnknownContentType>(uids[i]);
+		b[i] = AssetPointer<UnknownContentType>(cm->Load<UnknownContentType>(uids[i]));
 	}
 
 	sceneAssets = b;
