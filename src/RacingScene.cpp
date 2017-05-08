@@ -56,7 +56,10 @@ enum class SceneTags
 	QUIT = 5,
 	CURSOR = 6,
 	TRACK = 7,
-	MACHINE = 8
+	MACHINE = 8,
+	LIGHT0 = 9,
+	LIGHT1 = 10,
+	LIGHT2 = 11,
 };
 
 void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::AssetPointer<BlackMagic::Mesh> mesh, BlackMagic::AssetPointer<BlackMagic::Material> material)
@@ -70,6 +73,7 @@ void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::Ass
 		camera->Update(transform);
 		camera->UpdateProjectionMatrix(width, height);
 		break;
+	default:
 	case SceneTags::ARBITRARY:
 		entities.push_back(AllocateAndConstruct<Entity>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material));
 		break;
