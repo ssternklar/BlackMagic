@@ -171,10 +171,10 @@ namespace Export
 
 		struct Block
 		{
-			uint16_t offsetInBytes;
-			uint16_t sizeInBytes;
-			uint16_t elementCount;
-			uint16_t elementSize;
+			uint32_t offsetInBytes;
+			uint32_t sizeInBytes;
+			uint32_t elementCount;
+			uint32_t elementSize;
 		};
 
 		struct File
