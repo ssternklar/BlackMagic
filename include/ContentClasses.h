@@ -32,9 +32,8 @@ namespace BlackMagic
 
 	class AssetPointer_Base
 	{
-	protected:
-		ManifestEntry* entry;
 	public:
+		ManifestEntry* entry = nullptr;
 		AssetPointer_Base(ManifestEntry* entry)
 		{
 			if (entry)
@@ -56,6 +55,16 @@ namespace BlackMagic
 				entry = other.entry;
 				BM_PLATFORM_ATOMIC_ADD(&(entry->refcount), 1);
 			}
+		}
+
+		AssetPointer_Base& operator=(const AssetPointer_Base& other)
+		{
+			if (other.entry)
+			{
+				entry = other.entry;
+				BM_PLATFORM_ATOMIC_ADD(&(entry->refcount), 1);
+			}
+			return *this;
 		}
 
 		void reset()

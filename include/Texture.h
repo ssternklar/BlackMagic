@@ -72,6 +72,7 @@ namespace BlackMagic
 			R1_UNORM
 		};
 
+		Texture() = default;
 		explicit Texture(BlackMagic::Renderer* device, ResourceHandle tex, ShaderResource srView, RenderTarget rtView);
 		Texture(const Texture& t);
 		virtual ~Texture();

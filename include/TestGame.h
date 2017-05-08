@@ -2,7 +2,7 @@
 #include "GameAbstraction.h"
 
 #include "allocators\BadBestFitAllocator.h"
-#include "DirectionalLight.h"
+#include "Lights.h"
 #include "Entity.h"
 #include "FirstPersonCamera.h"
 
@@ -24,5 +24,7 @@ private:
 	// determining how far the mouse moved in a single frame.
 	BlackMagic::FirstPersonCamera _camera;
 	DirectionalLight _globalLight;
-	std::vector<BlackMagic::Entity*> _objects;
+	DirectionalLight _directionalLights[2];
+	PointLight _pointLights[MAX_POINT_LIGHTS];
+	std::vector<BlackMagic::Entity*, BlackMagic::AllocatorSTLAdapter<BlackMagic::Entity*, BlackMagic::BestFitAllocator>> _objects;
 };

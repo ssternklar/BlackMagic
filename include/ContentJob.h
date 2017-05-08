@@ -1,5 +1,8 @@
 #pragma once
 #include "ContentClasses.h"
+#include "PlatformBase.h"
+#include "ContentManager.h"
+
 namespace BlackMagic
 {
 	class ContentJob_Base
@@ -9,7 +12,7 @@ namespace BlackMagic
 		AssetPointer_Base resourceLocation;
 		bool inProgress;
 	public:
-		bool done;
+		bool done = false;
 		const char* resourceName;
 		ContentJob_Base(const char* resourceName);
 		void WaitUntilJobIsComplete();
@@ -25,8 +28,14 @@ namespace BlackMagic
 		AssetPointer<T> GetResult()
 		{
 			WaitUntilJobIsComplete();
-			return dynamic_cast<AssetPointer<T>>(resourceLocation);
+			return *(AssetPointer<T>*)(&resourceLocation);
 		};
-		virtual void Run() override;
+		virtual void Run() override
+		{
+			inProgress = true;
+			AssetPointer<T> ptr = PlatformBase::GetSingleton()->GetContentManager()->Load<T>(resourceName);
+			resourceLocation = ptr;
+			done = true;
+		}
 	};
 }

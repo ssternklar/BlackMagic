@@ -1,5 +1,6 @@
 #include "PlatformBase.h"
 #include "ContentManager.h"
+#include "ThreadManager.h"
 
 #ifdef BM_PLATFORM_WINDOWS
 #include <new>
@@ -113,10 +114,14 @@ AudioManager* BlackMagic::PlatformBase::GetAudioManager()
 	return audioManager;
 }
 
-void BlackMagic::PlatformBase::GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage)
+BlackMagic::byte* BlackMagic::PlatformBase::GetGameMemory()
 {
-	*gameMemoryStorage = gameMemory;
-	*gameMemorySizeStorage = gameMemorySize;
+	return gameMemory;
+}
+
+size_t BlackMagic::PlatformBase::GetGameMemorySize()
+{
+	return gameMemorySize;
 }
 
 PlatformBase* BlackMagic::PlatformBase::GetSingleton()

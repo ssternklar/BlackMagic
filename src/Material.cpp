@@ -7,21 +7,21 @@
 using namespace BlackMagic;
 
 Material::Material(
-	BestFitAllocator& allocator,
+	BestFitAllocator* allocator,
 	const std::shared_ptr<SimpleVertexShader>& vs,
 	const std::shared_ptr<SimplePixelShader>& ps
 )
 	: _vertShader(vs),
 	_pixelShader(ps),
-	_allocator(&allocator),
-	_staticData(&allocator),
-	_instanceData(&allocator)
+	_allocator(allocator),
+	_staticData(AllocatorAdapter(allocator)),
+	_instanceData(AllocatorAdapter(allocator))
 {
 
 }
 
 Material::Material(const Material& m)
-	: Material(*m._allocator, m._vertShader, m._pixelShader)
+	: Material(m._allocator, m._vertShader, m._pixelShader)
 {
 	_staticData = m._staticData;
 	_instanceData = m._instanceData;
@@ -89,7 +89,7 @@ void Material::SetResource(std::string name, ResourceStage s, const std::shared_
 		ResourceData dat;
 		dat.stage = s;
 		dat.type = ResourceType::Texture;
-		dat.data = tex.get();
+		dat.data = (void*)(&tex);
 		dat.size = sizeof(std::shared_ptr<Texture>);
 		UploadData(name, dat);
 	}
@@ -115,8 +115,8 @@ void Material::SetResource(std::string name, ResourceStage s, const Sampler& sam
 		ResourceData dat;
 		dat.stage = s;
 		dat.type = ResourceType::Sampler;
-		dat.data = sampler.As<SamplerHandle>();
-		dat.size = sizeof(SamplerHandle);
+		dat.data = (void*)&s;
+		dat.size = sizeof(Sampler);
 		UploadData(name, dat);
 	}
 	else

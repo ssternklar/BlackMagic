@@ -106,7 +106,7 @@
       <Command>xcopy /YE "$(SolutionDir)assets\*" "$(TargetDir)assets\"</Command>
     </PostBuildEvent>
     <FxCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\;$(ProjectDir)assets\shaders\</AdditionalIncludeDirectories>
     </FxCompile>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -161,6 +161,7 @@
     <ClCompile Include="src\GameObject.cpp" />
     <ClCompile Include="src\GenericJob.cpp" />
     <ClCompile Include="src\InputData.cpp" />
+    <ClCompile Include="src\MenuCursor.cpp" />
     <ClCompile Include="src\RacingScene.cpp" />
     <ClCompile Include="src\Resource.cpp" />
     <ClCompile Include="src\LinkedList.cpp" />
@@ -197,7 +198,7 @@
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ContentClasses.h" />
     <ClInclude Include="include\ContentManager.h" />
-    <ClInclude Include="include\DirectionalLight.h" />
+    <ClInclude Include="include\Lights.h" />
     <ClInclude Include="include\DirectXAudioManager.h" />
     <ClInclude Include="include\Entity.h" />
     <ClInclude Include="include\FirstPersonCamera.h" />
@@ -208,6 +209,7 @@
     <ClInclude Include="include\GraphicsDevice.h" />
     <ClInclude Include="include\ContentJob.h" />
     <ClInclude Include="include\Handles.h" />
+    <ClInclude Include="include\MenuCursor.h" />
     <ClInclude Include="include\RacingScene.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\InputData.h" />
@@ -305,7 +307,8 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\shaders\ShaderBase.hlsli" />
+    <None Include="assets\shaders\PBRFuncs.hlsli" />
+    <None Include="assets\shaders\ShaderUtils.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

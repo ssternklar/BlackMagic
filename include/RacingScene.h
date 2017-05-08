@@ -1,13 +1,31 @@
 #pragma once
 #include "Scene.h"
+#include "Entity.h"
+#include "MenuCursor.h"
+#include "allocators\AllocatorSTLAdapter.h"
+#include "Camera.h"
+#include "Spline.h"
 class RacingScene : public BlackMagic::Scene
 {
 public:
-	RacingScene();
+	RacingScene(BlackMagic::BestFitAllocator* allocator);
 	~RacingScene();
 
-	virtual void Update(float deltaTime);
-	virtual void Draw(float deltaTime);
-	virtual void ProcessType(uint16_t tag, Transform transform, BlackMagic::AssetPointer<BlackMagic::Mesh> mesh, BlackMagic::AssetPointer<BlackMagic::Material> material);
+	//Generic Stuff
+	Camera* camera;
+	BMList<BlackMagic::Entity*> entities;
+	DirectionalLight _globalLight;
+
+	//Menu Stuff
+	Transform menuPositions[2];
+	MenuCursor* cursor;
+
+	//Game Stuff
+	BlackMagic::AssetPointer<BlackMagic::Spline> spline;
+	BlackMagic::Entity* machine = nullptr;
+
+	virtual void Update(float deltaTime) override;
+	virtual void Draw(float deltaTime) override;
+	virtual void ProcessType(uint16_t tag, Transform transform, BlackMagic::AssetPointer<BlackMagic::Mesh> mesh, BlackMagic::AssetPointer<BlackMagic::Material> material) override;
 };
 

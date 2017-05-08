@@ -274,23 +274,23 @@ void DX11Renderer::Init(ContentManager* content)
 
 	_device->CreateBuffer(&vbDesc, &vbData, _quad.ReleaseAndGetAddressOf());
 
-	_skybox = content->UntrackedLoad<Mesh>(("/models/skybox.bmmesh"));
-	_skyboxTex = content->UntrackedLoad<Cubemap>(("/textures/park_skybox_env.dds"));
-	_skyboxRadiance = content->UntrackedLoad<Cubemap>(("/textures/park_skybox_radiance.dds"));
-	_skyboxIrradiance = content->UntrackedLoad<Cubemap>(("/textures/park_skybox_irradiance.dds"));
-	_cosLookup = content->UntrackedLoad<Texture>(("/textures/cosLUT.png"));
+	_skybox = content->UntrackedLoad<Mesh>(("models/skybox.bmmesh"));
+	_skyboxTex = content->UntrackedLoad<Cubemap>(("textures/park_skybox_env.dds"));
+	_skyboxRadiance = content->UntrackedLoad<Cubemap>(("textures/park_skybox_radiance.dds"));
+	_skyboxIrradiance = content->UntrackedLoad<Cubemap>(("textures/park_skybox_irradiance.dds"));
+	_cosLookup = content->UntrackedLoad<Texture>(("textures/cosLUT.png"));
 
 	//Load device-specific shaders
-	_lightPassVS = content->UntrackedLoad<VertexShader>(("/shaders/QuadVS.cso"));
-	_lightPassPS = content->UntrackedLoad<PixelShader>(("/shaders/LightPassPS.cso"));
-	_shadowMapVS = content->UntrackedLoad<VertexShader>(("/shaders/ShadowMapVS.cso"));
-	_skyboxVS = content->UntrackedLoad<VertexShader>(("/shaders/SkyboxVS.cso"));
-	_skyboxPS = content->UntrackedLoad<PixelShader>(("/shaders/SkyboxPS.cso"));
-	_fxaaVS = content->UntrackedLoad<VertexShader>(("/shaders/FXAA_VS.cso"));
-	_fxaaPS = content->UntrackedLoad<PixelShader>(("/shaders/FXAA_PS.cso"));
-	_projectionPS = content->UntrackedLoad<PixelShader>(("/shaders/ProjectorPS.cso"));
-	_mergePS = content->UntrackedLoad<PixelShader>(("/shaders/FinalMerge.cso"));
-	//_tonemapPS = content->UntrackedLoad<PixelShader>(("/shaders/ReinhardTonemapping.hlsl"));
+	_lightPassVS = content->UntrackedLoad<VertexShader>(("shaders/QuadVS.cso"));
+	_lightPassPS = content->UntrackedLoad<PixelShader>(("shaders/LightPassPS.cso"));
+	_shadowMapVS = content->UntrackedLoad<VertexShader>(("shaders/ShadowMapVS.cso"));
+	_skyboxVS = content->UntrackedLoad<VertexShader>(("shaders/SkyboxVS.cso"));
+	_skyboxPS = content->UntrackedLoad<PixelShader>(("shaders/SkyboxPS.cso"));
+	_fxaaVS = content->UntrackedLoad<VertexShader>(("shaders/FXAA_VS.cso"));
+	_fxaaPS = content->UntrackedLoad<PixelShader>(("shaders/FXAA_PS.cso"));
+	_projectionPS = content->UntrackedLoad<PixelShader>(("shaders/ProjectorPS.cso"));
+	_mergePS = content->UntrackedLoad<PixelShader>(("shaders/FinalMerge.cso"));
+	//_tonemapPS = content->UntrackedLoad<PixelShader>(("shaders/ReinhardTonemapping.hlsl"));
 
 	//Set up g-buffer sampler
 	D3D11_SAMPLER_DESC sampDesc = {};
@@ -374,7 +374,7 @@ void DX11Renderer::Init(ContentManager* content)
 	_device->CreateBlendState(&projectorBlend, _projectionBlend.ReleaseAndGetAddressOf());
 }
 //TODO: Fix BoundingFrustum generation issues (near&far planes are too close)
-void DX11Renderer::Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything)
+void DX11Renderer::Cull(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>> objects, std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objectsToDraw, bool debugDrawEverything)
 {
 	/*
 	//Collect objects with sphere colliders
@@ -402,7 +402,7 @@ void DX11Renderer::Cull(const Camera& cam, const std::vector<Entity*> objects, s
 	}
 }
 
-void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight)
+void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight)
 {
 	const float coeff = (CAM_FAR_Z - CAM_NEAR_Z) / NUM_SHADOW_CASCADES;
 	auto frustum = cam.Frustum();
@@ -487,12 +487,13 @@ void DX11Renderer::RenderShadowMaps(const Camera& cam, const std::vector<Entity*
 		for (auto* o : objects)
 		{
 			auto& mesh = o->AsRenderable()->_mesh;
-			auto vBuf = mesh->VertexBuffer().As<BufferHandle>();
-			auto iBuf = mesh->IndexBuffer().As<BufferHandle>();
+			BufferHandle vBuf = mesh->VertexBuffer().As<BufferHandle>();
+			BufferHandle iBuf = mesh->IndexBuffer().As<BufferHandle>();
 			_shadowMapVS->SetMatrix4x4("model", o->GetTransform().Matrix());
 			_shadowMapVS->CopyBufferData("PerInstance");
 			_context->IASetVertexBuffers(0, 1, &vBuf, &stride, &offset);
 			_context->IASetIndexBuffer(iBuf, DXGI_FORMAT_R32_UINT, 0);
+			UINT indexCount = mesh->IndexCount();
 			_context->DrawIndexed((UINT)mesh->IndexCount(), 0, 0);
 		}
 
@@ -540,7 +541,7 @@ _context->OMSetRenderTargets(1, &_backBuffer, _depthStencil);
 }
 */
 
-void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight)
+void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight, unsigned int numDirectionalLights, unsigned int numPointLights)
 {
 	static UINT stride = sizeof(Vertex);
 	static UINT quadStride = sizeof(XMFLOAT2);
@@ -550,7 +551,6 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	const Material* currentMaterial = nullptr;
 
 	RenderShadowMaps(cam, objects, sceneLight);
-
 
 	//TODO: Sort renderables by material and texture to minimize state switches
 	ID3D11RenderTargetView* rts[] = {
@@ -606,6 +606,8 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetData("sceneLight", &sceneLight, sizeof(DirectionalLight));
 	_lightPassPS->SetData("lightView", &_shadowViews[0], sizeof(Mat4)*NUM_SHADOW_CASCADES);
 	_lightPassPS->SetData("lightProjection", &_shadowProjections[0], sizeof(Mat4)*NUM_SHADOW_CASCADES);
+	_lightPassPS->SetData("numActiveDirectionalLights", &numDirectionalLights, sizeof(unsigned int));
+	_lightPassPS->SetData("numActivePointLights", &numPointLights, sizeof(unsigned int));
 	_lightPassPS->SetSamplerState("mainSampler", _gBufferSampler.As<SamplerHandle>());
 	_lightPassPS->SetSamplerState("shadowSampler", _shadowSampler.As<SamplerHandle>());
 	_lightPassPS->SetSamplerState("envSampler", _envSampler.As<SamplerHandle>());
@@ -621,6 +623,11 @@ void DX11Renderer::Render(const Camera& cam, const std::vector<Entity*>& objects
 	_lightPassPS->SetShaderResourceView("skyboxIrradianceMap", _skyboxIrradiance->GetShaderResource());
 	_lightPassPS->SetShaderResourceView("cosLookup", _cosLookup->GetShaderResource());
 	_lightPassPS->CopyAllBufferData();
+
+	//auto dLightSlot = _lightPassPS->GetBufferInfo("DLights")->BindIndex;
+	//auto pLightSlot = _lightPassPS->GetBufferInfo("PLights")->BindIndex;
+	_context->PSSetConstantBuffers(1, 1, _dirLightBuffer.GetAddressOf());
+	_context->PSSetConstantBuffers(2, 1, _pointLightBuffer.GetAddressOf());
 
 	_context->IASetVertexBuffers(0, 1, _quad.GetAddressOf(), &quadStride, &offset);
 	_context->Draw(6, 0);
@@ -1208,6 +1215,20 @@ void DX11Renderer::InitBuffers()
 	viewport.MaxDepth = 1.0f;
 	_context->RSSetViewports(1, &viewport);
 
+	D3D11_BUFFER_DESC dirLightDesc = { 0 };
+	dirLightDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	dirLightDesc.ByteWidth = sizeof(DirectionalLight) * MAX_DIR_LIGHTS;
+	dirLightDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	dirLightDesc.Usage = D3D11_USAGE_DYNAMIC;
+	_device->CreateBuffer(&dirLightDesc, nullptr, _dirLightBuffer.ReleaseAndGetAddressOf());
+
+	D3D11_BUFFER_DESC pointLightDesc = { 0 };
+	pointLightDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	pointLightDesc.ByteWidth = sizeof(PointLight) * MAX_POINT_LIGHTS;
+	pointLightDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	pointLightDesc.Usage = D3D11_USAGE_DYNAMIC;
+	_device->CreateBuffer(&pointLightDesc, nullptr, _pointLightBuffer.ReleaseAndGetAddressOf());
+
 }
 
 Texture* DX11Renderer::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
@@ -1226,4 +1247,30 @@ Texture* DX11Renderer::createEmptyTexture(D3D11_TEXTURE2D_DESC& desc)
 GraphicsContext DX11Renderer::GetCurrentContext()
 {
 	return _context.Get();
+}
+
+const char * BlackMagic::DX11Renderer::GetShaderExtension()
+{
+	return ".cso";
+}
+
+void DX11Renderer::UpdateLightLists(DirectionalLight* dirLights, size_t numDirLights, off_t dirLightOffset, PointLight* pointLights, size_t numPointLights, off_t pointLightOffset)
+{
+	if (dirLights)
+	{
+		D3D11_MAPPED_SUBRESOURCE bufMap;
+		_context->Map(_dirLightBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &bufMap);
+		DirectionalLight* ptr = static_cast<DirectionalLight*>(bufMap.pData);
+		memcpy(ptr + dirLightOffset, dirLights, numDirLights * sizeof(DirectionalLight));
+		_context->Unmap(_dirLightBuffer.Get(), 0);
+	}
+
+	if (pointLights)
+	{
+		D3D11_MAPPED_SUBRESOURCE bufMap;
+		_context->Map(_pointLightBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &bufMap);
+		PointLight* ptr = static_cast<PointLight*>(bufMap.pData);
+		memcpy(ptr + pointLightOffset, pointLights, numPointLights * sizeof(PointLight));
+		_context->Unmap(_pointLightBuffer.Get(), 0);
+	}
 }

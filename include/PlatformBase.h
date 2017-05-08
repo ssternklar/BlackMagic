@@ -5,14 +5,12 @@
 #include "allocators\BadBestFitAllocator.h"
 #include "Renderer.h"
 #include "InputData.h"
-#include "ThreadManager.h"
 #include "Transform.h"
-
-
 
 namespace BlackMagic {
 
 	class ContentManager;
+	class ThreadManager;
 
 	class PlatformBase
 	{
@@ -54,7 +52,8 @@ namespace BlackMagic {
 		ContentManager* GetContentManager();
 		ThreadManager* GetThreadManager();
 		AudioManager* GetAudioManager();
-		void GetGameMemory(byte** gameMemoryStorage, size_t* gameMemorySizeStorage);
+		byte* GetGameMemory();
+		size_t GetGameMemorySize();
 		static PlatformBase* GetSingleton();
 	};
 }

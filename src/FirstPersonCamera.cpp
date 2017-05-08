@@ -13,11 +13,17 @@ FirstPersonCamera::FirstPersonCamera(Vector3 pos, Quaternion dir)
 void FirstPersonCamera::Update(float delta)
 {
 	auto input = PlatformBase::GetSingleton()->GetInputData();
-
+	
+#ifdef BM_PLATFORM_WINDOWS
 	if (input->GetButton(MouseButton::Left))
+#endif
 	{
 		auto xRot = input->GetAxis(InputData::Axis::X)*0.5f*3.14f;
 		auto yRot = input->GetAxis(InputData::Axis::Y)*0.5f*3.14f;
+#ifndef BM_PLATFORM_WINDOWS
+		xRot *= delta;
+		yRot *= delta;
+#endif
 
 		//printf("(%f, %f)\n", xRot, yRot);
 

@@ -8,6 +8,9 @@
 using namespace BlackMagic;
 
 TestGame::TestGame() :
+	allocator(32, PlatformBase::GetSingleton()->GetGameMemorySize(),
+		PlatformBase::GetSingleton()->GetGameMemory()),
+	_objects(AllocatorSTLAdapter<Entity*, BestFitAllocator>(&allocator)),
 	_camera({ 0, 0, -10 }, { 0, 0, 0, 1 })
 {
 }
@@ -22,7 +25,6 @@ void TestGame::Destroy()
 
 void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 {
-	allocator = BestFitAllocator(32, memorySize, gameMemory);
 	LoadContent();
 
 	unsigned int width, height;
@@ -35,23 +37,23 @@ void TestGame::Init(BlackMagic::byte* gameMemory, size_t memorySize)
 		CreateVector3(1, -1, 1),
 		CreateVector3(0, 1, 1)
 	};
+	auto renderer = PlatformBase::GetSingleton()->GetRenderer();
+	renderer->UpdateLightLists(&_globalLight, 1, 0, nullptr, 0, 0);
 }
 
 void TestGame::LoadContent()
 {
-#ifdef BM_PLATFORM_WINDOWS	
 	auto content = PlatformBase::GetSingleton()->GetContentManager();
 	Quaternion quatIdentity = CreateQuaternionIdentity();
 	Vector3 defaultScale = CreateVector3(1.0f, 1.0f, 1.0f);
-	auto sphere = std::shared_ptr<Mesh>(content->UntrackedLoad<Mesh>("/models/sphere.bmmesh"));
-	auto plane = std::shared_ptr<Mesh>(content->UntrackedLoad<Mesh>("/models/plane.bmmesh"));
-	auto gPassVS = content->Load<VertexShader>(std::string("/shaders/GBufferVS.cso"));
-	auto gPassPS = content->Load<PixelShader>(std::string("/shaders/GBufferPS.cso"));
-	auto sphereTex = content->Load<Texture>(std::string("/textures/test_texture.png"));
-	auto sphereNormals = content->Load<Texture>(std::string("/textures/blank_normals.png"));
+	auto sphere = content->Load<Mesh>("models/sphere.bmmesh");
+	auto plane = content->Load<Mesh>("models/plane.bmmesh");
+	auto gPassVS = content->Load<VertexShader>(std::string("shaders/GBufferVS.hlsl"));
+	auto gPassPS = content->Load<PixelShader>(std::string("shaders/GBufferPS.hlsl"));
+	auto sphereNormals = content->Load<Texture>(std::string("textures/blank_normals.png"));
 	auto sampler = PlatformBase::GetSingleton()->GetRenderer()->CreateSampler();
 	auto mat = Material(
-		allocator,
+		&allocator,
 		gPassVS, gPassPS
 	);
 
@@ -166,8 +168,6 @@ void TestGame::LoadContent()
 	auto ptr = new (planeMem) Entity(CreateVector3(5.5f, 5.5f, 2.0f), CreateQuaternion(CreateVector3(1.0, 0, 0), -3.14f / 2.0f), plane, mat);
 	ptr->GetTransform().SetScale(CreateVector3(11.0f, 1.0f, 11.0f));
 	_objects.push_back(ptr);
-	//_objects.push_back(new (planeMem) Entity(CreateVector3(0, 0, 2.0f), CreateQuaternion(CreateVector3(1.0, 0, 0), -3.14f/2.0f), plane, mat));
-#endif
 	auto sdr = PlatformBase::GetSingleton()->GetContentManager()->UntrackedLoad<WAVFile>("CityEscape.wav");
 	//PlatformBase::GetSingleton()->GetAudioManager()->PlayBGM(sdr, .6f);
 }
@@ -190,10 +190,9 @@ void TestGame::Draw(float deltaTime)
 	auto renderer = PlatformBase::GetSingleton()->GetRenderer();
 	const Vector4 color{ 0.4f, 0.6f, 0.75f, 0.0f };
 	renderer->Clear(color);
-	std::vector<Entity*> renderables;
-
-	renderables.reserve(121);
-	renderer->Cull(_camera, _objects, renderables);
-	renderer->Render(_camera, renderables, _globalLight);
+	//std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>> renderables(AllocatorSTLAdapter<Entity*, BestFitAllocator>(&allocator));
+	//renderables.reserve(121);
+	//renderer->Cull(_camera, _objects, renderables);
+	renderer->Render(_camera, _objects, _globalLight, 1, 0);
 	renderer->Present(0, 0);
 }

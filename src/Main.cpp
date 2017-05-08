@@ -6,6 +6,9 @@
 
 #include "TestGame.h"
 
+#include "SceneBasedGame.h"
+#include "RacingScene.h"
+
 #if defined(BM_PLATFORM_WINDOWS)
 // --------------------------------------------------------
 // Entry point for a graphical (non-console) Windows application
@@ -18,7 +21,8 @@ int WINAPI WinMain(
 {
 	BlackMagic::WindowsPlatform platform(hInstance);
 	platform.BlackMagicInit();
-	TestGame* game = new TestGame();
+	//TestGame* game = new TestGame;
+	SceneBasedGame<RacingScene>* game = new SceneBasedGame<RacingScene>("scenes/title.scene");
 	game->RunGame();
 	delete game;
 	platform.BlackMagicCleanup();

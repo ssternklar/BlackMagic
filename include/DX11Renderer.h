@@ -29,14 +29,16 @@ namespace BlackMagic {
 		Sampler CreateSampler(D3D11_SAMPLER_DESC desc);
 		virtual Buffer CreateBuffer(Buffer::Type desc, void* data, size_t bufferSize) override;
 		virtual void ModifyBuffer(Buffer& buffer, Buffer::Type bufferType, void* newData, size_t newBufferSize) override;
-		virtual void Cull(const Camera& cam, const std::vector<Entity*> objects, std::vector<Entity*>& objectsToDraw, bool debugDrawEverything = false) override;
-		virtual void Render(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight) override;
+		virtual void Cull(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>> objects, std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objectsToDraw, bool debugDrawEverything = false) override;
+		virtual void Render(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight, unsigned int numDirectionalLights = 0, unsigned int numPointLights = 0) override;
 		virtual void RenderSkybox(const Camera& cam) override;
 		virtual Texture CreateTexture(BlackMagic::byte* data, size_t size, Texture::Type type, Texture::Usage usage) override;
 		virtual Texture CreateTexture(const TextureDesc& desc) override;
 		virtual void ReleaseResource(void* resource) override;
 		virtual void AddResourceRef(void* resource) override;
 		virtual GraphicsContext GetCurrentContext() override;
+		virtual const char* GetShaderExtension() override;
+		virtual void UpdateLightLists(DirectionalLight* dirLights, size_t numDirLights, off_t dirLightOffset, PointLight* pointLights, size_t numPointLights, off_t pointLightOffset) override;
 
 	private:
 		ComPtr<ID3D11Device> _device;
@@ -63,6 +65,8 @@ namespace BlackMagic {
 		Sampler _gBufferSampler;
 		ComPtr<ID3D11Buffer> _quad;
 		Texture* _cosLookup;
+		ComPtr<ID3D11Buffer> _dirLightBuffer;
+		ComPtr<ID3D11Buffer> _pointLightBuffer;
 
 		D3D_FEATURE_LEVEL _featureLevel;
 		UINT _width, _height;
@@ -101,7 +105,7 @@ namespace BlackMagic {
 
 		void InitBuffers();
 		Texture* createEmptyTexture(D3D11_TEXTURE2D_DESC& desc);
-		void RenderShadowMaps(const Camera& cam, const std::vector<Entity*>& objects, const DirectionalLight& sceneLight);
+		void RenderShadowMaps(const Camera& cam, const std::vector<Entity*, AllocatorSTLAdapter<Entity*, BestFitAllocator>>& objects, const DirectionalLight& sceneLight);
 	};
 }
 #endif
