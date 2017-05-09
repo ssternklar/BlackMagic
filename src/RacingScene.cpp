@@ -98,7 +98,7 @@ void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::Ass
 		spline = PlatformBase::GetSingleton()->GetContentManager()->Load<Spline>("misc/track1.bmspline");
 		break;
 	case SceneTags::MACHINE:
-		machine = AllocateAndConstruct<Entity>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material);
+		machine = AllocateAndConstruct<Machine>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material);
 		entities.push_back(machine);
 		break;
 	}
@@ -106,4 +106,6 @@ void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::Ass
 
 void RacingScene::Start()
 {
+	if(machine)
+		machine->Init(spline);
 }

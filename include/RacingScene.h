@@ -5,6 +5,7 @@
 #include "allocators\AllocatorSTLAdapter.h"
 #include "Camera.h"
 #include "Spline.h"
+#include "Machine.h"
 class RacingScene : public BlackMagic::Scene
 {
 public:
@@ -22,7 +23,7 @@ public:
 
 	//Game Stuff
 	BlackMagic::AssetPointer<BlackMagic::Spline> spline;
-	BlackMagic::Entity* machine = nullptr;
+	Machine* machine = nullptr;
 
 	virtual void Update(float deltaTime) override;
 	virtual void Draw(float deltaTime) override;
