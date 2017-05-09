@@ -32,7 +32,7 @@ void Transform::Move(Vector3 dp)
 
 void Transform::MoveTo(Vector3 pos)
 {
-	position = position + pos;
+	position = pos;
 }
 
 void Transform::Rotate(Quaternion q)

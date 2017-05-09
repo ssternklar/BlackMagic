@@ -68,8 +68,8 @@ void Machine::Update(float deltaTime)
 
 	transform.MoveTo(pos);
 	BlackMagic::InputData* data = BlackMagic::PlatformBase::GetSingleton()->GetInputData();
-	float inputPitch = (((data->GetButton(4)) ? 1 : 0) + ((data->GetButton(4)) ? -1 : 0));
-	Quaternion rot = CreateQuaternion(0, M_PI / 180.0f * inputPitch, 0);
+	float inputPitch = (((data->GetButton(6)) ? 1 : 0) + ((data->GetButton(4)) ? -1 : 0));
+	Quaternion rot = CreateQuaternion(0,0,M_PI / 180.0f * inputPitch);
 	transform.Rotate(rot);
 
 	float inputFwd = (data->GetButton(3) ? 1 : 0) + (data->GetButton(5) ? -.5f : 0);
