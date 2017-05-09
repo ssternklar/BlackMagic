@@ -103,3 +103,7 @@ void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::Ass
 		break;
 	}
 }
+
+void RacingScene::Start()
+{
+}

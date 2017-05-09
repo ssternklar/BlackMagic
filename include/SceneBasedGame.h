@@ -43,6 +43,7 @@ public:
 			auto platformBase = BlackMagic::PlatformBase::GetSingleton();
 			currentScene = BlackMagic::AllocateAndConstruct<SceneType>(gameAllocator, 1, gameAllocator);
 			currentScene->Init(sceneDesc);
+			currentScene->Start();
 			platformBase->GetThreadManager()->DestroyContentJob(nextScene);
 			platformBase->GetContentManager()->ForceAssetCleanup(sceneDesc.entry);
 			nextScene = nullptr;

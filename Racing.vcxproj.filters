@@ -53,6 +53,7 @@
     <ClCompile Include="src\RacingScene.cpp" />
     <ClCompile Include="src\Spline.cpp" />
     <ClCompile Include="src\MenuCursor.cpp" />
+    <ClCompile Include="src\Machine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\allocators\AllocatorSTLAdapter.h" />
@@ -105,6 +106,7 @@
     <ClInclude Include="include\Spline.h" />
     <ClInclude Include="include\MenuCursor.h" />
     <ClInclude Include="include\Lights.h" />
+    <ClInclude Include="include\Machine.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\PBRFuncs.hlsli" />
