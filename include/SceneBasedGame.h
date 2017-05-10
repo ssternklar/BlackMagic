@@ -35,17 +35,23 @@ public:
 
 	void SwapScene()
 	{
-		nextScene->WaitUntilJobIsComplete();
-		auto sceneDesc = nextScene->GetResult();
-		SceneType* prevScene = currentScene;
-		auto platformBase = BlackMagic::PlatformBase::GetSingleton();
-		currentScene = BlackMagic::AllocateAndConstruct<SceneType>(gameAllocator, 1, gameAllocator);
-		currentScene->Init(sceneDesc);
-		platformBase->GetThreadManager()->DestroyContentJob(nextScene);
-		platformBase->GetContentManager()->ForceAssetCleanup(sceneDesc.entry);
-		nextScene = nullptr;
-		if(prevScene)
-			BlackMagic::DestructAndDeallocate<SceneType>(gameAllocator, prevScene, 1);
+		if (nextScene)
+		{
+			nextScene->WaitUntilJobIsComplete();
+			auto sceneDesc = nextScene->GetResult();
+			SceneType* prevScene = currentScene;
+			auto platformBase = BlackMagic::PlatformBase::GetSingleton();
+			currentScene = BlackMagic::AllocateAndConstruct<SceneType>(gameAllocator, 1, gameAllocator);
+			currentScene->Init(sceneDesc);
+			currentScene->Start();
+			platformBase->GetThreadManager()->DestroyContentJob(nextScene);
+			platformBase->GetContentManager()->ForceAssetCleanup(sceneDesc.entry);
+			nextScene = nullptr;
+			if(prevScene)
+			{
+				BlackMagic::DestructAndDeallocate<SceneType>(gameAllocator, prevScene, 1);
+			}
+		}
 	}
 
 	virtual void Init(BlackMagic::byte* gameMemory, size_t memorySize)

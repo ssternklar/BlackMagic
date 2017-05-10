@@ -1,19 +1,19 @@
 #include "Spline.h"
 using namespace BlackMagic;
 
-Vector3 SplineControlPoint::GetClosestPointOnPlane(Vector3& InPoint)
+Vector3 SplineControlPoint::GetClosestPointOnPlane(Vector3 InPoint)
 {
 	return InPoint - (BlackMagic::Dot(InPoint - position, normal) * normal);
 }
 
-bool SplineControlPoint::IsInPlaneBounds(Vector3 & InPoint)
+bool SplineControlPoint::IsInPlaneBounds(Vector3 InPoint)
 {
 	auto closestPoint = GetClosestPointOnPlane(InPoint);
 	auto diff = closestPoint - position;
 	return Magnitude(diff) < GetX(scale) / 2;
 }
 
-bool BlackMagic::SplineControlPoint::IsCloseToPlane(Vector3 & InPoint, float limit)
+bool BlackMagic::SplineControlPoint::IsCloseToPlane(Vector3 InPoint, float limit)
 {
 	return Dot(InPoint - position, normal) < limit;
 }
@@ -60,7 +60,7 @@ SplineControlPoint SplinePiece::GetPoint(float t)
 	return ret;
 }
 
-float BlackMagic::SplinePiece::GuessNearestPoint(Vector3& point, float& outDistanceSquared)
+float BlackMagic::SplinePiece::GuessNearestPoint(Vector3 point, float& outDistanceSquared)
 {
 	const int refinementIterations = 3;
 	const float scale = .75f;
@@ -97,7 +97,7 @@ float BlackMagic::SplinePiece::GuessNearestPoint(Vector3& point, float& outDista
 	return tVals[2];
 }
 
-SplinePoint BlackMagic::Spline::GetPoint(float t)
+SplineControlPoint BlackMagic::Spline::GetPoint(float t)
 {
 	float modifiedT = t * segmentCount;
 	int segment = modifiedT;
@@ -105,7 +105,7 @@ SplinePoint BlackMagic::Spline::GetPoint(float t)
 	return segments[segment % segmentCount].GetPoint(indivT);
 }
 
-float BlackMagic::Spline::GuessNearestPoint(Vector3 & point, float * outDistanceSquared)
+float BlackMagic::Spline::GuessNearestPoint(Vector3 point, float * outDistanceSquared)
 {
 	float closest = 0;
 	float closestDistSquared = INFINITY;
@@ -130,7 +130,7 @@ float BlackMagic::Spline::GuessNearestPoint(Vector3 & point, float * outDistance
 
 }
 
-SplinePoint BlackMagic::Spline::GuessNearestPoint(Vector3 & point)
+SplineControlPoint BlackMagic::Spline::GuessNearestPoint(Vector3 point)
 {
 	return GetPoint(GuessNearestPoint(point, nullptr));
 }

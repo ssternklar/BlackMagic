@@ -17,11 +17,11 @@ void Scene::Init(AssetPointer<SceneDesc> desc)
 	auto sceneFileEntityCount = *file;
 	file++;
 
-	AssetPointer<UnknownContentType>* b = alloc->allocate<BlackMagic::AssetPointer<UnknownContentType>>(uidCount);
+	AssetPointer<UnknownContentType>* b = AllocateAndConstruct<AssetPointer<UnknownContentType>>(alloc, uidCount);//->allocate<BlackMagic::AssetPointer<UnknownContentType>>(uidCount);
 	ContentManager* cm = PlatformBase::GetSingleton()->GetContentManager();
 	for (int i = 0; i < uidCount; i++)
 	{
-		b[i] = cm->Load<UnknownContentType>(uids[i]);
+		b[i] = AssetPointer<UnknownContentType>(cm->Load<UnknownContentType>(uids[i]));
 	}
 
 	sceneAssets = b;

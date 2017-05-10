@@ -167,13 +167,13 @@ void MeshData::Export(std::string path, Handle handle)
 	fileData.boundsMeta.elementSize = sizeof(Export::Mesh::Bounds);
 
 	fileData.vertexMeta.offsetInBytes = fileData.boundsMeta.offsetInBytes + fileData.boundsMeta.sizeInBytes;
-	fileData.vertexMeta.sizeInBytes = (uint16_t)(sizeof(Export::Mesh::Vertex) * handle->vertCount);
-	fileData.vertexMeta.elementCount = (uint16_t)handle->vertCount;
+	fileData.vertexMeta.sizeInBytes = sizeof(Export::Mesh::Vertex) * handle->vertCount;
+	fileData.vertexMeta.elementCount = handle->vertCount;
 	fileData.vertexMeta.elementSize = sizeof(Export::Mesh::Vertex);
 
 	fileData.indexMeta.offsetInBytes = fileData.vertexMeta.offsetInBytes + fileData.vertexMeta.sizeInBytes;
-	fileData.indexMeta.sizeInBytes = (uint16_t)(sizeof(uint32_t) * handle->faceCount);
-	fileData.indexMeta.elementCount = (uint16_t)handle->faceCount;
+	fileData.indexMeta.sizeInBytes = sizeof(uint32_t) * handle->faceCount;
+	fileData.indexMeta.elementCount = handle->faceCount;
 	fileData.indexMeta.elementSize = sizeof(uint32_t);
 
 	fwrite(&fileData.blockCount, sizeof(uint8_t), 1, meshFile);

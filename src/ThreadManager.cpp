@@ -73,6 +73,8 @@ void ThreadManager::RunGenericWorker()
 		{
 			job->Run(); //run the job
 			job->done = true;
+			if (job->cleanupSelf)
+				DestroyGenericJob<GenericJob>(job);
 		}
 		else
 		{
@@ -139,6 +141,7 @@ void ThreadManager::RunContentWorker()
 		{
 			//Run the job
 			job->Run();
+			job->done = true;
 		}
 		else
 		{
@@ -201,7 +204,12 @@ RenderJob* ThreadManager::CreateRenderJob()
 		}
 		else
 		{
-			RenderTaskList->next = next;
+			LinkedList* nxt = ContentTaskList;
+			while (nxt && nxt->next)
+			{
+				nxt = nxt->next;
+			}
+			nxt->next = next;
 		}
 		PlatformUnlockMutex(RenderTaskListMutex);
 	}
@@ -235,7 +243,13 @@ AudioJob* BlackMagic::ThreadManager::CreateAudioJob(bool isBGM, WAVFile* file, f
 		}
 		else
 		{
-			AudioTaskList->next = next;
+			LinkedList* nxt = AudioTaskList;
+			while (nxt && nxt->next)
+			{
+				nxt = nxt->next;
+			}
+			nxt->next = next;
+
 		}
 		PlatformUnlockMutex(AudioTaskListMutex);
 	}

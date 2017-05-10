@@ -1,5 +1,10 @@
 #pragma once
 
+//pi is kind of useful
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
+
 namespace BlackMagic
 {
 	struct alignas(16) Vector2 { float data[4]; };

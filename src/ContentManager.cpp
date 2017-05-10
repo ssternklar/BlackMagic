@@ -205,10 +205,10 @@ struct MeshHeader
 
 	struct Block
 	{
-		uint16_t offsetInBytes;
-		uint16_t sizeInBytes;
-		uint16_t elementCount;
-		uint16_t elementSize;
+		uint32_t offsetInBytes;
+		uint32_t sizeInBytes;
+		uint32_t elementCount;
+		uint32_t elementSize;
 	};
 
 	uint8_t blockCount;
@@ -218,20 +218,32 @@ struct MeshHeader
 	Bounds bounds;
 };
 
+unsigned char* ReadMeshBlock(unsigned char* start, MeshHeader::Block* block)
+{
+
+	memcpy_s(block, sizeof(MeshHeader::Block), start, sizeof(MeshHeader::Block));
+	
+	return start + sizeof(MeshHeader::Block);
+}
+
 template<>
 Mesh* ContentManager::load_Internal(const char* fileName, int fileSize)
 {
 	auto file = AssetFile{ directory, fileName, _allocator };
 	auto meshSpace = file.memory;
 
+	byte* ptr = meshSpace;
+	ptr++;
 	//block count
 	uint8_t blockCount = *meshSpace;
 	//Mesh Header Blocks
-	MeshHeader::Block* boundsMeta = (MeshHeader::Block*)(meshSpace + 1);
-	MeshHeader::Block* vertexMeta = (MeshHeader::Block*)(meshSpace + 1 + (sizeof(MeshHeader::Block)));
-	MeshHeader::Block* indexMeta = (MeshHeader::Block*)(meshSpace + 1 + (sizeof(MeshHeader::Block) * 2));
+	MeshHeader::Block boundsMeta;
+	MeshHeader::Block vertexMeta;
+	MeshHeader::Block indexMeta;
+	
+	ReadMeshBlock(ReadMeshBlock(ReadMeshBlock(ptr, &boundsMeta), &vertexMeta), &indexMeta);
 
-	Mesh* ret = AllocateAndConstruct<Mesh>(_allocator, 1, &meshSpace[vertexMeta->offsetInBytes], vertexMeta->elementCount, &meshSpace[indexMeta->offsetInBytes], indexMeta->elementCount, renderer);
+	Mesh* ret = AllocateAndConstruct<Mesh>(_allocator, 1, &meshSpace[vertexMeta.offsetInBytes], vertexMeta.elementCount, &meshSpace[indexMeta.offsetInBytes], indexMeta.elementCount, renderer);
 	return ret;
 }
 
@@ -410,14 +422,13 @@ Material* ContentManager::load_Internal(const char* fileName, int fileSize)
 	uint8_t* mem2 = (uint8_t*)(++mem);
 	uint8_t numTex = *mem2;
 	uint8_t numSamplers = *(++mem2);
-	++mem;
 	Material* m = AllocateAndConstruct<Material>(_allocator, 1, _allocator, vs, ps);
-	const char* namesSegment = (const char*)(mem + numSamplers + (numTex * 2));
+	const char* namesSegment = (const char*)(mem + 1 + numSamplers + (numTex * 2));
 
 	for (int i = 0; i < numTex; i++)
 	{
-		uint16_t texUID = *(++mem);
 		uint16_t texNameIndex = *(++mem);
+		uint16_t texUID = *(++mem);
 		manifest = GetManifestByUID(texUID);
 		std::shared_ptr<Texture> shaderTexture = Load<Texture>(std::string(
 			manifest->resourceName

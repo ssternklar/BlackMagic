@@ -231,7 +231,7 @@ void WindowsPlatform::InputUpdate()
 
 bool BlackMagic::WindowsPlatform::ShouldExit()
 {
-	return msg.message == WM_QUIT;
+	return manualExitTriggered || msg.message == WM_QUIT;
 }
 
 float BlackMagic::WindowsPlatform::GetDeltaTime()

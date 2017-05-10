@@ -43,6 +43,10 @@ namespace BlackMagic
 			}
 		}
 
+		AssetPointer_Base() : AssetPointer_Base(nullptr)
+		{
+		}
+
 		~AssetPointer_Base()
 		{
 			reset();
@@ -55,6 +59,16 @@ namespace BlackMagic
 				entry = other.entry;
 				BM_PLATFORM_ATOMIC_ADD(&(entry->refcount), 1);
 			}
+		}
+
+		AssetPointer_Base& operator=(const AssetPointer_Base& other)
+		{
+			if (other.entry)
+			{
+				entry = other.entry;
+				BM_PLATFORM_ATOMIC_ADD(&(entry->refcount), 1);
+			}
+			return *this;
 		}
 
 		void reset()
@@ -77,6 +91,7 @@ namespace BlackMagic
 	public:
 		AssetPointer(ManifestEntry* entry) : AssetPointer_Base(entry) {};
 		AssetPointer(const AssetPointer& other) : AssetPointer_Base(other) {};
+		AssetPointer() : AssetPointer_Base() {};
 
 		T& operator*()
 		{
