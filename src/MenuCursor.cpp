@@ -12,6 +12,11 @@ MenuCursor::MenuCursor(Transform & myTransform, AssetPointer<Mesh> mesh, AssetPo
 	this->transforms = transforms;
 }
 
+void MenuCursor::Init(BlackMagic::AssetPointer<BlackMagic::WAVFile>* sounds)
+{
+	this->sounds = sounds;
+}
+
 void MenuCursor::Update(float deltaTime)
 {
 	auto inputData = PlatformBase::GetSingleton()->GetInputData();
@@ -19,10 +24,12 @@ void MenuCursor::Update(float deltaTime)
 	if (inputData->GetButton(3) && !prevUp)
 	{
 		currentIndex -= 1;
+		//PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(sounds[0].get(), 1);
 	}
 	else if (inputData->GetButton(5) && !prevDown)
 	{
 		currentIndex += 1;
+		//PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(sounds[0].get(), 1);
 	}
 	currentIndex = abs(currentIndex) % 2;
 	prevUp = inputData->GetButton(3);
@@ -30,6 +37,7 @@ void MenuCursor::Update(float deltaTime)
 
 	if (inputData->GetButton(8))
 	{
+		PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(sounds[1].get(), 1);
 		SceneBasedGame<RacingScene>::GetSingleton()->StartSceneLoad("scenes/easyRace.scene");
 	}
 

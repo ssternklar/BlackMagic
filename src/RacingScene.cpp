@@ -1,12 +1,14 @@
 #include "RacingScene.h"
 #include "SceneBasedGame.h"
 #include "ContentManager.h"
-
+#include "RacingStartJob.h"
 using namespace BlackMagic;
 
 template<> SceneBasedGame<RacingScene>* SceneBasedGame<RacingScene>::singleton = nullptr;
 
-RacingScene::RacingScene(BlackMagic::BestFitAllocator* allocator) : BlackMagic::Scene(allocator), entities(AllocatorAdapter<Entity*>(allocator)), spline(nullptr)
+RacingScene::RacingScene(BlackMagic::BestFitAllocator* allocator) :
+	BlackMagic::Scene(allocator),
+	entities(AllocatorAdapter<Entity*>(allocator))
 {
 	_globalLight = {
 		CreateVector4(0.0f, 0.0f, 0.0f, 1.0f),
@@ -23,11 +25,13 @@ RacingScene::~RacingScene()
 
 void RacingScene::Update(float deltaTime)
 {
-	for (Entity* entity : entities)
+	if(gameIsStarted)
 	{
-		entity->Update(deltaTime);
+		for (Entity* entity : entities)
+		{
+			entity->Update(deltaTime);
+		}
 	}
-
 	Transform t;
 	if (machine)
 	{
@@ -101,11 +105,42 @@ void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::Ass
 		machine = AllocateAndConstruct<Machine>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material);
 		entities.push_back(machine);
 		break;
+	case SceneTags::LIGHT0:
+	case SceneTags::LIGHT1:
+	case SceneTags::LIGHT2:
+		lights[tag - (int)SceneTags::LIGHT0] = AllocateAndConstruct<Entity>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material);
+		lightMats[tag - (int)SceneTags::LIGHT0] = material;
+		entities.push_back(lights[tag - (int)SceneTags::LIGHT0]);
+		break;
 	}
 }
 
 void RacingScene::Start()
 {
-	if(machine)
+	PlatformBase* platform = PlatformBase::GetSingleton();
+	BlackMagic::ContentJob<WAVFile>* boop1Job = platform->GetThreadManager()->CreateContentJob<WAVFile>("misc/boop1.wav");
+	BlackMagic::ContentJob<WAVFile>* boop2Job = platform->GetThreadManager()->CreateContentJob<WAVFile>("misc/boop2.wav");
+	if (machine)
+	{
+		BlackMagic::ContentJob<WAVFile>* bgmJob = platform->GetThreadManager()->CreateContentJob<WAVFile>("misc/bgm.wav");
+		bgm = bgmJob->GetResult();
+		platform->GetAudioManager()->PlayBGM(bgm.get(), .5f);
+		platform->GetThreadManager()->DestroyContentJob<WAVFile>(bgmJob);
+	}
+	startBoops[0] = boop1Job->GetResult();
+	startBoops[1] = boop2Job->GetResult();
+	platform->GetThreadManager()->DestroyContentJob<WAVFile>(boop1Job);
+	platform->GetThreadManager()->DestroyContentJob<WAVFile>(boop2Job);
+
+	//Machine presence is signal for menu vs game
+	if (machine)
+	{
 		machine->Init(spline);
+		platform->GetThreadManager()->CreateGenericJob<RacingStartJob>(lightMats, lights, startBoops, &gameIsStarted);
+	}
+	else
+	{
+		cursor->Init(startBoops);
+		gameIsStarted = true;
+	}
 }

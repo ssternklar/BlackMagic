@@ -10,6 +10,7 @@ namespace BlackMagic
 		bool inProgress = false;
 		virtual void Run() = 0;
 		bool done = false;
+		bool cleanupSelf = false;
 	public:
 		void WaitUntilJobIsComplete();
 		virtual ~GenericJob() {};

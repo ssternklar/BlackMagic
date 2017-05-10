@@ -71,10 +71,10 @@ namespace BlackMagic {
 		JobType* CreateGenericJob(Args&&... args)
 		{
 			PlatformLockMutex(allocatorMutex);
-			JobType* job = AllocateAndConstruct<JobType, Args...>(&allocator, 1, args...);
+			JobType* job = AllocateAndConstruct<JobType, BestFitAllocator, Args...>(&allocator, 1, std::forward<Args>(args)...);
 			if (job)
 			{
-				LinkedList* next = AllocateAndConstruct<LinkedList, JobType*>(&allocator, 1, job);
+				LinkedList* next = AllocateAndConstruct<LinkedList, BestFitAllocator, JobType*>(&allocator, 1, job);
 				PlatformUnlockMutex(allocatorMutex);
 				PlatformLockMutex(GenericTaskListMutex);
 				if (GenericTaskList == nullptr)
@@ -83,7 +83,12 @@ namespace BlackMagic {
 				}
 				else
 				{
-					GenericTaskList->next = next;
+					LinkedList* nxt = ContentTaskList;
+					while (nxt->next)
+					{
+						nxt = nxt->next;
+					}
+					nxt->next = next;
 				}
 				PlatformUnlockMutex(GenericTaskListMutex);
 			}
@@ -134,7 +139,12 @@ namespace BlackMagic {
 				}
 				else
 				{
-					ContentTaskList->next = next;
+					LinkedList* nxt = ContentTaskList;
+					while (nxt->next)
+					{
+						nxt = nxt->next;
+					}
+					nxt->next = next;
 				}
 				PlatformUnlockMutex(ContentTaskListMutex);
 			}
@@ -162,6 +172,11 @@ namespace BlackMagic {
 			}
 			DestructAndDeallocate(&allocator, job, 1);
 			PlatformUnlockMutex(allocatorMutex);
+		}
+
+		void SleepThisThread(unsigned int t)
+		{
+			PlatformSleepThisThread(t);
 		}
 
 		ThreadManager(PlatformBase* base, byte* spaceLocation, size_t spaceSize);

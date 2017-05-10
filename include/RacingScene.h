@@ -6,6 +6,7 @@
 #include "Camera.h"
 #include "Spline.h"
 #include "Machine.h"
+#include "WAVFile.h"
 class RacingScene : public BlackMagic::Scene
 {
 public:
@@ -24,6 +25,12 @@ public:
 	//Game Stuff
 	BlackMagic::AssetPointer<BlackMagic::Spline> spline;
 	Machine* machine = nullptr;
+
+	BlackMagic::AssetPointer<BlackMagic::Material> lightMats[3];
+	BlackMagic::Entity* lights[3];
+	BlackMagic::AssetPointer<BlackMagic::WAVFile> startBoops[2];
+	BlackMagic::AssetPointer<BlackMagic::WAVFile> bgm;
+	bool gameIsStarted = false;
 
 	virtual void Update(float deltaTime) override;
 	virtual void Draw(float deltaTime) override;
