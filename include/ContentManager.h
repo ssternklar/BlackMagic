@@ -81,6 +81,10 @@ namespace BlackMagic
 		AssetPointer<T> Load(int uid)
 		{
 			ManifestEntry* entry = GetManifestByUID(uid);
+			if (strstr(entry->resourceName, "defaults/"))
+			{
+				return nullptr;
+			}
 			if (entry->resource)
 			{
 				return AssetPointer<T>(entry);

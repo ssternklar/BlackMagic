@@ -13,7 +13,7 @@ class SceneBasedGame : public BlackMagic::GameAbstraction
 	static SceneBasedGame* singleton;
 
 	BlackMagic::BestFitAllocator* gameAllocator;
-	SceneType* currentScene;
+	SceneType* currentScene = nullptr;
 	BlackMagic::ContentJob<BlackMagic::SceneDesc>* nextScene;
 	const char* initialSceneName;
 public:
