@@ -63,10 +63,6 @@ namespace BlackMagic
 
 		AssetPointer_Base& operator=(const AssetPointer_Base& other)
 		{
-			if (entry)
-			{
-				BM_PLATFORM_ATOMIC_ADD(&(entry->refcount), -1);
-			}
 			if (other.entry)
 			{
 				entry = other.entry;

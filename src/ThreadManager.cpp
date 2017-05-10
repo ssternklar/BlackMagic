@@ -205,7 +205,7 @@ RenderJob* ThreadManager::CreateRenderJob()
 		else
 		{
 			LinkedList* nxt = ContentTaskList;
-			while (nxt->next)
+			while (nxt && nxt->next)
 			{
 				nxt = nxt->next;
 			}
@@ -243,12 +243,13 @@ AudioJob* BlackMagic::ThreadManager::CreateAudioJob(bool isBGM, WAVFile* file, f
 		}
 		else
 		{
-			LinkedList* nxt = ContentTaskList;
-			while (nxt->next)
+			LinkedList* nxt = AudioTaskList;
+			while (nxt && nxt->next)
 			{
 				nxt = nxt->next;
 			}
 			nxt->next = next;
+
 		}
 		PlatformUnlockMutex(AudioTaskListMutex);
 	}

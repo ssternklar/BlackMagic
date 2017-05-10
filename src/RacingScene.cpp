@@ -25,19 +25,47 @@ RacingScene::~RacingScene()
 
 void RacingScene::Update(float deltaTime)
 {
+	Transform cameraTransform;
 	if(gameIsStarted)
 	{
 		for (Entity* entity : entities)
 		{
 			entity->Update(deltaTime);
 		}
+
+		if (machine)
+		{
+			float distSquared;
+			float mt = spline->GuessNearestPoint(machine->GetTransform().GetPosition(), &distSquared);
+			if (mt > halfPoint && lastT < halfPoint)
+			{
+				crossedHalf = true;
+			}
+			if (mt > start && lastT < start && crossedHalf)
+			{
+				if(lap < 3)
+				{
+					lights[lap]->_material = *lightMats[2];
+					PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(startBoops[1].get(), 1);
+					lap++;
+				}
+				else
+				{
+					PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(startBoops[1].get(), 1);
+					PlatformBase::GetSingleton()->GetAudioManager()->StopBGM();
+					SceneBasedGame<RacingScene>::GetSingleton()->StartSceneLoad("scenes/title.scene");
+				}
+			}
+			lastT = mt;
+		}
 	}
-	Transform t;
+
 	if (machine)
 	{
-		t = machine->GetTransform();
+		cameraTransform = machine->GetTransform();
 	}
-	camera->Update(t);
+
+	camera->Update(cameraTransform);
 }
 
 void RacingScene::Draw(float deltaTime)
@@ -136,7 +164,13 @@ void RacingScene::Start()
 	if (machine)
 	{
 		machine->Init(spline);
+		machine->Update(0);
 		platform->GetThreadManager()->CreateGenericJob<RacingStartJob>(lightMats, lights, startBoops, &gameIsStarted);
+		float distSquared;
+		start = spline->GuessNearestPoint(machine->GetTransform().GetPosition(), &distSquared);
+		halfPoint = start + .5;
+		halfPoint -= (int)halfPoint;
+		lastT = start;
 	}
 	else
 	{

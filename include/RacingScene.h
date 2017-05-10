@@ -31,7 +31,11 @@ public:
 	BlackMagic::AssetPointer<BlackMagic::WAVFile> startBoops[2];
 	BlackMagic::AssetPointer<BlackMagic::WAVFile> bgm;
 	bool gameIsStarted = false;
-
+	int lap = 1;
+	float start;
+	float halfPoint;
+	float lastT;
+	bool crossedHalf;
 	virtual void Update(float deltaTime) override;
 	virtual void Draw(float deltaTime) override;
 	virtual void ProcessType(uint16_t tag, Transform transform, BlackMagic::AssetPointer<BlackMagic::Mesh> mesh, BlackMagic::AssetPointer<BlackMagic::Material> material) override;

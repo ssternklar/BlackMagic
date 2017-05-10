@@ -84,7 +84,7 @@ namespace BlackMagic {
 				else
 				{
 					LinkedList* nxt = ContentTaskList;
-					while (nxt->next)
+					while (nxt && nxt->next)
 					{
 						nxt = nxt->next;
 					}
@@ -140,7 +140,7 @@ namespace BlackMagic {
 				else
 				{
 					LinkedList* nxt = ContentTaskList;
-					while (nxt->next)
+					while (nxt && nxt->next)
 					{
 						nxt = nxt->next;
 					}
