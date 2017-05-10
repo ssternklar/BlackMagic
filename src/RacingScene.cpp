@@ -37,23 +37,27 @@ void RacingScene::Update(float deltaTime)
 		{
 			float distSquared;
 			float mt = spline->GuessNearestPoint(machine->GetTransform().GetPosition(), &distSquared);
-			if (mt > halfPoint && lastT < halfPoint)
+			if(abs(mt) - abs(lastT) < .2f)
 			{
-				crossedHalf = true;
-			}
-			if (mt > start && lastT < start && crossedHalf)
-			{
-				if(lap < 3)
+				if (mt > halfPoint && lastT < halfPoint)
 				{
-					lights[lap]->_material = *lightMats[2];
-					PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(startBoops[1].get(), 1);
-					lap++;
+					crossedHalf = true;
 				}
-				else
+				if (mt > start && lastT < start && crossedHalf)
 				{
-					PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(startBoops[1].get(), 1);
-					PlatformBase::GetSingleton()->GetAudioManager()->StopBGM();
-					SceneBasedGame<RacingScene>::GetSingleton()->StartSceneLoad("scenes/title.scene");
+					if(lap < 3)
+					{
+						lights[lap]->_material = *lightMats[2];
+						PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(startBoops[1].get(), 1);
+						crossedHalf = false;
+						lap++;
+					}
+					else
+					{
+						PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(startBoops[1].get(), 1);
+						PlatformBase::GetSingleton()->GetAudioManager()->StopBGM();
+						SceneBasedGame<RacingScene>::GetSingleton()->StartSceneLoad("scenes/title.scene");
+					}
 				}
 			}
 			lastT = mt;

@@ -26,6 +26,7 @@ namespace BlackMagic {
 		AudioManager* audioManager;
 		unsigned int windowWidth = 1280;
 		unsigned int windowHeight = 720;
+		bool manualExitTriggered = false;
 		static PlatformBase* singleton;
 	public:
 		static const int CPU_MEMORY_SIZE = 1024 * 1024 * 1024;
@@ -55,5 +56,6 @@ namespace BlackMagic {
 		byte* GetGameMemory();
 		size_t GetGameMemorySize();
 		static PlatformBase* GetSingleton();
+		void Exit();
 	};
 }

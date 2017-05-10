@@ -128,3 +128,8 @@ PlatformBase* BlackMagic::PlatformBase::GetSingleton()
 {
 	return singleton;
 }
+
+void BlackMagic::PlatformBase::Exit()
+{
+	manualExitTriggered = true;
+}

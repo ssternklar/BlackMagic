@@ -37,8 +37,15 @@ void MenuCursor::Update(float deltaTime)
 
 	if (inputData->GetButton(8))
 	{
-		PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(sounds[1].get(), 1);
-		SceneBasedGame<RacingScene>::GetSingleton()->StartSceneLoad("scenes/easyRace.scene");
+		if(currentIndex == 0)
+		{
+			PlatformBase::GetSingleton()->GetAudioManager()->PlayOneShot(sounds[1].get(), 1);
+			SceneBasedGame<RacingScene>::GetSingleton()->StartSceneLoad("scenes/easyRace.scene");
+		}
+		else
+		{
+			PlatformBase::GetSingleton()->Exit();
+		}
 	}
 
 	this->_transform = (transforms[currentIndex]);
