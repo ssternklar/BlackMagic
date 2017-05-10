@@ -12,6 +12,6 @@ namespace BlackMagic
 		~FirstPersonCamera() = default;
 		void Update(float delta);
 	private:
-		float _rotation[2];
+		float _rotation[2] = { 0, 0 };
 	};
 }

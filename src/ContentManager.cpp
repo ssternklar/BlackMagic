@@ -439,7 +439,7 @@ Material* ContentManager::load_Internal(const char* fileName, int fileSize)
 
 	for (int i = 0; i < numSamplers; i++)
 	{
-		uint16_t samplerNameIndex = *(mem);
+		uint16_t samplerNameIndex = *(++mem);
 		Sampler s = PlatformBase::GetSingleton()->GetRenderer()->CreateSampler();
 		m->SetResource(std::string(&namesSegment[samplerNameIndex]), Material::ResourceStage::PS, s, Material::ResourceStorageType::Instance);
 	}
