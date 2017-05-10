@@ -92,7 +92,7 @@ enum class SceneTags
 	QUIT = 5,
 	CURSOR = 6,
 	TRACK = 7,
-	MACHINE = 8,
+	CAR = 8,
 	LIGHT0 = 9,
 	LIGHT1 = 10,
 	LIGHT2 = 11,
@@ -133,7 +133,7 @@ void RacingScene::ProcessType(uint16_t tag, Transform transform, BlackMagic::Ass
 		entities.push_back(AllocateAndConstruct<Entity>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material));
 		spline = PlatformBase::GetSingleton()->GetContentManager()->Load<Spline>("misc/track1.bmspline");
 		break;
-	case SceneTags::MACHINE:
+	case SceneTags::CAR:
 		machine = AllocateAndConstruct<Machine>(alloc, 1, transform.GetPosition(), transform.GetRotation(), (mesh), *material);
 		entities.push_back(machine);
 		break;
