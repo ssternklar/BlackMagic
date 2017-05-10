@@ -32,6 +32,7 @@ namespace BlackMagic
 		BoundingFrustum(const BoundingFrustum&) = default;
 		BoundingFrustum& operator=(const BoundingFrustum&) = default;
 		
+		void GetCorners(Vector3* points);
 		void Transform(BoundingFrustum& out, Mat4 m);
 	};
 
@@ -67,7 +68,9 @@ namespace BlackMagic
 	Vector4 Lerp(Vector4 t0, Vector4 t1, float t);
 	Vector4 operator*(Vector4 left, float scalar);
 	Vector4 operator*(float scalar, Vector4 right);
+	Vector4 operator*(Vector4 left, Vector4 right);
 	Vector4 operator/(Vector4 left, float scalar);
+	Vector4 operator/(Vector4 left, Vector4 right);
 	Vector4 operator+(Vector4 left, Vector4 right);
 	Vector4 operator-(Vector4 left, Vector4 right);
 	float GetX(Vector4 vec);
@@ -86,6 +89,7 @@ namespace BlackMagic
 	Matrix4 CreateMatrix4Zero();
 	Matrix4 CreateMatrixLookToLH(Vector3 pos, Vector3 dir, Vector3 up);
 	Matrix4 CreateMatrixPerspectiveFovLH(float fov, float aspect, float near, float far);
+	Matrix4 CreateMatrixOrthographicOffCenterLH(float left, float right, float top, float bottom, float near, float far);
 	Matrix4 CreateAffineTransformation(Vector3 scale, Vector3 rotOffset, Quaternion rotation, Vector3 pos);
 	float Matrix4GetData(Matrix4 mat4, int row, int col);
 	Vector4 operator*(Vector4 vec, Matrix4 matrix);

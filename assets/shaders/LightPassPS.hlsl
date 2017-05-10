@@ -165,5 +165,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 		linearDepth
 	);
 #endif
-	return float4(pow(ColorFromDirectionalLights(buffer)*(shadow/2 + 0.5), 1), linearDepth < 1);
+	return float4(pow(ColorFromDirectionalLights(buffer)*shadow, 1), linearDepth < 1);
 }
