@@ -68,12 +68,12 @@ void Machine::Update(float deltaTime)
 
 	transform.MoveTo(pos);
 	BlackMagic::InputData* data = BlackMagic::PlatformBase::GetSingleton()->GetInputData();
-	float inputPitch = (((data->GetButton(6)) ? 1 : 0) + ((data->GetButton(4)) ? -1 : 0));
+	float inputPitch = (((data->GetButton(6)) ? 1 : 0) + ((data->GetButton(4)) ? -1 : 0)) * deltaTime;
 	inputPitch *= 1.2f;
-	Quaternion rot = CreateQuaternion(0,0,M_PI / 180.0f * inputPitch);
+	Quaternion rot = CreateQuaternion(0,0,inputPitch);
 	transform.Rotate(rot);
 
-	float inputFwd = (data->GetButton(3) ? 1 : 0) + (data->GetButton(5) ? -.1f : 0);
+	float inputFwd = (data->GetButton(8) ? 1 : 0);
 
 	Vector3 frameVelocity = CreateVector3(0, 0, inputFwd * maxVelocity * 30 * deltaTime);
 	velocity = velocity + frameVelocity;

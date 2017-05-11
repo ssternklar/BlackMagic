@@ -23,8 +23,10 @@ Material::Material(
 Material::Material(const Material& m)
 	: Material(m._allocator, m._vertShader, m._pixelShader)
 {
-	_staticData = m._staticData;
-	_instanceData = m._instanceData;
+	if(m._staticData.size() > 0)
+		_staticData = m._staticData;
+	if(m._instanceData.size() > 0)
+		_instanceData = m._instanceData;
 }
 
 Material::~Material()
@@ -37,8 +39,10 @@ Material& Material::operator=(const Material& m)
 	_allocator = m._allocator;
 	_vertShader = m._vertShader;
 	_pixelShader = m._pixelShader;
-	_staticData = m._staticData;
-	_instanceData = m._instanceData;
+	if(m._staticData.size() > 0)
+		_staticData = m._staticData;
+	if(m._instanceData.size() > 0)
+		_instanceData = m._instanceData;
 
 	return *this;
 }

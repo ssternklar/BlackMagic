@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include <unordered_map>
 #include "allocators/AllocatorSTLAdapter.h"
 #include "allocators/BadBestFitAllocator.h"
 #include "Lights.h"
@@ -85,10 +86,14 @@ namespace BlackMagic
 
 
 		using AllocatorAdapter = AllocatorSTLAdapter<std::pair<std::string, std::shared_ptr<ResourceData>>, BestFitAllocator>;
-		mutable std::unordered_map<std::string, std::shared_ptr<ResourceData>, std::hash<std::string>, std::equal_to<std::string>, 
-			AllocatorSTLAdapter<std::pair<std::string, std::shared_ptr<ResourceData>>, BestFitAllocator>> _staticData;
-		mutable std::unordered_map<std::string, std::shared_ptr<ResourceData>, std::hash<std::string>, std::equal_to<std::string>,
-			AllocatorSTLAdapter<std::pair<std::string, std::shared_ptr<ResourceData>>, BestFitAllocator>> _instanceData;
+		
+		using MapType = std::unordered_map<std::string, std::shared_ptr<ResourceData>, std::hash<std::string>, std::equal_to<std::string>,
+			AllocatorSTLAdapter<std::pair<std::string, std::shared_ptr<ResourceData>>, BestFitAllocator>>;
+		
+		//using MapType = std::unordered_map<std::string, std::shared_ptr<ResourceData>>;
+
+		mutable MapType _staticData;
+		mutable MapType _instanceData;
 		std::shared_ptr<SimpleVertexShader> _vertShader;
 		std::shared_ptr<SimplePixelShader> _pixelShader;
 		BestFitAllocator* _allocator;

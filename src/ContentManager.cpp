@@ -58,7 +58,9 @@ void ContentManager::ForceAssetCleanup(ManifestEntry* entry)
 			DestructAndDeallocate(_allocator, ((Spline*)entry->resource), 1);
 			break;
 		case ManifestEntry::MATERIAL:
+#ifdef BM_PLATFORM_WINDOWS
 			DestructAndDeallocate(_allocator, (Material*)entry->resource, 1);
+#endif
 			break;
 		default:
 			break;

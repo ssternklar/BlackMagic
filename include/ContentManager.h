@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 
 #include "PlatformBase.h"
 #include "SimpleShader.h"
